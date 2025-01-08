@@ -7,6 +7,7 @@ class DobotMagicianE6:
         self.port = port
         self.connection = None
         self.isEnabled = False
+        self.isDebug = True
 
     def Connect(self):
         '''
@@ -14,11 +15,11 @@ class DobotMagicianE6:
         :return: None
         '''
         try :
-            print(f"Connecting to Dobot at {self.ip}:{self.port}...")
+            if self.isDebug: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
             self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connection.connect((self.ip, self.port))
             time.sleep(2)  # Wait for the connection to establish
-            print("  Connected to Dobot Magician E6")
+            if self.isDebug: print("  Connected to Dobot Magician E6")
         except:
             print("  Connection error")
             self.connection = None
@@ -29,7 +30,7 @@ class DobotMagicianE6:
         :return: The response from the robot.
         '''
         if self.isEnabled == False:
-            print("  Enabling Dobot Magician E6...")
+            if self.isDebug: print("  Enabling Dobot Magician E6...")
             return self.Send_command("EnableRobot()")
 
     def DisableRobot(self):
@@ -40,13 +41,14 @@ class DobotMagicianE6:
         if self.isEnabled:
             response = self.Send_command("DisableRobot()")
             self.isEnabled = False
+            if self.isDebug: print("  Disable Dobot Magician E6...")
             return response
 
     def Disconnect(self):
         if self.connection:
             self.connection.close()
             self.connection = None
-            print("  Disconnected from Dobot Magician E6")
+            if self.isDebug: print("  Disconnected from Dobot Magician E6")
 
     def Send_command(self, command):
         '''
@@ -76,7 +78,7 @@ class DobotMagicianE6:
         :param j6: The joint 6 position.
         :return: The response from the robot.
         '''
-        print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.isDebug: print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
     
@@ -85,8 +87,16 @@ class DobotMagicianE6:
         Move the robot to the home position.
         :return: The response from the robot.
         '''
-        print("  Moving robot to home position")
+        if self.isDebug: print("  Moving robot to home position")
         return self.MoveJ(0,0,0,0,0,0)
+
+    def SetDebug(self, isDebug):
+        '''
+        Set the debug mode for the Dobot Object
+        :param isDebug: Print Debug messages yes (True) or no  (False).
+        :return: None
+        '''
+        self.isDebug = isDebug
 
 # Example usage
 if __name__ == "__main__":
