@@ -31,7 +31,13 @@ class DobotMagicianE6:
         '''
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            return self.Send_command("EnableRobot()")
+            response = self.Send_command("EnableRobot()")
+            if response == "Control Mode Is Not Tcp":
+                self.isEnabled = False
+                raise Exception("Control Mode Is Not Tcp")
+            else:
+                self.isEnabled = True
+                return response
 
     def DisableRobot(self):
         '''
@@ -50,11 +56,19 @@ class DobotMagicianE6:
             self.connection = None
             if self.isDebug: print("  Disconnected from Dobot Magician E6")
 
+    def ClearError(self):
+        '''
+        Clear any errors on the Dobot Magician E6 robot.
+        :return: The response from the robot.
+        '''
+        if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
+        return self.Send_command("ClearError()")
+
     def Send_command(self, command):
         '''
-            Send a command to the Dobot and receive a response.
-            :param command: The command string to send.
-            :return: The response from the robot.
+        Send a command to the Dobot and receive a response.
+        :param command: The command string to send.
+        :return: The response from the robot.
         '''
         if self.connection:
             try:
@@ -98,10 +112,31 @@ class DobotMagicianE6:
         '''
         self.isDebug = isDebug
 
+    def ToolDO(self, index, status):
+        '''
+        Set the digital output of the tool.
+        :param index: Tool DO index.
+        :param status: Tool DO status. 1: ON, 0: OFF.
+        :return: The response from the robot.
+        '''
+        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
+        return self.Send_command(f"ToolDO({index},{status})")
+    
+    def SetSucker(self, status):
+        '''
+        Set the sucker status.
+        :param status: Sucker status. 1: ON, 0: OFF.
+        :return: The response from the robot.
+        '''
+        if self.isDebug: print(f"  Setting sucker to {status}")
+        return self.ToolDO(1,status)
+
 # Example usage
 if __name__ == "__main__":
     dobot = DobotMagicianE6()
     dobot.Connect()
-    dobot.EnableRobot()
-    dobot.Home()
+    print(dobot.EnableRobot())
+    dobot.SetSucker(1)
+    time.sleep(2)
+    dobot.SetSucker(0)
     dobot.Disconnect()
