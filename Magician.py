@@ -9,6 +9,10 @@ class DobotMagicianE6:
         self.isEnabled = False
 
     def Connect(self):
+        '''
+        Connect to the Dobot Magician E6 robot.
+        :return: None
+        '''
         try :
             print(f"Connecting to Dobot at {self.ip}:{self.port}...")
             self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,11 +24,19 @@ class DobotMagicianE6:
             self.connection = None
 
     def EnableRobot(self):
+        '''
+        Enable the Dobot Magician E6 robot.
+        :return: The response from the robot.
+        '''
         if self.isEnabled == False:
             print("  Enabling Dobot Magician E6...")
             return self.Send_command("EnableRobot()")
 
     def DisableRobot(self):
+        '''
+        Disable the Dobot Magician E6 robot.
+        :return: The response from the robot.
+        '''
         if self.isEnabled:
             response = self.Send_command("DisableRobot()")
             self.isEnabled = False
@@ -37,11 +49,11 @@ class DobotMagicianE6:
             print("  Disconnected from Dobot Magician E6")
 
     def Send_command(self, command):
-        """
+        '''
             Send a command to the Dobot and receive a response.
             :param command: The command string to send.
             :return: The response from the robot.
-        """
+        '''
         if self.connection:
             try:
                 self.connection.sendall(command.encode() + b'\n')
@@ -54,7 +66,7 @@ class DobotMagicianE6:
             raise Exception("  ! Not connected to Dobot Magician E6")
 
     def MoveJ(self,j1,j2,j3,j4,j5,j6):
-        """
+        '''
         Move the robot to a specified joint position.
         :param j1: The joint 1 position.
         :param j2: The joint 2 position.
@@ -63,15 +75,23 @@ class DobotMagicianE6:
         :param j5: The joint 5 position.
         :param j6: The joint 6 position.
         :return: The response from the robot.
-        """
+        '''
         print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
+    
+    def Home(self):
+        '''
+        Move the robot to the home position.
+        :return: The response from the robot.
+        '''
+        print("  Moving robot to home position")
+        return self.MoveJ(0,0,0,0,0,0)
 
 # Example usage
 if __name__ == "__main__":
     dobot = DobotMagicianE6()
     dobot.Connect()
     dobot.EnableRobot()
-    dobot.MoveJ(0, -20, 0, 0, 0, 0)
+    dobot.Home()
     dobot.Disconnect()
