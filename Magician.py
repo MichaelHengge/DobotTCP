@@ -11,6 +11,7 @@ class DobotMagicianE6:
         self.isEnabled = False
         self.isDebug = True
 
+    # General Python Commands:
 
     def Connect(self):
         """
@@ -75,6 +76,18 @@ class DobotMagicianE6:
                 return None
         else:
             raise Exception("  ! Not connected to Dobot Magician E6")
+
+    def SetDebug(self, isDebug):
+        """
+        Set the debug mode for the Dobot Object
+
+        Args
+        isDebug (bool): Print Debug messages yes (True) or no  (False).
+
+        Returns:
+            None
+        """
+        self.isDebug = isDebug
 
 
     # Control Commands:
@@ -184,7 +197,7 @@ class DobotMagicianE6:
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
+            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ},{isCheck})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -326,6 +339,137 @@ class DobotMagicianE6:
         if self.isDebug: print("  Exiting drag mode...")
         return self.Send_command("StopDrag()")
 
+
+    # Settings Commands
+
+    def SpeedFactor(self, ratio=0):
+        """
+        Set the global speed factor of the robot.
+
+        Args:
+            ratio (int): The global speed factor. Range: 1~100
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting global speed factor to {ratio}")
+        return self.Send_command(f"SpeedFactor({ratio})")
+
+    def User(self,index):
+        """
+        Set the global user coordinate system of the robot. Default is 0.
+
+        Args:
+            index (int): Calibrated user coordinate system. Needs to be set up in DobotStudio before it can be used here.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting user index to {index}")
+        return self.Send_command(f"User({index})")
+
+    def SetUser(self, index, table):
+        """
+        Modify the specified user coordinate system of the robot.
+
+        Args:
+            index (int): User coordinate system index. Range: [0,9]
+            table (string): User coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting user coordinate system {index} to {table}")
+        return self.Send_command(f"SetUser({index},{table})")
+
+    def CalcUser(self, index, matrix_direction, table):
+        """
+        Calculate the user coordinate system of the robot.
+
+        Args:
+            index (int): User coordinate system index. Range: [0,9]
+            matrix_direction (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
+            table (string): User coordinate system offset (format: {x, y, z, rx, ry, rz}).
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Calculating user coordinate system {index} to {table}")
+        return self.Send_command(f"CalcUser({index},{matrix_direction},{table})")
+
+    def Tool(self, index):
+        """
+        Set the global tool coordinate system of the robot. Default is 0.
+
+        Args:
+            index (int): Calibrated tool coordinate system. Needs to be set up in DobotStudio before it can be used here.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool index to {index}")
+        return self.Send_command(f"Tool({index})")
+    
+    def SetTool(self, index, table):
+        """
+        Modify the specified tool coordinate system of the robot.
+
+        Args:
+            index (int): Tool coordinate system index. Range: [0,9]
+            table (string): Tool coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool coordinate system {index} to {table}")
+        return self.Send_command(f"SetTool({index},{table})")
+    
+    def CalcTool(self, index, matrix_direction, table):
+        """
+        Calculate the tool coordinate system of the robot.
+
+        Args:
+            index (int): Tool coordinate system index. Range: [0,9]
+            matrix_direction (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
+            table (string): Tool coordinate system offset (format: {x, y, z, rx, ry, rz}).
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Calculating tool coordinate system {index} to {table}")
+        return self.Send_command(f"CalcTool({index},{matrix_direction},{table})")
+
+    @dispatch(float)
+    def SetPayload(self, load):
+        """
+        Set the robot payload.
+
+        Args:
+            load (float): The load weight on the robot. Unit: kg
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting payload to {load} kg)")
+        return self.Send_command(f"SetPayload({load})")
+
+    @dispatch(float, float, float, float)
+    def SetPayload(self, load, x, y, z):
+        """
+        Set the robot payload.
+
+        Args:
+            load (float): The load weight on the robot. Unit: kg
+            x (float): Eccentric distance in X direction, range: -500~500. Unit: mm
+            y (float): Eccentric distance in Y direction, range: -500~500. Unit: mm
+            z (float): Eccentric distance in Z direction, range: -500~500. Unit: mm
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
+        return self.Send_command(f"SetPayload({load},{x},{y},{z})")
+
     # Movement Commands:
 
     def MoveJ(self,j1,j2,j3,j4,j5,j6):
@@ -347,6 +491,25 @@ class DobotMagicianE6:
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
     
+    def MoveL(self,j1,j2,j3,j4,j5,j6):
+        """
+        Move the robot to a specified joint position.
+
+        Args:
+            j1 (int): Joint 1 angle.
+            j2 (int): Joint 2 angle.
+            j3 (int): Joint 3 angle.
+            j4 (int): Joint 4 angle.
+            j5 (int): Joint 5 angle.
+            j6 (int): Joint 6 angle.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
+        move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
+        return self.Send_command(move_command)
+
     def Home(self):
         """
         Move the robot to the home position.
@@ -357,17 +520,6 @@ class DobotMagicianE6:
         if self.isDebug: print("  Moving robot to home position")
         return self.MoveJ(0,0,0,0,0,0)
 
-    def SetDebug(self, isDebug):
-        """
-        Set the debug mode for the Dobot Object
-
-        Args
-        isDebug (bool): Print Debug messages yes (True) or no  (False).
-
-        Returns:
-            None
-        """
-        self.isDebug = isDebug
 
     def ToolDO(self, index, status):
         """
@@ -382,16 +534,7 @@ class DobotMagicianE6:
         """
         if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
         return self.Send_command(f"ToolDO({index},{status})")
-    
-    def ClearError(self):
-        """
-        Clear any errors on the Dobot Magician E6 robot.
-
-        Returns:
-            The response from the robot.
-        """
-        if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
-        return self.Send_command("ClearError()")
+       
 
     def SetSucker(self, status):
         """
