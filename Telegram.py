@@ -35,6 +35,7 @@ def read_config(file_path):
 robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
 
 async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global isConnected
     try:
         robot.Connect()
         robot.EnableRobot()
