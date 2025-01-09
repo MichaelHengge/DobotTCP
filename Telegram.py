@@ -32,7 +32,7 @@ def read_config(file_path):
 # Initialize the Dobot Magician
 robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         robot.Connect()
         robot.EnableRobot()
@@ -78,12 +78,16 @@ async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    robot.MoveJ(180, 0, -50, -20, 90, 0)
+    robot.MoveJ(180, 0, -50, 50, 90, 0)
+    robot.MoveJ(270, 0, 50, -50, 0, 0)
+    robot.MoveJ(270, 30, -50, 50, 0, -30)
+    robot.MoveJ(270, 0, 50, -50, 0, 0)
+    robot.MoveJ(270, 30, -50, 50, 0, -30)
     robot.MoveJ(270, 0, 0, 0, 0, 0)
-    robot.MoveJ(270, 30, -60, -10, 0, 0)
-    robot.MoveJ(270, 60, -30, 30, 0, 0)
-    robot.MoveJ(270, 30, -60, -10, 0, 0)
-    robot.MoveJ(270, 60, -30, 30, 0, 0)
-    robot.MoveJ(270, 0, 0, 0, 0, 0)
+
+async def pack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    robot.MoveJ(-90, 0, -140, -40, 0, 0)
 
 async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
@@ -132,7 +136,7 @@ def main():
     application = Application.builder().token(token).build()
 
     # Register command handlers
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("connect", connect))
     application.add_handler(CommandHandler("move", move))
     application.add_handler(CommandHandler("home", home))
     application.add_handler(CommandHandler("stop", stop))
