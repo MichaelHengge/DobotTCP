@@ -4,6 +4,8 @@ from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from Magician import DobotMagicianE6
 
+isConnected = False
+
 # Function to read the API token and user IDs from the config file
 def read_config(file_path):
     try:
@@ -37,10 +39,15 @@ async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         robot.Connect()
         robot.EnableRobot()
         await update.message.reply_text("Robot connected and enabled.")
+        isConnected = True
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
+        isConnected = False
 
 async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     try:
         joints = list(map(float, context.args))
         if len(joints) != 6:
@@ -55,6 +62,9 @@ async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
 
 async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     try:
         response = robot.Home()
         await update.message.reply_text(f"Robot returning to home position.")
@@ -62,6 +72,9 @@ async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     try:
         response = robot.DisableRobot()
         await update.message.reply_text(f"Robot stopped.")
@@ -69,6 +82,9 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
 
 async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Waving at the window.")
     robot.MoveJ(176.5, 5.6, -52.9, -32.2, 87.8, 11.8)
     robot.MoveJ(176.5, 5.6, -52.9, 32.2, 87.8, 11.8)
@@ -79,6 +95,9 @@ async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Wiggleling at the window.")
     robot.MoveJ(180, 0, -50, -20, 90, 0)
     robot.MoveJ(180, 0, -50, 50, 90, 0)
@@ -89,10 +108,16 @@ async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def pack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Robot packing up.")
     robot.MoveJ(-90, 0, -140, -40, 0, 0)
 
 async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Greeting to the door.")
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, -15)
@@ -100,14 +125,23 @@ async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
 
 async def suckerON(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Activate sucker.")
     robot.SetSucker(1)
 
 async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Deactivate sucker.")
     robot.SetSucker(0)
 
 async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Robot picking up sign.")
     robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
     time.sleep(2)
@@ -116,6 +150,9 @@ async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
 async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
     await update.message.reply_text("Robot returning sign.")
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
     robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
