@@ -363,7 +363,7 @@ class DobotMagicianE6:
             index (int): Calibrated user coordinate system. Needs to be set up in DobotStudio before it can be used here.
 
         Returns:
-            The response from the robot.
+             ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands. -1 indicates that the set user coordinate system index does not exist.
         """
         if self.isDebug: print(f"  Setting user index to {index}")
         return self.Send_command(f"User({index})")
@@ -392,7 +392,7 @@ class DobotMagicianE6:
             table (string): User coordinate system offset (format: {x, y, z, rx, ry, rz}).
 
         Returns:
-            The response from the robot.
+            The user coordinate system after calculation {x, y, z, rx, ry, rz}.
         """
         if self.isDebug: print(f"  Calculating user coordinate system {index} to {table}")
         return self.Send_command(f"CalcUser({index},{matrix_direction},{table})")
@@ -405,7 +405,7 @@ class DobotMagicianE6:
             index (int): Calibrated tool coordinate system. Needs to be set up in DobotStudio before it can be used here.
 
         Returns:
-            The response from the robot.
+            ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands. -1 indicates that the set user coordinate system index does not exist.
         """
         if self.isDebug: print(f"  Setting tool index to {index}")
         return self.Send_command(f"Tool({index})")
@@ -434,10 +434,24 @@ class DobotMagicianE6:
             table (string): Tool coordinate system offset (format: {x, y, z, rx, ry, rz}).
 
         Returns:
-            The response from the robot.
+            The tool coordinate system after calculation {x, y, z, rx, ry, rz}.
         """
         if self.isDebug: print(f"  Calculating tool coordinate system {index} to {table}")
         return self.Send_command(f"CalcTool({index},{matrix_direction},{table})")
+
+    @dispatch(str)
+    def SetPayload(self, name):
+        """
+        Set the robot payload.
+
+        Args:
+            name (string): Load parameter group saved in DobotStudio.
+
+        Returns:
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting payload to preset {name})")
+        return self.Send_command(f"SetPayload({name})")
 
     @dispatch(float)
     def SetPayload(self, load):
@@ -448,7 +462,7 @@ class DobotMagicianE6:
             load (float): The load weight on the robot. Unit: kg
 
         Returns:
-            The response from the robot.
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
         """
         if self.isDebug: print(f"  Setting payload to {load} kg)")
         return self.Send_command(f"SetPayload({load})")
@@ -465,10 +479,114 @@ class DobotMagicianE6:
             z (float): Eccentric distance in Z direction, range: -500~500. Unit: mm
 
         Returns:
-            The response from the robot.
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
         """
         if self.isDebug: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
         return self.Send_command(f"SetPayload({load},{x},{y},{z})")
+
+    def AccJ(self, R=100):
+        """
+        Set the robot acceleration rate for joint motions.
+
+        Args:
+            R (int): Acceleration rate. Range: 1~100. Default is 100.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting joint acceleration to {R}")
+        return self.Send_command(f"AccJ({R})")
+
+    def AccL(self, R=100):
+        """
+        Set the robot acceleration rate for linear motions.
+
+        Args:
+            R (int): Acceleration rate. Range: 1~100. Default is 100.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting linear acceleration to {R}")
+        return self.Send_command(f"AccL({R})")
+    
+    def VelJ(self, R=100):
+        """
+        Set the robot velocity rate for joint motions.
+
+        Args:
+            R (int): Velocity rate. Range: 1~100. Default is 100.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting joint velocity to {R}")
+        return self.Send_command(f"VelJ({R})")
+
+    def VelL(self, R=100):
+        """
+        Set the robot velocity rate for linear motions.
+
+        Args:
+            R (int): Velocity rate. Range: 1~100. Default is 100.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting linear velocity to {R}")
+        return self.Send_command(f"VelL({R})")
+
+    def CP(self, R=0):
+        """
+        Set the robot continuous path (CP) rate.
+
+        Args:
+            R (int): Continuous path rate. Range: 0~100. Default is 0.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting continuous path rate to {R}")
+        return self.Send_command(f"CP({R})")
+
+    def SetCollisionLevel(self, level):
+        """
+        Set the robot collision sensitivity level.
+
+        Args:
+            level (int): Collision sensitivity level. Range: 0~5. 0: Disable collision detection, 5: More sensitive with higher level.
+
+        Returns:
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting collision sensitivity level to {level}")
+        return self.Send_command(f"SetCollisionLevel({level})")
+
+    def SetBackDistance(self, distance):
+        """
+        Set the robot backoff distance after a collision is detected.
+
+        Args:
+            distance (float): Backoff distance. Range: 0~50. Unit: mm.
+
+        Returns:
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting back distance to {distance}")
+        return self.Send_command(f"SetBackDistance({distance})")
+
+    def SetPostCollisionMode(self, mode):
+        """
+        Set the robot post-collision mode.
+
+        Args:
+            mode (int): Post-collision mode. 0: Stop, 1: Pause.
+
+        Returns:
+            ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting post-collision mode to {mode}")
+        return self.Send_command(f"SetPostCollisionMode({mode})")
 
     # Movement Commands:
 
