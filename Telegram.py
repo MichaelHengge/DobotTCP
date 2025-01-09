@@ -139,6 +139,7 @@ def main():
     application.add_handler(CommandHandler("connect", connect))
     application.add_handler(CommandHandler("move", move))
     application.add_handler(CommandHandler("home", home))
+    application.add_handler(CommandHandler("pack", pack))
     application.add_handler(CommandHandler("stop", stop))
     application.add_handler(CommandHandler("wave", wave))
     application.add_handler(CommandHandler("wiggle", wiggle))

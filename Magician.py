@@ -738,9 +738,6 @@ class DobotMagicianE6:
         return self.ToolDO(1,status)
 
     
-    
-    
-
 # Example usage
 if __name__ == "__main__":
     dobot = DobotMagicianE6()
