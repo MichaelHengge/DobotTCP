@@ -588,6 +588,76 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Setting post-collision mode to {mode}")
         return self.Send_command(f"SetPostCollisionMode({mode})")
 
+    def DragSensitivity(self, index, value):
+        """
+        Set the drag sensitivity of the robot. 
+
+        Args:
+            index (int): Axis number. 0: All axis, 1-6: J1-J6.
+            value (int): Drag sensitivity value. Smaller values equal larger resistance force Range: 1~90.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting drag sensitivity of axis {index} to {value}")
+        return self.Send_command(f"DragSensitivity({index},{value})")
+
+    def EnableSafeSkin(self, status):
+        """
+        Enable or disable the robot safe skin feature. The magician E6 does not have a safe skin feature.
+
+        Args:
+            status (int): Safe skin status. 0: Disable, 1: Enable.
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting safe skin to {status}")
+        return self.Send_command(f"EnableSafeSkin({status})")
+
+    def SetSafeSkin(self, part, status):
+        """
+        Set the safe skin sensitivity of the robot. The magician E6 does not have a safe skin feature.
+
+        Args:
+            part (int): Part of the robot. 3: forearm, 4~6: J4~J6 joints
+            status (int): Safe skin sensitivity. 1: Low, 2: Medium, 3: High
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting safe skin of part {part} to {status}")
+        return self.Send_command(f"SetSafeSkin({part},{status})")
+
+    def SetSafeWallEnable(self, index, value):
+        """
+        Enable or disable the specified robot safe wall feature. Safety wall needs to be set up in DobotStudio before it can be used here.
+
+        Args:
+            index (int): Safety wall index. Range: 1~8
+            value (int): Safety wall value. 0: Disable, 1: Enable
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting safety wall {index} to {value}")
+        return self.Send_command(f"SetSafeWallEnable({index},{value})")
+
+    def SetWorkZoneEnable(self, index, value):
+        """
+        Enable or disable the specified robot interference area. Work zone needs to be set up in DobotStudio before it can be used here.
+
+        Args:
+            index (int): Work zone index. Range: 1~6
+            value (int): Work zone value. 0: Disable, 1: Enable
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting work zone {index} to {value}")
+        return self.Send_command(f"SetWorkZoneEnable({index},{value})")
+
+
     # Movement Commands:
 
     def MoveJ(self,j1,j2,j3,j4,j5,j6):
