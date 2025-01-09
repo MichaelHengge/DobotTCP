@@ -1,6 +1,8 @@
 import socket
 import time
 
+from multipledispatch import dispatch
+
 class DobotMagicianE6:
     def __init__(self, ip='192.168.5.1', port=29999):
         self.ip = ip
@@ -34,6 +36,7 @@ class DobotMagicianE6:
             print("  Connection error")
             self.connection = None
 
+    @dispatch()
     def EnableRobot(self):
         """
         Enable the Dobot Magician E6 robot.
@@ -50,6 +53,85 @@ class DobotMagicianE6:
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
             response = self.Send_command("EnableRobot()")
+            if response == "Control Mode Is Not Tcp":
+                self.isEnabled = False
+                raise Exception("Control Mode Is Not Tcp")
+            else:
+                self.isEnabled = True
+                return response
+
+    @dispatch(float)
+    def EnableRobot(self, load):
+        """
+        Enable the Dobot Magician E6 robot.
+
+        Args:
+            load (float): The load weight on the robot. Unit: kg
+
+        Returns:
+            The response from the robot.
+        
+        Raises:
+            Exception: If the control mode is not TCP.
+        """
+        if self.isEnabled == False:
+            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            response = self.Send_command(f"EnableRobot({load})")
+            if response == "Control Mode Is Not Tcp":
+                self.isEnabled = False
+                raise Exception("Control Mode Is Not Tcp")
+            else:
+                self.isEnabled = True
+                return response
+            
+    @dispatch(float, float, float, float)
+    def EnableRobot(self, load, centerX, centerY, centerZ):
+        """
+        Enable the Dobot Magician E6 robot.
+
+        Args:
+            load (float): The load weight on the robot. Unit: kg
+            centerX (float): Eccentric distance in X direction, range: -999~999, unit: mm
+            centerY (float): Eccentric distance in Y direction, range: -999~999, unit: mm
+            centerZ (float): Eccentric distance in Z direction, range: -999~999, unit: mm
+
+        Returns:
+            The response from the robot.
+        
+        Raises:
+            Exception: If the control mode is not TCP.
+        """
+        if self.isEnabled == False:
+            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
+            if response == "Control Mode Is Not Tcp":
+                self.isEnabled = False
+                raise Exception("Control Mode Is Not Tcp")
+            else:
+                self.isEnabled = True
+                return response
+
+    @dispatch(float, float, float, float, int)
+    def EnableRobot(self, load, centerX, centerY, centerZ, isCheck):
+        """
+        Enable the Dobot Magician E6 robot.
+
+        Args:
+            load (float): The load weight on the robot. Unit: kg
+            centerX (float): Eccentric distance in X direction, range: -999~999. Unit: mm
+            centerY (float): Eccentric distance in Y direction, range: -999~999. Unit: mm
+            centerZ (float): Eccentric distance in Z direction, range: -999~999. Unit: mm
+            isCheck (int): Whether to check the load. 0: No, 1: Yes
+
+        Returns:
+            The response from the robot.
+        
+        Raises:
+            Exception: If the control mode is not TCP.
+        """
+        if self.isEnabled == False:
+            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -203,8 +285,21 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
 
+    def PowerON(self):
+        """
+        Power on the Dobot Magician E6 robot. This seems to do nothing for the Magician E6.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Powering on Dobot Magician E6...")
+        return self.Send_command("PowerOn()")
+    
+    
+
 # Example usage
 if __name__ == "__main__":
     dobot = DobotMagicianE6()
     dobot.Connect()
     dobot.EnableRobot()
+    dobot.Home()
