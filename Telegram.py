@@ -87,8 +87,10 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
 def main():
-    # Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your bot's API token
-    application = Application.builder().token("").build()
+    # Read the API token from config.txt
+    token = read_api_token('config.txt')
+
+    application = Application.builder().token(token).build()
 
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
