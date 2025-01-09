@@ -1,17 +1,33 @@
+import asyncio
 import time
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from Magician import DobotMagicianE6
 
-# Function to read the API token from a file
-def read_api_token(file_path):
+# Function to read the API token and user IDs from the config file
+def read_config(file_path):
     try:
         with open(file_path, 'r') as file:
-            return file.read().strip()
+            lines = file.readlines()
+            token = None
+            user_ids = []
+
+            for line in lines:
+                if line.startswith("token:"):
+                    token = line.split(":", 1)[1].strip()
+                elif line.startswith("userIDs:"):
+                    user_ids = [uid.strip() for uid in line.split(":", 1)[1].strip().split(",")]
+
+            if not token:
+                raise ValueError("Token not found in config file.")
+            if not user_ids:
+                raise ValueError("User IDs not found in config file.")
+
+            return token, user_ids
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
-        raise Exception(f"Error reading API token: {e}")
+        raise Exception(f"Error reading config file: {e}")
 
 # Initialize the Dobot Magician
 robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
@@ -53,11 +69,21 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
 
 async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    robot.MoveJ(176.5, 5.6, -52.9, -32.2, 87.8, 11.8)
+    robot.MoveJ(176.5, 5.6, -52.9, 32.2, 87.8, 11.8)
+    robot.MoveJ(270, 30, -60, -10, 0, 0)
+    robot.MoveJ(270, 60, -30, 30, 0, 0)
+    robot.MoveJ(270, 30, -60, -10, 0, 0)
+    robot.MoveJ(270, 60, -30, 30, 0, 0)
+    robot.MoveJ(270, 0, 0, 0, 0, 0)
+
+async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
     robot.MoveJ(270, 30, -60, -10, 0, 0)
     robot.MoveJ(270, 60, -30, 30, 0, 0)
     robot.MoveJ(270, 30, -60, -10, 0, 0)
     robot.MoveJ(270, 60, -30, 30, 0, 0)
+    robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
@@ -86,10 +112,23 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     time.sleep(1)
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
-def main():
-    # Read the API token from config.txt
-    token = read_api_token('config.txt')
+async def send_startup_messages(bot: Bot, user_ids: list):
+    for user_id in user_ids:
+        try:
+            await bot.send_message(chat_id=user_id, text="Hello! The bot is now online and ready to use.")
+        except Exception as e:
+            print(f"Error sending startup notification to user {user_id}: {e}")
 
+def main():
+    # Create and set the event loop for the main thread
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # Needed for Windows
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Read the token and user IDs from config.txt
+    token, user_ids = read_config('config.txt')
+
+    # Initialize the application with the token
     application = Application.builder().token(token).build()
 
     # Register command handlers
@@ -98,14 +137,23 @@ def main():
     application.add_handler(CommandHandler("home", home))
     application.add_handler(CommandHandler("stop", stop))
     application.add_handler(CommandHandler("wave", wave))
+    application.add_handler(CommandHandler("wiggle", wiggle))
     application.add_handler(CommandHandler("suckerON", suckerON))
     application.add_handler(CommandHandler("suckerOFF", suckerOFF))
     application.add_handler(CommandHandler("pickupSign", pickupSign))
     application.add_handler(CommandHandler("returnSign", returnSign))
     application.add_handler(CommandHandler("greet", greet))
 
-    # Start the bot
+    # Create a bot instance
+    bot = Bot(token=token)
+
+    # Send startup messages
+    loop.run_until_complete(send_startup_messages(bot, user_ids))
+
+    # Run the bot and send startup messages
+    print("Bot started...")
     application.run_polling()
+
 
 if __name__ == '__main__':
     main()
