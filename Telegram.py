@@ -36,7 +36,7 @@ async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         robot.Connect()
         robot.EnableRobot()
-        await update.message.reply_text("Robot connected and enabled. Use /move <j1> <j2> <j3> <j4> <j5> <j6> to move it or /home to return to the home position.")
+        await update.message.reply_text("Robot connected and enabled.")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
@@ -48,7 +48,7 @@ async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
 
         response = robot.MoveJ(*joints)
-        await update.message.reply_text(f"Robot moving to joints {joints}. Response: {response}")
+        await update.message.reply_text(f"Robot moving to joints {joints}.")
     except ValueError:
         await update.message.reply_text("Invalid command! Use /move <j1> <j2> <j3> <j4> <j5> <j6>.")
     except Exception as e:
@@ -57,18 +57,19 @@ async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         response = robot.Home()
-        await update.message.reply_text(f"Robot returning to home position. Response: {response}")
+        await update.message.reply_text(f"Robot returning to home position.")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         response = robot.DisableRobot()
-        await update.message.reply_text(f"Robot stopped. Response: {response}")
+        await update.message.reply_text(f"Robot stopped.")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
 async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Waving at the window.")
     robot.MoveJ(176.5, 5.6, -52.9, -32.2, 87.8, 11.8)
     robot.MoveJ(176.5, 5.6, -52.9, 32.2, 87.8, 11.8)
     robot.MoveJ(270, 30, -60, -10, 0, 0)
@@ -78,6 +79,7 @@ async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Wiggleling at the window.")
     robot.MoveJ(180, 0, -50, -20, 90, 0)
     robot.MoveJ(180, 0, -50, 50, 90, 0)
     robot.MoveJ(270, 0, 50, -50, 0, 0)
@@ -87,21 +89,26 @@ async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
 async def pack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Robot packing up.")
     robot.MoveJ(-90, 0, -140, -40, 0, 0)
 
 async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Greeting to the door.")
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, -15)
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 15)
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
 
 async def suckerON(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Activate sucker.")
     robot.SetSucker(1)
 
 async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Deactivate sucker.")
     robot.SetSucker(0)
 
 async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Robot picking up sign.")
     robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
     time.sleep(2)
     robot.SetSucker(1)
@@ -109,6 +116,7 @@ async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
 async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Robot returning sign.")
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
     robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
     time.sleep(1)
