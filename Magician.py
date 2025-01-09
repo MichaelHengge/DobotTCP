@@ -415,4 +415,4 @@ if __name__ == "__main__":
     dobot = DobotMagicianE6()
     dobot.Connect()
     dobot.EnableRobot()
-    dobot.Home()
+    dobot.SetSucker(0)
