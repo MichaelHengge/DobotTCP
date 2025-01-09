@@ -11,6 +11,7 @@ class DobotMagicianE6:
         self.isEnabled = False
         self.isDebug = True
 
+
     def Connect(self):
         """
         Connect to the Dobot Magician E6 robot.
@@ -35,6 +36,58 @@ class DobotMagicianE6:
         except:
             print("  Connection error")
             self.connection = None
+
+    def Disconnect(self):
+        """
+        Disconnect from the Dobot Magician E6 robot.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            if self.isDebug: print("  Disconnected from Dobot Magician E6")
+
+    def Send_command(self, command):
+        """
+        Send a command to the Dobot and receive a response.
+
+        Args:
+            command (string): The command to send to the robot.
+
+        Returns:
+            The response from the robot.
+
+        Raises:
+            Exception: If not connected to the Dobot Magician E6.
+        """
+        if self.connection:
+            try:
+                self.connection.sendall(command.encode() + b'\n')
+                response = self.connection.recv(1024).decode()
+                return response.strip()
+            except Exception as e:
+                print(f"  Python error sending command: {e}")
+                return None
+        else:
+            raise Exception("  ! Not connected to Dobot Magician E6")
+
+
+    # Control Commands:
+
+    def PowerON(self):
+        """
+        Power on the Dobot Magician E6 robot. This seems to do nothing for the Magician E6.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Powering on Dobot Magician E6...")
+        return self.Send_command("PowerOn()")
 
     @dispatch()
     def EnableRobot(self):
@@ -153,22 +206,7 @@ class DobotMagicianE6:
             response = self.Send_command("DisableRobot()")
             self.isEnabled = False
             if self.isDebug: print("  Disable Dobot Magician E6...")
-            return response
-
-    def Disconnect(self):
-        """
-        Disconnect from the Dobot Magician E6 robot.
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        if self.connection:
-            self.connection.close()
-            self.connection = None
-            if self.isDebug: print("  Disconnected from Dobot Magician E6")
+            return response 
 
     def ClearError(self):
         """
@@ -183,29 +221,112 @@ class DobotMagicianE6:
         if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
         return self.Send_command("ClearError()")
 
-    def Send_command(self, command):
+    def RunScript(self, projectName):
         """
-        Send a command to the Dobot and receive a response.
+        Run a script on the Dobot Magician E6 robot.
 
         Args:
-            command (string): The command to send to the robot.
+            projectName (string): The name of the project to run.
 
         Returns:
             The response from the robot.
-
-        Raises:
-            Exception: If not connected to the Dobot Magician E6.
         """
-        if self.connection:
-            try:
-                self.connection.sendall(command.encode() + b'\n')
-                response = self.connection.recv(1024).decode()
-                return response.strip()
-            except Exception as e:
-                print(f"  Python error sending command: {e}")
-                return None
-        else:
-            raise Exception("  ! Not connected to Dobot Magician E6")
+        if self.isDebug: print(f"  Running script {projectName} on Dobot Magician E6...")
+        return self.Send_command(f"RunScript({projectName})")
+
+    def Stop(self):
+        """
+        Stop the Dobot Magician E6 robot motion queue.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Stopping Dobot Magician E6...")
+        return self.Send_command("Stop()")
+
+    def Pause(self):
+        """
+        Pause the Dobot Magician E6 robot motion queue.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Pausing Dobot Magician E6...")
+        return self.Send_command("Pause()")
+
+    def Continue(self):
+        """
+        Continue the Dobot Magician E6 robot motion queue after it has been paused.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Continuing Dobot Magician E6...")
+        return self.Send_command("Continue()")
+
+    def EmergencyStop(self, mode):
+        """
+        Stop the Dobot Magician E6 robot immediately in an emergency. The robot will be disabled and report an error which needs to be cleared before re-anabling.
+
+        Args:
+            mode (int): Emergency stop mode. 0: Release emergency stop switch, 1: Press emergency stop switch.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Emergency stopping Dobot Magician E6...")
+        return self.Send_command("EmergencyStop()")
+
+    def BrakeControl(self, axisID, value):
+        """
+        Cotrol the brake of robot joints. Can only be used when the robot is disabled otherise it will return an error (-1).
+
+        Args:
+            axisID (int): The joint ID to brake.
+            value (int): Brake status. 0: Switch off brake (joints cannot be dragged), 1: switch on brake (joints can be dragged)
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting brake control of axis {axisID} to value {value}")
+        return self.Send_command(f"BrakeControl({axisID},{value})")
+
+    def StartDrag(self):
+        """
+        Enter the drag mode of the robot. CAn't be used when in error state.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Entering drag mode...")
+        return self.Send_command("StartDrag()")
+
+    def StopDrag(self):
+        """
+        Exit the drag mode of the robot.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Exiting drag mode...")
+        return self.Send_command("StopDrag()")
+
+    # Movement Commands:
 
     def MoveJ(self,j1,j2,j3,j4,j5,j6):
         """
@@ -285,15 +406,7 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
 
-    def PowerON(self):
-        """
-        Power on the Dobot Magician E6 robot. This seems to do nothing for the Magician E6.
-
-        Returns:
-            The response from the robot.
-        """
-        if self.isDebug: print("  Powering on Dobot Magician E6...")
-        return self.Send_command("PowerOn()")
+    
     
     
 
