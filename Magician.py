@@ -658,6 +658,167 @@ class DobotMagicianE6:
         return self.Send_command(f"SetWorkZoneEnable({index},{value})")
 
 
+    # Calculating and obtaining commands:
+
+    def RobotMode(self):
+        """
+        Get the current state of the robot.
+
+        Args:
+            None
+
+        Returns:
+            The robot mode.See TCP protocols for details.
+        """
+        if self.isDebug: print("  Getting robot mode...")
+        return self.Send_command("RobotMode()")
+    
+    def PositiveKin(self, J1, J2, J3, J4, J5, J6, User=0, Tool=0):
+        """
+        Calculate the coordinates of the end of the robot in the specified Cartesian coordinate system, based on the given angle of each joint. Positive solution.
+
+        Args:
+            J1 (float): Joint 1 angle. Unit: degree.
+            J2 (float): Joint 2 angle. Unit: degree.
+            J3 (float): Joint 3 angle. Unit: degree.
+            J4 (float): Joint 4 angle. Unit: degree.
+            J5 (float): Joint 5 angle. Unit: degree.
+            J6 (float): Joint 6 angle. Unit: degree.
+            User (int): User coordinate system index. Default (0) is the global user coordinate system.
+            Tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system.
+
+        Returns:
+            The cartesian point coordinates {x,y,z,a,b,c}
+        """
+        if self.isDebug: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
+        return self.Send_command(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={User},tool={Tool})")
+
+    def InverseKin(self, X, Y, Z, Rx, Ry, Rz, User=0, Tool=0, useJointNear=0, JointNear={}):
+        """
+        Calculate the joint angles of the robot based on the given Cartesian coordinates of the end of the robot. Positive solution.
+
+        Args:
+            X (float): X coordinate of the end of the robot. Unit: mm.
+            Y (float): Y coordinate of the end of the robot. Unit: mm.
+            Z (float): Z coordinate of the end of the robot. Unit: mm.
+            Rx (float): Rotation angle around the X axis. Unit: degree.
+            Ry (float): Rotation angle around the Y axis. Unit: degree.
+            Rz (float): Rotation angle around the Z axis. Unit: degree.
+            User (int): User coordinate system index. Default (0) is the global user coordinate system.
+            Tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system.
+            useJointNear (int): Whether to use the joint near data. 0: No, 1: Yes. Default is 0.
+            JointNear (string):  Joint coordinates for selecting joint angles, format: jointNear={j1,j2,j3,j4,j5,j6}
+
+        Returns:
+            Joint coordinates {J1, J2, J3, J4, J5, J6}.
+        """
+        if self.isDebug: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
+        return self.Send_command(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={User},tool={Tool},useJointNear={useJointNear},JointNear={JointNear})")
+
+    def GetAngle(self):
+        """
+        Get the current joint angles of the robot posture.
+
+        Args:
+            None
+
+        Returns:
+            The joint angles {J1, J2, J3, J4, J5, J6}.
+        """
+        if self.isDebug: print("  Getting robot joint angles...")
+        return self.Send_command("GetAngle()")
+
+    def GetPose(self, User=0, Tool=0):
+        """
+        Get the cartesian coordinates of the current pose of the robot.
+
+        Args:
+            User (string): User coordinate system index. Default (0) is the global user coordinate system.
+            Tool (string): Tool coordinate system index. Default (0) is the global tool coordinate system.
+
+        Returns:
+            The cartesian coordinate points of the current pose {X,Y,Z,Rx,Ry,Rz}.
+        """
+        if self.isDebug: print("  Getting robot pose...")
+        return self.Send_command("GetPose(user={User},tool={Tool})")
+
+    def GetErrorID(self):
+        """
+        Get the current error code of the robot.
+
+        Args:
+            None
+
+        Returns:
+            [[id,...,id], [id], [id], [id], [id], [id], [id]]. [id,...,id]: alarm information of the controller and algorithm. The last six indices are the alarm information of the six servos.
+        """
+        if self.isDebug: print("  Getting robot error ID...")
+        return self.Send_command("GetErrorID()")
+
+    def Create1DTray(self, Trayname, Count, Points):
+        """
+        Create a 1D tray for the robot. A set of points equidistantly spaced on a straight line.
+
+        Args:
+            Trayname (string): The name of the tray. Up to 32 bytes. No pure numbers or spaces.
+            Count (string): The number of points in the tray in curled brackets. Example: {5}
+            Points (string): Two endpoints P1 and P2. Format for each point: pose={x,y,z,rx,ry,rz}
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+
+    def Create2DTray(self, Trayname, Count, Points):
+        """
+        Create a 2D tray for the robot. A set of points distributed in an array on a plane.
+
+        Args:
+            Trayname (string): The name of the tray. Up to 32 bytes. No pure numbers or spaces.
+            Count (string): {row,col} in curled brackets. Row: number of rows (P1-P2), Col: number of columns (P3-P4). Example: {4,5}
+            Points (string): Four points P1, P2, P3 and P4. Format for each point: pose={x,y,z,rx,ry,rz}
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+
+    def Create3DTray(self, Trayname, Count, Points):
+        """
+        Create a 3D tray for the robot. A set of points distributed three-dimensionally in space and can beconsidered as multiple 2D trays arranged vertically.
+
+        Args:
+            Trayname (string): The name of the tray. Up to 32 bytes. No pure numbers or spaces.
+            Count (string): {row,col,layer} in curled brackets. Row: number of rows (P1-P2), Col: number of columns (P3-P4), Layer: number of layers (P1-P5). Example: {4,5,6}
+            Points (string): Eight points P1, P2, P3, P4, P5, P6, P7 and P8. Format for each point: pose={x,y,z,rx,ry,rz}
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+
+    def GetTrayPoint(self, Trayname, index):
+        """
+        Get the specified point coordinates of the specified tray. The point number is related to the order of points passed in when creating the tray (see TCP protocol for details).
+
+        Args:
+            Trayname (string): The name of the tray. Up to 32 bytes. No pure numbers or spaces.
+            index (int): The index of the point in the tray.
+
+        Returns:
+            The point coordinates and result {isErr,x,y,z,rx,ry,rz}. isErr: 0: Success, -1: Failure.
+        """
+        if self.isDebug: print(f"  Getting point {index} of tray {Trayname}")
+        return self.Send_command(f"GetTrayPoint({Trayname},{index})")
+
+
+
+
+
+
     # Movement Commands:
 
     def MoveJ(self,j1,j2,j3,j4,j5,j6):
