@@ -815,6 +815,344 @@ class DobotMagicianE6:
         return self.Send_command(f"GetTrayPoint({Trayname},{index})")
 
 
+    # IO Commands:
+
+    @dispatch(int, int)
+    def DO(self, index, status):
+        """
+        Set the digital output of the robot.
+
+        Args:
+            index (int): Digital output index.
+            status (int): Digital output status. 0: OFF, 1: ON.
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting digital output pin {index} to {status}")
+        return self.Send_command(f"DO({index},{status})")
+
+    @dispatch(int, int, int)
+    def DO(self, index, status, time):
+        """
+        Set the digital output of the robot (queue command).
+
+        Args:
+            index (int): Digital output index.
+            status (int): Digital output status. 0: OFF, 1: ON.
+            time (int): Continuous output time. If set the input will be inverted after the specified amount of time. Unit: ms. Range: 25~60000.
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting digital output pin {index} to {status} for {time} ms")
+        return self.Send_command(f"DO({index},{status},{time})")
+
+    def DOInstant(self, index, status):
+        """
+        Set the digital output of the robot instantly.
+
+        Args:
+            index (int): Digital output index.
+            status (int): Digital output status. 0: OFF, 1: ON.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting digital output pin {index} to {status} instantly")
+        return self.Send_command(f"DOInstant({index},{status})")
+
+    def GetDO(self, index):
+        """
+        Get the digital output status of the robot.
+
+        Args:
+            index (int): Digital output index.
+
+        Returns:
+            The digital output status. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting digital output pin {index}")
+        return self.Send_command(f"GetDO({index})")
+
+    def DOGroup(self, string):
+        """
+        Set the digital output of a group of outputs of the robot.
+
+        Args:
+            string (string): Digital output group status. Format: index1,status1,index2,status2,... Index: Digital output index, Status: Digital output status. 0: OFF, 1: ON.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting digital output group to {string}")
+        return self.Send_command(f"DOGroup({string})")
+
+    def GetDOGroup(self, string):
+        """
+        Get the digital output status of a group of outputs of the robot.
+
+        Args:
+            string (string): Digital output group status. Format: index1,index2,... Index: Digital output index.
+
+        Returns:
+            The digital output status of the group. Format: {status1,status2,...}. Status: Digital output status. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting digital output group {string}")
+        return self.Send_command(f"GetDOGroup({string})")
+
+    def ToolDO(self, index, status):
+        """
+        Set the digital output of the tool (queue command).
+
+        Args:
+            index (int): Tool DO index.
+            status (int): Tool DO status. 1: ON, 0: OFF.
+
+        Returns:
+            ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+        """
+        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
+        return self.Send_command(f"ToolDO({index},{status})")
+
+    def ToolDOInstant(self, index, status):
+        """
+        Set the digital output of the tool instantly.
+
+        Args:
+            index (int): Tool DO index.
+            status (int): Tool DO status. 1: ON, 0: OFF.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status} instantly")
+        return self.Send_command(f"ToolDOInstant({index},{status})")
+
+    def GetToolDO(self, index):
+        """
+        Get the digital output status of the tool.
+
+        Args:
+            index (int): Tool DO index.
+
+        Returns:
+            The digital output status. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting tool digital output pin {index}")
+        return self.Send_command(f"GetToolDO({index})")
+
+    def AO(self, index, value):
+        """
+        Set the analog output of the robot (queue command).
+
+        Args:
+            index (int): Analog output index.
+            value (int): Analog output value. Voltage range: 0~10, Unit: V; Current range: 4~20, Unit: mA
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting analog output pin {index} to {value}")
+        return self.Send_command(f"AO({index},{value})")
+
+    def AOInstant(self, index, value):
+        """
+        Set the analog output of the robot instantly.
+
+        Args:
+            index (int): Analog output index.
+            value (int): Analog output value. Voltage range: 0~10, Unit: V; Current range: 4~20, Unit: mA
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting analog output pin {index} to {value} instantly")
+        return self.Send_command(f"AOInstant({index},{value})")
+
+    def GetAO(self, index):
+        """
+        Get the analog output status of the robot.
+
+        Args:
+            index (int): Analog output index.
+
+        Returns:
+            The analog output value.
+        """
+        if self.isDebug: print(f"  Getting analog output pin {index}")
+        return self.Send_command(f"GetAO({index})")
+
+    def DI(self, index):
+        """
+        Get the digital input status of the robot.
+
+        Args:
+            index (int): Digital input index.
+
+        Returns:
+            The digital input status. 0: no signal, 1: signal.
+        """
+        if self.isDebug: print(f"  Getting digital input pin {index}")
+        return self.Send_command(f"DI({index})")
+
+    def DIGroup(self, string):
+        """
+        Get the digital input status of a group of inputs of the robot.
+
+        Args:
+            string (string): Digital input group status. Format: index1,index2,... . Index: Digital input index.
+
+        Returns:
+            The digital input status of the group. Format: {status1,status2,...}. Status: Digital input status. 0: no signal, 1: signal.
+        """
+        if self.isDebug: print(f"  Getting digital input group {string}")
+        return self.Send_command(f"DIGroup({string})")
+
+    def ToolDI(self, index):
+        """
+        Get the digital input status of the tool.
+
+        Args:
+            index (int): Tool DI index.
+
+        Returns:
+            The digital input status of the tool. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting tool digital input pin {index}")
+        return self.Send_command(f"ToolDI({index})")
+
+    def AI(self, index):
+        """
+        Get the analog input status of the robot.
+
+        Args:
+            index (int): Analog input index.
+
+        Returns:
+            The analog input value.
+        """
+        if self.isDebug: print(f"  Getting analog input pin {index}")
+        return self.Send_command(f"AI({index})")
+
+    def ToolAI(self, index):
+        """
+        Get the analog input status of the tool.
+
+        Args:
+            index (int): Tool AI index.
+
+        Returns:
+            The analog input value of the tool.
+        """
+        if self.isDebug: print(f"  Getting tool analog input pin {index}")
+        return self.Send_command(f"ToolAI({index})")
+
+    @dispatch(int, str, int)
+    def SetTool485(self, baud, parity="N", stopbit=1):
+        """
+        Set the tool 485 communication parameters.
+
+        Args:
+            baud (int): Baud rate.
+            parity (string): Parity bit. N: None, O: Odd, E: Even. Default is none.
+            stopbit (int): Stop bit length. 1 or 2. Default is 1.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit}")
+        return self.Send_command(f"SetTool485({baud},{parity},{stopbit})")
+
+    @dispatch(int, str, int, int)
+    def SetTool485(self, baud, parity="N", stopbit=1, identify=1):
+        """
+        Set the tool 485 communication parameters.
+
+        Args:
+            baud (int): Baud rate.
+            parity (string): Parity bit. N: None, O: Odd, E: Even. Default is none.
+            stopbit (int): Stop bit length. 1 or 2. Default is 1.
+            identify (int): If the robot has multiple aviation sockets, which one to use. 1: socket 1, 2: socket 2. Default is 1.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit} for socket {identify}")
+        return self.Send_command(f"SetTool485({baud},{parity},{stopbit},{identify})")
+
+    @dispatch(int)
+    def SetToolPower(self, status):
+        """
+        Set the power status of the tool. The Magician E6 does not have a tool power feature.
+
+        Args:
+            status (int): Power status of the end tool. 0: OFF, 1: ON.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool power to {status}")
+        return self.Send_command(f"SetToolPower({status})")
+
+    @dispatch(int, int)
+    def SetToolPower(self, status, identify):
+        """
+        Set the power status of the tool. The Magician E6 does not have a tool power feature.
+
+        Args:
+            status (int): Power status of the end tool. 0: OFF, 1: ON.
+            identify (int): If the robot has multiple aviation sockets, which one to use. 1: socket 1, 2: socket 2.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool power to {status} for socket {identify}")
+        return self.Send_command(f"SetToolPower({status},{identify})")
+
+    @dispatch(int, int)
+    def SetToolMode(self, mode, type):
+        """
+        Set the tool multiplexing mode of the robot. The Magician E6 does not have a tool mode feature.
+
+        Args:
+            mode (int): Tool multiplexing mode. 1: 485 mode, 2: Analog input mode.
+            type (int):  When mode is 1, the parameter is ineffective. When mode is 2, you can set the analog input mode. Check the TCP protocols for details.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool mode to {mode}")
+        return self.Send_command(f"SetToolMode({mode},{type})")
+
+    @dispatch(int, int, int)
+    def SetToolMode(self, mode, type, identify):
+        """
+        Set the tool multiplexing mode of the robot. The Magician E6 does not have a tool mode feature.
+
+        Args:
+            mode (int): Tool multiplexing mode. 1: 485 mode, 2: Analog input mode.
+            type (int):  When mode is 1, the parameter is ineffective. When mode is 2, you can set the analog input mode. Check the TCP protocols for details.
+            identify (int): If the robot has multiple aviation sockets, which one to use. 1: socket 1, 2: socket 2.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting tool mode to {mode} for socket {identify}")
+        return self.Send_command(f"SetToolMode({mode},{type},{identify})")
+
+    
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -870,19 +1208,7 @@ class DobotMagicianE6:
         return self.MoveJ(0,0,0,0,0,0)
 
 
-    def ToolDO(self, index, status):
-        """
-        Set the digital output of the tool.
-
-        Args:
-            index (int): Tool DO index (1 or 2).
-            status (int): Tool DO status. 1: ON, 0: OFF.
-
-        Returns:
-            The response from the robot.
-        """
-        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
-        return self.Send_command(f"ToolDO({index},{status})")
+    
        
 
     def SetSucker(self, status):
