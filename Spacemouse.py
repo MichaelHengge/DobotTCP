@@ -86,7 +86,7 @@ class SpaceMouseGUI:
                 state = pyspacemouse.read()
                 self.update_arrows(state)
                 self.update_buttons(state)
-                time.sleep(0.005)  # 10 ms delay
+                time.sleep(0.001)  # 1 ms delay
         else:
             print("Failed to connect to SpaceMouse")
 
@@ -118,6 +118,11 @@ class SpaceMouseGUI:
         self.canvas.coords(self.arrows["Z"], 200, 200, 200 + z_x_offset, 200 + z_y_offset)
         self.canvas.itemconfig(self.labels["Z"], text=f"{state.z:.2f}")
         self.canvas.coords(self.labels["Z"], 200 + z_x_offset - 20, 200 + z_y_offset - 20)
+
+        # Update Roll, Pitch, and Yaw values
+        self.canvas.itemconfig(self.labels["Roll"], text=f"{state.roll:.2f}")
+        self.canvas.itemconfig(self.labels["Pitch"], text=f"{state.pitch:.2f}")
+        self.canvas.itemconfig(self.labels["Yaw"], text=f"{state.yaw:.2f}")
 
     def update_buttons(self, state):
         # Update button representations based on their states
