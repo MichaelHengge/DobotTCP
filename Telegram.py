@@ -289,6 +289,22 @@ async def myID(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
+async def role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        user_id = update.effective_user.id
+        token, admin_id, user_ids = read_config('config.txt')
+
+        if user_id == admin_id:
+            role = "Admin"
+        elif user_id in user_ids:
+            role = "User"
+        else:
+            role = "Unauthorized"
+
+        await update.message.reply_text(f"Your role is: {role}")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
 
 async def send_startup_messages(bot: Bot, user_ids: list):
     for user_id in user_ids:
@@ -318,6 +334,7 @@ def main():
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("myid", myID))
+    application.add_handler(CommandHandler("role", role))
     application.add_handler(CommandHandler("connect", connect))
     application.add_handler(CommandHandler("commands", commands))
     application.add_handler(CommandHandler("move", move))
