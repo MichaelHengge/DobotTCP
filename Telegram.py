@@ -199,7 +199,6 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Hello! I'm a bot controlling a Dobot Magician E6. Use /commands to display all possible commands or start by using /connect to connect to the robot.")
 
-@authorized_users_only(user_ids=[])
 async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Available commands:\n"
                                     "/start - Start the bot\n"
