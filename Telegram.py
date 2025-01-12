@@ -1,7 +1,7 @@
 import asyncio
 import time
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from Magician import DobotMagicianE6
 
 isConnected = False
@@ -217,23 +217,6 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Hello! I'm a bot controlling a Dobot Magician E6. Use /commands to display all possible commands or start by using /connect to connect to the robot.")
 
-async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Available commands:\n"
-                                    "/start - Start the bot\n"
-                                    "/connect - Connect to the robot\n"
-                                    "/commands - Display all available commands\n"
-                                    "/move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot to the specified joint positions\n"
-                                    "/home - Return the robot to the home position\n"
-                                    "/pack - REturn the robot to the pack position\n"
-                                    "/stop - Stop and disconnect the robot\n"
-                                    "/wave - Wave at the window\n"
-                                    "/wiggle - Wiggle at the window\n"
-                                    "/suckerON - Activate the sucker\n"
-                                    "/suckerOFF - Deactivate the sucker\n"
-                                    "/pickupSign - Pickup the sign\n"
-                                    "/returnSign - Return the sign\n"
-                                    "/greet - Greet to the door")
-
 @admin_only(admin_id=None)
 async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
@@ -305,6 +288,73 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
+async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        user_id = update.effective_user.id
+        token, admin_id, user_ids = read_config('config.txt')
+
+        # Start with commands available to unauthorized users
+        commands = [
+            "/myid - Get your Telegram ID",
+            "/role - Check your role",
+            "/commands - List available commands",
+        ]
+
+        # If the user is a normal user, expand the command list
+        if user_id in user_ids:
+            commands.extend([
+                "/start - Start the robot",
+                "/connect - Connect to the robot",
+                "/move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot",
+                "/home - Move the robot to the home position",
+                "/pack - Return the robot to the pack position\n",
+                "/stop - Stop and disconnect the robot\n",
+                "/wave - Wave at the window\n",
+                "/wiggle - Wiggle at the window\n",
+                "/suckerON - Activate the sucker\n",
+                "/suckerOFF - Deactivate the sucker\n",
+                "/pickupSign - Pickup the sign\n",
+                "/returnSign - Return the sign\n",
+                "/greet - Greet to the door",
+            ])
+
+        # If the user is the admin, further expand the command list
+        if user_id == admin_id:
+            commands.extend([
+                "/authorize <user_id> - Authorize a new user",
+                "/deauthorize <user_id> - Deauthorize a user",
+                "/sendcmd <command> - Send a command to the robot",
+            ])
+
+        # Determine the user's role
+        if user_id == admin_id:
+            role = "Admin"
+        elif user_id in user_ids:
+            role = "User"
+        else:
+            role = "Unauthorized"
+
+        # Build the response
+        command_list = "\n".join(commands)
+        await update.message.reply_text(f"Your role is: {role}\n\nAvailable commands:\n{command_list}")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+@admin_only(admin_id=None)
+async def sendcmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        if len(context.args) != 1:
+            await update.message.reply_text("Invalid command! Use /sendcmd <command>.")
+            return
+
+        command = context.args[0]
+        await update.message.reply_text(f"Sending command: {command}")
+
+        # Execute the command
+        reply = robot.Send_command(command)
+        await update.message.reply_text(f"Response: {reply}")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
 
 async def send_startup_messages(bot: Bot, user_ids: list):
     for user_id in user_ids:
@@ -312,6 +362,15 @@ async def send_startup_messages(bot: Bot, user_ids: list):
             await bot.send_message(chat_id=user_id, text="Hello! The bot is now online and ready to use.")
         except Exception as e:
             print(f"Error sending startup notification to user {user_id}: {e}")
+
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        await update.message.reply_text(
+            "Unknown command. Use /commands to see the list of available commands.",
+            reply_to_message_id=update.message.message_id
+        )
+    except Exception as e:
+        print(f"Error handling unknown command: {e}")
 
 def main():
     # Create and set the event loop for the main thread
@@ -328,7 +387,7 @@ def main():
     # Update the user_ids in decorators
     for handler in [start, connect, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet]:
         handler.__wrapped__.__globals__['user_ids'] = user_ids
-    for handler in [authorize, deauthorize]:
+    for handler in [authorize, deauthorize, sendcmd]:
         handler.__wrapped__.__globals__['admin_id'] = admin_id
 
     # Register command handlers
@@ -350,6 +409,10 @@ def main():
     application.add_handler(CommandHandler("greet", greet))
     application.add_handler(CommandHandler("authorize", authorize))
     application.add_handler(CommandHandler("deauthorize", deauthorize))
+    application.add_handler(CommandHandler("sendcmd", sendcmd))
+
+    # Add the unknown command handler
+    application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
 
     # Create a bot instance
     bot = Bot(token=token)
