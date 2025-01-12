@@ -14,6 +14,7 @@ def read_config(file_path):
             token = None
             admin_id = None
             user_ids = []
+            notify_ids = []
 
             for line in lines:
                 if line.startswith("token:"):
@@ -25,25 +26,29 @@ def read_config(file_path):
                     user_ids = [
                         int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",") if uid.strip().isdigit()
                     ]
+                elif line.startswith("notify:"):
+                    notify_ids = [
+                        int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",") if uid.strip().isdigit()
+                    ]
 
             if not token:
                 raise ValueError("Token not found in config file.")
 
-            return token, admin_id, user_ids
+            return token, admin_id, user_ids, notify_ids
 
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
         raise Exception(f"Error reading config file: {e}")
 
-
 # Function to write user IDs back to the config file
-def write_config(file_path, token, admin_id, user_ids):
+def write_config(file_path, token, admin_id, user_ids, notify_ids):
     try:
         with open(file_path, 'w') as file:
             file.write(f"token: {token}\n")
             file.write(f"admin: {admin_id}\n")
             file.write(f"users: {','.join(map(str, user_ids))}\n")
+            file.write(f"notify: {','.join(map(str, notify_ids))}\n")
     except Exception as e:
         raise Exception(f"Error writing to config file: {e}")
 
@@ -73,6 +78,37 @@ def admin_only(admin_id):
             return await func(update, context, *args, **kwargs)
         return wrapper
     return decorator
+
+@authorized_users_only(user_ids=[])
+async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        user_id = update.effective_user.id
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
+
+        if user_id not in notify_ids:
+            notify_ids.append(user_id)
+            write_config('config.txt', token, admin_id, user_ids, notify_ids)
+            await update.message.reply_text("You will now be notified when the bot is online.")
+        else:
+            await update.message.reply_text("You are already subscribed to notifications.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+@authorized_users_only(user_ids=[])
+async def mute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        user_id = update.effective_user.id
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
+
+        if user_id in notify_ids:
+            notify_ids.remove(user_id)
+            write_config('config.txt', token, admin_id, user_ids, notify_ids)
+            await update.message.reply_text("You will no longer be notified when the bot is online.")
+        else:
+            await update.message.reply_text("You are not subscribed to notifications.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
 
 @authorized_users_only(user_ids=[])
 async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -296,7 +332,7 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         # Start with commands available to unauthorized users
         commands = [
-            "General commands:",
+            "\nGeneral commands:",
             "  /myid - Get your Telegram ID",
             "  /role - Check your role",
             "  /commands - List available commands",
@@ -306,19 +342,21 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if user_id in user_ids or user_id == admin_id:
             commands.extend([
                 "\nRobot commands:",
-                "  /start - Start the robot",
                 "  /connect - Connect to the robot",
-                "  /move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot",
+                "  /greet - Greet to the door",
                 "  /home - Move the robot to the home position",
+                "  /move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot",
+                "  /mute - Unsubscribe from notifications",
+                "  /notify - Subscribe to notifications",
                 "  /pack - Return the robot to the pack position",
-                "  /stop - Stop and disconnect the robot",
-                "  /wave - Wave at the window",
-                "  /wiggle - Wiggle at the window",
-                "  /suckerON - Activate the sucker",
-                "  /suckerOFF - Deactivate the sucker",
                 "  /pickupSign - Pickup the sign",
                 "  /returnSign - Return the sign",
-                "  /greet - Greet to the door",
+                "  /start - Start the robot",
+                "  /stop - Stop and disconnect the robot",
+                "  /suckerOFF - Deactivate the sucker",
+                "  /suckerON - Activate the sucker",
+                "  /wave - Wave at the window",
+                "  /wiggle - Wiggle at the window",
             ])
 
         # If the user is the admin, further expand the command list
@@ -360,12 +398,12 @@ async def sendcmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-async def send_startup_messages(bot: Bot, user_ids: list):
-    for user_id in user_ids:
+async def send_startup_notifications(bot: Bot, notify_ids: list):
+    for user_id in notify_ids:
         try:
-            await bot.send_message(chat_id=user_id, text="Hello! The bot is now online and ready to use.")
+            await bot.send_message(chat_id=user_id, text="The bot is now online and ready to use.")
         except Exception as e:
-            print(f"Error sending startup notification to user {user_id}: {e}")
+            print(f"Error notifying user {user_id}: {e}")
 
 async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
@@ -396,7 +434,7 @@ def main():
     asyncio.set_event_loop(loop)
 
     # Read the token and user IDs from config.txt
-    token, admin_id, user_ids = read_config('config.txt')
+    token, admin_id, user_ids, notify_ids = read_config('config.txt')
 
     # Initialize the application with the token
     application = Application.builder().token(token).build()
@@ -405,6 +443,8 @@ def main():
     application.add_handler(CommandHandler("start", authorized_users_only(user_ids)(start)))
     application.add_handler(CommandHandler("myid", myID))
     application.add_handler(CommandHandler("role", role))
+    application.add_handler(CommandHandler("notify", notify))
+    application.add_handler(CommandHandler("mute", mute))
     application.add_handler(CommandHandler("connect", authorized_users_only(user_ids)(connect)))
     application.add_handler(CommandHandler("commands", commands))
     application.add_handler(CommandHandler("move", authorized_users_only(user_ids)(move)))
@@ -432,7 +472,7 @@ def main():
     bot = Bot(token=token)
 
     # Send startup messages
-    loop.run_until_complete(send_startup_messages(bot, user_ids))
+    loop.run_until_complete(send_startup_notifications(bot, notify_ids))
 
     # Run the bot and send startup messages
     print("Bot started...")
