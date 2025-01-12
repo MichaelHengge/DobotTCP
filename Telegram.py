@@ -34,12 +34,17 @@ def read_config(file_path):
             if not token:
                 raise ValueError("Token not found in config file.")
 
+            # Add the admin ID to the user_ids list if it's not already there
+            if admin_id and admin_id not in user_ids:
+                user_ids.append(admin_id)
+
             return token, admin_id, user_ids, notify_ids
 
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
         raise Exception(f"Error reading config file: {e}")
+
 
 # Function to write user IDs back to the config file
 def write_config(file_path, token, admin_id, user_ids, notify_ids):
@@ -342,7 +347,7 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ]
 
         # If the user is a normal user, expand the command list
-        if user_id in user_ids or user_id == admin_id:
+        if user_id in user_ids:
             commands.extend([
                 "\nRobot commands:",
                 "  /connect - Connect to the robot",
