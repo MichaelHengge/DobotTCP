@@ -373,6 +373,19 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     except Exception as e:
         print(f"Error handling unknown command: {e}")
 
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        # Get the message text
+        message_text = update.message.text
+
+        # Reply to the user
+        await update.message.reply_text(
+            "How nice of you to say that! However, I'm just a bot and can only understand commands. Use /commands to see the list of available commands.",
+            reply_to_message_id=update.message.message_id
+        )
+    except Exception as e:
+        print(f"Error handling message: {e}")
+
 def main():
     # Create and set the event loop for the main thread
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # Needed for Windows
@@ -408,6 +421,9 @@ def main():
 
     # Add the unknown command handler
     application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
+
+    # Register non-command message handler
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Create a bot instance
     bot = Bot(token=token)
