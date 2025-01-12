@@ -19,18 +19,22 @@ def read_config(file_path):
                 if line.startswith("token:"):
                     token = line.split(":", 1)[1].strip()
                 elif line.startswith("admin:"):
-                    admin_id = int(line.split(":", 1)[1].strip())
+                    try:
+                        admin_id = int(line.split(":", 1)[1].strip())
+                    except ValueError:
+                        admin_id = None
                 elif line.startswith("users:"):
-                    user_ids = [int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",")]
+                    try:
+                        user_ids = [int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",") if uid.strip()]
+                    except ValueError:
+                        user_ids = []
 
             if not token:
                 raise ValueError("Token not found in config file.")
-            if admin_id is None:
-                raise ValueError("Admin ID not found in config file.")
-            if not user_ids:
-                raise ValueError("User IDs not found in config file.")
 
+            # Return defaults if admin or user IDs are not specified
             return token, admin_id, user_ids
+
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
