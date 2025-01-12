@@ -12,31 +12,37 @@ def read_config(file_path):
         with open(file_path, 'r') as file:
             lines = file.readlines()
             token = None
+            admin_id = None
             user_ids = []
 
             for line in lines:
                 if line.startswith("token:"):
                     token = line.split(":", 1)[1].strip()
-                elif line.startswith("userIDs:"):
-                    user_ids = [uid.strip() for uid in line.split(":", 1)[1].strip().split(",")]
+                elif line.startswith("admin:"):
+                    admin_id = int(line.split(":", 1)[1].strip())
+                elif line.startswith("users:"):
+                    user_ids = [int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",")]
 
             if not token:
                 raise ValueError("Token not found in config file.")
+            if admin_id is None:
+                raise ValueError("Admin ID not found in config file.")
             if not user_ids:
                 raise ValueError("User IDs not found in config file.")
 
-            return token, user_ids
+            return token, admin_id, user_ids
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
         raise Exception(f"Error reading config file: {e}")
 
 # Function to write user IDs back to the config file
-def write_config(file_path, token, user_ids):
+def write_config(file_path, token, admin_id, user_ids):
     try:
         with open(file_path, 'w') as file:
             file.write(f"token: {token}\n")
-            file.write(f"userIDs: {','.join(map(str, user_ids))}\n")
+            file.write(f"admin: {admin_id}\n")
+            file.write(f"users: {','.join(map(str, user_ids))}\n")
     except Exception as e:
         raise Exception(f"Error writing to config file: {e}")
 
@@ -50,6 +56,18 @@ def authorized_users_only(user_ids):
             user_id = update.effective_user.id
             if user_id not in user_ids:
                 await update.message.reply_text("You are not authorized to use this robot.")
+                return
+            return await func(update, context, *args, **kwargs)
+        return wrapper
+    return decorator
+
+# Decorator to check admin authorization
+def admin_only(admin_id):
+    def decorator(func):
+        async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+            user_id = update.effective_user.id
+            if user_id != admin_id:
+                await update.message.reply_text("You are not authorized to perform this action. Admin access required.")
                 return
             return await func(update, context, *args, **kwargs)
         return wrapper
@@ -216,7 +234,7 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                     "/returnSign - Return the sign\n"
                                     "/greet - Greet to the door")
 
-@authorized_users_only(user_ids=[])
+@admin_only(admin_id=None)
 async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if len(context.args) != 1:
@@ -240,7 +258,7 @@ async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@authorized_users_only(user_ids=[])
+@admin_only(admin_id=None)
 async def deauthorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if len(context.args) != 1:
@@ -286,14 +304,16 @@ def main():
     asyncio.set_event_loop(loop)
 
     # Read the token and user IDs from config.txt
-    token, user_ids = read_config('config.txt')
+    token, admin_id, user_ids = read_config('config.txt')
 
     # Initialize the application with the token
     application = Application.builder().token(token).build()
 
     # Update the user_ids in decorators
-    for handler in [start, connect, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet, authorize, deauthorize]:
+    for handler in [start, connect, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet]:
         handler.__wrapped__.__globals__['user_ids'] = user_ids
+    for handler in [authorize, deauthorize]:
+        handler.__wrapped__.__globals__['admin_id'] = admin_id
 
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
