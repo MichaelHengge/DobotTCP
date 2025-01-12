@@ -264,6 +264,13 @@ async def deauthorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
+async def myID(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        user_id = update.effective_user.id
+        await update.message.reply_text(f"Your Telegram ID is: {user_id}")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
 
 async def send_startup_messages(bot: Bot, user_ids: list):
     for user_id in user_ids:
@@ -285,11 +292,12 @@ def main():
     application = Application.builder().token(token).build()
 
     # Update the user_ids in decorators
-    for handler in [start, connect, commands, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet, authorize, deauthorize]:
+    for handler in [start, connect, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet, authorize, deauthorize]:
         handler.__wrapped__.__globals__['user_ids'] = user_ids
 
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("myid", myID))
     application.add_handler(CommandHandler("connect", connect))
     application.add_handler(CommandHandler("commands", commands))
     application.add_handler(CommandHandler("move", move))
