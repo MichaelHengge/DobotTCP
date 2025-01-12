@@ -46,6 +46,7 @@ def read_config(file_path):
         raise Exception(f"Error reading config file: {e}")
 
 
+
 # Function to write user IDs back to the config file
 def write_config(file_path, token, admin_id, user_ids, notify_ids):
     try:
@@ -64,7 +65,11 @@ robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
 def authorized_users_only(user_ids):
     def decorator(func):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+            # Fetch the latest user_ids dynamically
+            token, admin_id, user_ids, notify_ids = read_config('config.txt')
             user_id = update.effective_user.id
+            #print(f"User ID: {user_id}, IDs: {user_ids}")  # Debug line
+
             if user_id not in user_ids:
                 await update.message.reply_text("You are not authorized to use this robot.")
                 return
@@ -76,6 +81,8 @@ def authorized_users_only(user_ids):
 def admin_only(admin_id):
     def decorator(func):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+            # Fetch the latest user_ids dynamically
+            token, admin_id, user_ids, notify_ids = read_config('config.txt')
             user_id = update.effective_user.id
             if user_id != admin_id:
                 await update.message.reply_text("You are not authorized to perform this action. Admin access required.")
