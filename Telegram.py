@@ -296,35 +296,38 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         # Start with commands available to unauthorized users
         commands = [
-            "/myid - Get your Telegram ID",
-            "/role - Check your role",
-            "/commands - List available commands",
+            "General commands:",
+            "  /myid - Get your Telegram ID",
+            "  /role - Check your role",
+            "  /commands - List available commands",
         ]
 
         # If the user is a normal user, expand the command list
-        if user_id in user_ids:
+        if user_id in user_ids or user_id == admin_id:
             commands.extend([
-                "/start - Start the robot",
-                "/connect - Connect to the robot",
-                "/move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot",
-                "/home - Move the robot to the home position",
-                "/pack - Return the robot to the pack position\n",
-                "/stop - Stop and disconnect the robot\n",
-                "/wave - Wave at the window\n",
-                "/wiggle - Wiggle at the window\n",
-                "/suckerON - Activate the sucker\n",
-                "/suckerOFF - Deactivate the sucker\n",
-                "/pickupSign - Pickup the sign\n",
-                "/returnSign - Return the sign\n",
-                "/greet - Greet to the door",
+                "\nRobot commands:",
+                "  /start - Start the robot",
+                "  /connect - Connect to the robot",
+                "  /move <j1> <j2> <j3> <j4> <j5> <j6> - Move the robot",
+                "  /home - Move the robot to the home position",
+                "  /pack - Return the robot to the pack position",
+                "  /stop - Stop and disconnect the robot",
+                "  /wave - Wave at the window",
+                "  /wiggle - Wiggle at the window",
+                "  /suckerON - Activate the sucker",
+                "  /suckerOFF - Deactivate the sucker",
+                "  /pickupSign - Pickup the sign",
+                "  /returnSign - Return the sign",
+                "  /greet - Greet to the door",
             ])
 
         # If the user is the admin, further expand the command list
         if user_id == admin_id:
             commands.extend([
-                "/authorize <user_id> - Authorize a new user",
-                "/deauthorize <user_id> - Deauthorize a user",
-                "/sendcmd <command> - Send a command to the robot",
+                "\nAdmin commands:",
+                "  /authorize <user_id> - Authorize a new user",
+                "  /deauthorize <user_id> - Deauthorize a user",
+                "  /sendcmd <command> - Send a command to the robot",
             ])
 
         # Determine the user's role
