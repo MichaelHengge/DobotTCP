@@ -19,26 +19,23 @@ def read_config(file_path):
                 if line.startswith("token:"):
                     token = line.split(":", 1)[1].strip()
                 elif line.startswith("admin:"):
-                    try:
-                        admin_id = int(line.split(":", 1)[1].strip())
-                    except ValueError:
-                        admin_id = None
+                    value = line.split(":", 1)[1].strip()
+                    admin_id = int(value) if value.isdigit() else None
                 elif line.startswith("users:"):
-                    try:
-                        user_ids = [int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",") if uid.strip()]
-                    except ValueError:
-                        user_ids = []
+                    user_ids = [
+                        int(uid.strip()) for uid in line.split(":", 1)[1].strip().split(",") if uid.strip().isdigit()
+                    ]
 
             if not token:
                 raise ValueError("Token not found in config file.")
 
-            # Return defaults if admin or user IDs are not specified
             return token, admin_id, user_ids
 
     except FileNotFoundError:
         raise Exception(f"Config file '{file_path}' not found.")
     except Exception as e:
         raise Exception(f"Error reading config file: {e}")
+
 
 # Function to write user IDs back to the config file
 def write_config(file_path, token, admin_id, user_ids):
@@ -388,32 +385,26 @@ def main():
     # Initialize the application with the token
     application = Application.builder().token(token).build()
 
-    # Update the user_ids in decorators
-    for handler in [start, connect, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet]:
-        handler.__wrapped__.__globals__['user_ids'] = user_ids
-    for handler in [authorize, deauthorize, sendcmd]:
-        handler.__wrapped__.__globals__['admin_id'] = admin_id
-
     # Register command handlers
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", authorized_users_only(user_ids)(start)))
     application.add_handler(CommandHandler("myid", myID))
     application.add_handler(CommandHandler("role", role))
-    application.add_handler(CommandHandler("connect", connect))
+    application.add_handler(CommandHandler("connect", authorized_users_only(user_ids)(connect)))
     application.add_handler(CommandHandler("commands", commands))
-    application.add_handler(CommandHandler("move", move))
-    application.add_handler(CommandHandler("home", home))
-    application.add_handler(CommandHandler("pack", pack))
-    application.add_handler(CommandHandler("stop", stop))
-    application.add_handler(CommandHandler("wave", wave))
-    application.add_handler(CommandHandler("wiggle", wiggle))
-    application.add_handler(CommandHandler("suckerON", suckerON))
-    application.add_handler(CommandHandler("suckerOFF", suckerOFF))
-    application.add_handler(CommandHandler("pickupSign", pickupSign))
-    application.add_handler(CommandHandler("returnSign", returnSign))
-    application.add_handler(CommandHandler("greet", greet))
-    application.add_handler(CommandHandler("authorize", authorize))
-    application.add_handler(CommandHandler("deauthorize", deauthorize))
-    application.add_handler(CommandHandler("sendcmd", sendcmd))
+    application.add_handler(CommandHandler("move", authorized_users_only(user_ids)(move)))
+    application.add_handler(CommandHandler("home", authorized_users_only(user_ids)(home)))
+    application.add_handler(CommandHandler("pack", authorized_users_only(user_ids)(pack)))
+    application.add_handler(CommandHandler("stop", authorized_users_only(user_ids)(stop)))
+    application.add_handler(CommandHandler("wave", authorized_users_only(user_ids)(wave)))
+    application.add_handler(CommandHandler("wiggle", authorized_users_only(user_ids)(wiggle)))
+    application.add_handler(CommandHandler("suckerON", authorized_users_only(user_ids)(suckerON)))
+    application.add_handler(CommandHandler("suckerOFF", authorized_users_only(user_ids)(suckerOFF)))
+    application.add_handler(CommandHandler("pickupSign", authorized_users_only(user_ids)(pickupSign)))
+    application.add_handler(CommandHandler("returnSign", authorized_users_only(user_ids)(returnSign)))
+    application.add_handler(CommandHandler("greet", authorized_users_only(user_ids)(greet)))
+    application.add_handler(CommandHandler("authorize", admin_only(admin_id)(authorize)))
+    application.add_handler(CommandHandler("deauthorize", admin_only(admin_id)(deauthorize)))
+    application.add_handler(CommandHandler("sendcmd", admin_only(admin_id)(sendcmd)))
 
     # Add the unknown command handler
     application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
