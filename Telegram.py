@@ -262,13 +262,13 @@ async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
 
         new_user_id = int(context.args[0])
-        token, user_ids = read_config('config.txt')
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
 
         if new_user_id in user_ids:
             await update.message.reply_text(f"User ID {new_user_id} is already authorized.")
         else:
             user_ids.append(new_user_id)
-            write_config('config.txt', token, user_ids)
+            write_config('config.txt', token, admin_id, user_ids, notify_ids)
             await update.message.reply_text(f"User ID {new_user_id} has been authorized.")
 
         # Reload user IDs
@@ -286,13 +286,13 @@ async def deauthorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             return
 
         user_id_to_remove = int(context.args[0])
-        token, user_ids = read_config('config.txt')
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
 
         if user_id_to_remove not in user_ids:
             await update.message.reply_text(f"User ID {user_id_to_remove} is not in the authorized list.")
         else:
             user_ids.remove(user_id_to_remove)
-            write_config('config.txt', token, user_ids)
+            write_config('config.txt', token, admin_id, user_ids, notify_ids)
             await update.message.reply_text(f"User ID {user_id_to_remove} has been deauthorized.")
 
         # Reload user IDs
@@ -311,9 +311,11 @@ async def myID(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
+        # Adjust to unpack four values
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
         user_id = update.effective_user.id
-        token, admin_id, user_ids = read_config('config.txt')
 
+        # Determine the user's role
         if user_id == admin_id:
             role = "Admin"
         elif user_id in user_ids:
@@ -321,6 +323,7 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         else:
             role = "Unauthorized"
 
+        # Reply with the user's role
         await update.message.reply_text(f"Your role is: {role}")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
@@ -328,7 +331,7 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         user_id = update.effective_user.id
-        token, admin_id, user_ids = read_config('config.txt')
+        token, admin_id, user_ids, notify_ids = read_config('config.txt')
 
         # Start with commands available to unauthorized users
         commands = [
