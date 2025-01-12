@@ -31,6 +31,15 @@ def read_config(file_path):
     except Exception as e:
         raise Exception(f"Error reading config file: {e}")
 
+# Function to write user IDs back to the config file
+def write_config(file_path, token, user_ids):
+    try:
+        with open(file_path, 'w') as file:
+            file.write(f"token: {token}\n")
+            file.write(f"userIDs: {','.join(map(str, user_ids))}\n")
+    except Exception as e:
+        raise Exception(f"Error writing to config file: {e}")
+
 # Initialize the Dobot Magician
 robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
 
@@ -208,6 +217,55 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                     "/returnSign - Return the sign\n"
                                     "/greet - Greet to the door")
 
+@authorized_users_only(user_ids=[])
+async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        if len(context.args) != 1:
+            await update.message.reply_text("Invalid command! Use /authorize <user_id>.")
+            return
+
+        new_user_id = int(context.args[0])
+        token, user_ids = read_config('config.txt')
+
+        if new_user_id in user_ids:
+            await update.message.reply_text(f"User ID {new_user_id} is already authorized.")
+        else:
+            user_ids.append(new_user_id)
+            write_config('config.txt', token, user_ids)
+            await update.message.reply_text(f"User ID {new_user_id} has been authorized.")
+
+        # Reload user IDs
+        globals()['user_ids'] = user_ids
+    except ValueError:
+        await update.message.reply_text("Invalid user ID! Use /authorize <user_id>.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+@authorized_users_only(user_ids=[])
+async def deauthorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        if len(context.args) != 1:
+            await update.message.reply_text("Invalid command! Use /deauthorize <user_id>.")
+            return
+
+        user_id_to_remove = int(context.args[0])
+        token, user_ids = read_config('config.txt')
+
+        if user_id_to_remove not in user_ids:
+            await update.message.reply_text(f"User ID {user_id_to_remove} is not in the authorized list.")
+        else:
+            user_ids.remove(user_id_to_remove)
+            write_config('config.txt', token, user_ids)
+            await update.message.reply_text(f"User ID {user_id_to_remove} has been deauthorized.")
+
+        # Reload user IDs
+        globals()['user_ids'] = user_ids
+    except ValueError:
+        await update.message.reply_text("Invalid user ID! Use /deauthorize <user_id>.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+
 async def send_startup_messages(bot: Bot, user_ids: list):
     for user_id in user_ids:
         try:
@@ -227,6 +285,10 @@ def main():
     # Initialize the application with the token
     application = Application.builder().token(token).build()
 
+    # Update the user_ids in decorators
+    for handler in [start, connect, commands, move, home, pack, stop, wave, wiggle, suckerON, suckerOFF, pickupSign, returnSign, greet, authorize, deauthorize]:
+        handler.__wrapped__.__globals__['user_ids'] = user_ids
+
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("connect", connect))
@@ -242,6 +304,8 @@ def main():
     application.add_handler(CommandHandler("pickupSign", pickupSign))
     application.add_handler(CommandHandler("returnSign", returnSign))
     application.add_handler(CommandHandler("greet", greet))
+    application.add_handler(CommandHandler("authorize", authorize))
+    application.add_handler(CommandHandler("deauthorize", deauthorize))
 
     # Create a bot instance
     bot = Bot(token=token)
