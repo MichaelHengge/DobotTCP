@@ -62,14 +62,13 @@ def write_config(file_path, token, admin_id, user_ids, notify_ids):
 robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
 
 # Decorator to check user authorization
-def authorized_users_only(user_ids):
+def authorized_users_only():
     def decorator(func):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
             # Fetch the latest user_ids dynamically
             token, admin_id, user_ids, notify_ids = read_config('config.txt')
             user_id = update.effective_user.id
             #print(f"User ID: {user_id}, IDs: {user_ids}")  # Debug line
-
             if user_id not in user_ids:
                 await update.message.reply_text("You are not authorized to use this robot.")
                 return
@@ -78,7 +77,7 @@ def authorized_users_only(user_ids):
     return decorator
 
 # Decorator to check admin authorization
-def admin_only(admin_id):
+def admin_only():
     def decorator(func):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
             # Fetch the latest user_ids dynamically
@@ -455,27 +454,27 @@ def main():
     application = Application.builder().token(token).build()
 
     # Register command handlers
-    application.add_handler(CommandHandler("start", authorized_users_only(user_ids)(start)))
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("myid", myID))
     application.add_handler(CommandHandler("role", role))
-    application.add_handler(CommandHandler("notify", authorized_users_only(user_ids)(notify)))
-    application.add_handler(CommandHandler("mute", authorized_users_only(user_ids)(mute)))
-    application.add_handler(CommandHandler("connect", authorized_users_only(user_ids)(connect)))
+    application.add_handler(CommandHandler("notify", notify))
+    application.add_handler(CommandHandler("mute", mute))
+    application.add_handler(CommandHandler("connect", connect))
     application.add_handler(CommandHandler("commands", commands))
-    application.add_handler(CommandHandler("move", authorized_users_only(user_ids)(move)))
-    application.add_handler(CommandHandler("home", authorized_users_only(user_ids)(home)))
-    application.add_handler(CommandHandler("pack", authorized_users_only(user_ids)(pack)))
-    application.add_handler(CommandHandler("stop", authorized_users_only(user_ids)(stop)))
-    application.add_handler(CommandHandler("wave", authorized_users_only(user_ids)(wave)))
-    application.add_handler(CommandHandler("wiggle", authorized_users_only(user_ids)(wiggle)))
-    application.add_handler(CommandHandler("suckerON", authorized_users_only(user_ids)(suckerON)))
-    application.add_handler(CommandHandler("suckerOFF", authorized_users_only(user_ids)(suckerOFF)))
-    application.add_handler(CommandHandler("pickupSign", authorized_users_only(user_ids)(pickupSign)))
-    application.add_handler(CommandHandler("returnSign", authorized_users_only(user_ids)(returnSign)))
-    application.add_handler(CommandHandler("greet", authorized_users_only(user_ids)(greet)))
-    application.add_handler(CommandHandler("authorize", admin_only(admin_id)(authorize)))
-    application.add_handler(CommandHandler("deauthorize", admin_only(admin_id)(deauthorize)))
-    application.add_handler(CommandHandler("sendcmd", admin_only(admin_id)(sendcmd)))
+    application.add_handler(CommandHandler("move", move))
+    application.add_handler(CommandHandler("home", home))
+    application.add_handler(CommandHandler("pack", pack))
+    application.add_handler(CommandHandler("stop", stop))
+    application.add_handler(CommandHandler("wave", wave))
+    application.add_handler(CommandHandler("wiggle", wiggle))
+    application.add_handler(CommandHandler("suckerON", suckerON))
+    application.add_handler(CommandHandler("suckerOFF", suckerOFF))
+    application.add_handler(CommandHandler("pickupSign", pickupSign))
+    application.add_handler(CommandHandler("returnSign", returnSign))
+    application.add_handler(CommandHandler("greet", greet))
+    application.add_handler(CommandHandler("authorize", authorize))
+    application.add_handler(CommandHandler("deauthorize", deauthorize))
+    application.add_handler(CommandHandler("sendcmd", sendcmd))
 
     # Add the unknown command handler
     application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
