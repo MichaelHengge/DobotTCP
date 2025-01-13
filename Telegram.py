@@ -90,7 +90,7 @@ def admin_only():
         return wrapper
     return decorator
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         user_id = update.effective_user.id
@@ -105,7 +105,7 @@ async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def mute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         user_id = update.effective_user.id
@@ -121,7 +121,7 @@ async def mute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
 
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global isConnected
     try:
@@ -133,7 +133,7 @@ async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Error: {e}")
         isConnected = False
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -151,7 +151,7 @@ async def move(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -162,7 +162,7 @@ async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -173,7 +173,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -187,7 +187,7 @@ async def wave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 60, -30, 30, 0, 0)
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -201,7 +201,7 @@ async def wiggle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(270, 30, -50, 50, 0, -30)
     robot.MoveJ(270, 0, 0, 0, 0, 0)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def pack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -209,7 +209,7 @@ async def pack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Robot packing up.")
     robot.MoveJ(-90, 0, -140, -40, 0, 0)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -220,7 +220,7 @@ async def greet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 15)
     robot.MoveJ(101.3473, -16.4680, 19.3994, -1.0746, 4.1370, 0)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def suckerON(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -228,7 +228,7 @@ async def suckerON(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Activate sucker.")
     robot.SetSucker(1)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -236,7 +236,7 @@ async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Deactivate sucker.")
     robot.SetSucker(0)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -248,7 +248,7 @@ async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     time.sleep(2)
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
@@ -261,11 +261,11 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     time.sleep(1)
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
-@authorized_users_only(user_ids=[])
+@authorized_users_only()
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Hello! I'm a bot controlling a Dobot Magician E6. Use /commands to display all possible commands or start by using /connect to connect to the robot.")
 
-@admin_only(admin_id=None)
+@admin_only()
 async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if len(context.args) != 1:
@@ -289,7 +289,7 @@ async def authorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@admin_only(admin_id=None)
+@admin_only()
 async def deauthorize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if len(context.args) != 1:
@@ -396,7 +396,7 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
-@admin_only(admin_id=None)
+@admin_only()
 async def sendcmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if len(context.args) != 1:
@@ -490,7 +490,7 @@ def main():
 
     # Run the bot and send startup messages
     print("Bot started...")
-    application.run_polling()
+    application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == '__main__':
