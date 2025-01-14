@@ -245,9 +245,15 @@ async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     if hasSign > 0:
         if hasSign == 1:
-            await update.message.reply_text("Robot already carying the HI sign.")
+            await update.message.reply_text(
+            "Robot already carying the HI sign.",
+            reply_to_message_id=update.message.message_id
+            )
         else:
-            await update.message.reply_text("Robot already carying the BYE sign.")
+            await update.message.reply_text(
+            "Robot already carying the BYE sign.",
+            reply_to_message_id=update.message.message_id
+            )
         return
     await update.message.reply_text("Robot picking up sign.")
     hasSign = 1
@@ -265,9 +271,15 @@ async def pickupBye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     if hasSign > 0:
         if hasSign == 1:
-            await update.message.reply_text("Robot already carying the HI sign.")
+            await update.message.reply_text(
+            "Robot already carying the HI sign.",
+            reply_to_message_id=update.message.message_id
+            )
         else:
-            await update.message.reply_text("Robot already carying the BYE sign.")
+            await update.message.reply_text(
+            "Robot already carying the BYE sign.",
+            reply_to_message_id=update.message.message_id
+            )
         return
     await update.message.reply_text("Robot picking up sign.")
     hasSign = 2
