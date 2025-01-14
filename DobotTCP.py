@@ -2198,56 +2198,56 @@ class FlexGripper:
         self.DOvacuum = DOvacuum
         self.DOpressure = DOpressure
 
-        def open(self):
-            """
-            Open the flexible gripper
+    def open(self) -> str:
+        """
+        Open the flexible gripper
 
-            Returns:
-                The response from the robot.
-            """
-            if self.robot.isDebug: print(f"  Opening flexible gripper")
-            return self.robot.DO(self.pressure,1)  
+        Returns:
+            The response from the robot.
+        """
+        if self.robot.isDebug: print(f"  Opening flexible gripper")
+        return self.robot.DO(self.pressure,1)  
 
-        def close(self):
-            """
-            Closes the flexible gripper
+    def close(self) -> str:
+        """
+        Closes the flexible gripper
 
-            Returns:
-                The response from the robot.
-            """
-            if self.robot.isDebug: print(f"  Closing flexible gripper")
-            return self.robot.DO(self.vacuum,1) 
-        
-        def neutral(self):
-            """
-            Puts the flexible gripper in the neutral state.
+        Returns:
+            The response from the robot.
+        """
+        if self.robot.isDebug: print(f"  Closing flexible gripper")
+        return self.robot.DO(self.vacuum,1) 
+    
+    def neutral(self) -> str:
+        """
+        Puts the flexible gripper in the neutral state.
 
-            Returns:
-                The response from the robot.
-            """
-            if self.robot.isDebug: print(f"  Setting flexible gripper to neutral")
-            self.robot.DO(self.pressure,0)
-            return self.robot.DO(self.vacuum,0)
-        
-        def setState(self, state:int, vacuum:int=1, pressure:int=2) -> str:
-            """
-            Set the status of the flexible gripper
+        Returns:
+            The response from the robot.
+        """
+        if self.robot.isDebug: print(f"  Setting flexible gripper to neutral")
+        self.robot.DO(self.pressure,0)
+        return self.robot.DO(self.vacuum,0)
+    
+    def setState(self, state:int, vacuum:int=1, pressure:int=2) -> str:
+        """
+        Set the status of the flexible gripper
 
-            Args:
-                state (int): State of the gripper. -1: Vacuum (closed), 0:Neutral, 1:Pressure (open)
-                vacuum (int): Digital port for the vacuum. Default is 1.
-                pressure (int): Digital port for the pressure. Default is 2.
+        Args:
+            state (int): State of the gripper. -1: Vacuum (closed), 0:Neutral, 1:Pressure (open)
+            vacuum (int): Digital port for the vacuum. Default is 1.
+            pressure (int): Digital port for the pressure. Default is 2.
 
-            Returns:
-                The response from the robot.
-            """
-            if self.robot.isDebug: print(f"  Setting flexible gripper to {state}")
-            match state:
-                case -1:
-                    return self.robot.DO(vacuum,1)
-                case 0:
-                    self.DO(1,0)
-                    return self.robot.DO(pressure,0)
-                case 1:
-                    return self.robot.DO(pressure,1)
+        Returns:
+            The response from the robot.
+        """
+        if self.robot.isDebug: print(f"  Setting flexible gripper to {state}")
+        match state:
+            case -1:
+                return self.robot.DO(vacuum,1)
+            case 0:
+                self.DO(1,0)
+                return self.robot.DO(pressure,0)
+            case 1:
+                return self.robot.DO(pressure,1)
 
