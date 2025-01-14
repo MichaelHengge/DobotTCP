@@ -1429,7 +1429,7 @@ class DobotMagicianE6:
     # Movement Commands:
 
     @dispatch(str)
-    def MoveJ(self, P):
+    def MovJ(self, P):
         """
         Move the robot to a specified point through joint motion.
 
@@ -1440,10 +1440,10 @@ class DobotMagicianE6:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
         if self.isDebug: print(f"  Joint move robot to {P}")
-        return self.Send_command(f"MoveJ({P})")
+        return self.Send_command(f"MovJ({P})")
     
     @dispatch(str, str)
-    def MoveJ(self, P, parameters):
+    def MovJ(self, P, parameters):
         """
         Move the robot to a specified point through joint motion.
 
@@ -1455,10 +1455,10 @@ class DobotMagicianE6:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
         if self.isDebug: print(f"  Joint move robot to {P} with parameters {parameters}")
-        return self.Send_command(f"MoveJ({P},{parameters})")
+        return self.Send_command(f"MovJ({P},{parameters})")
 
     @dispatch(str, int, int, int, int, int)
-    def MoveJ(self, P, user, tool, a, v, cp):
+    def MovJ(self, P, user, tool, a, v, cp):
         """
         Move the robot to a specified point through joint motion.
 
@@ -1474,14 +1474,299 @@ class DobotMagicianE6:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
         if self.isDebug: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
-        return self.Send_command(f"MoveJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.Send_command(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
 
+    @dispatch(str)
+    def MovL(self, P):
+        """
+        Move the robot to a specified point through linear motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to {P}")
+        return self.Send_command(f"MovL({P})")
+
+    @dispatch(str, str)
+    def MovL(self, P, parameters):
+        """
+        Move the robot to a specified point through linear motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},cp={cp|r}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to {P} with parameters {parameters}")
+        return self.Send_command(f"MovL({P},{parameters})")
     
+    @dispatch(str, int, int, int, int, int, int, int)
+    def MovL(self, P, user, tool, a, v, speed, cp, r):
+        """
+        Move the robot to a specified point through linear motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to {P} with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+
+    @dispatch(str, str)
+    def MovLIO(self, P, IO):
+        """
+        Move the robot to a specified point through linear motion setting status of the digital output.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            IO (string): IO control. See the TCP protocols for details.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}")
+        return self.Send_command(f"MovL({P},{IO})")
+
+    @dispatch(str, str, int, int, int, int, int, int, int)
+    def MovLIO(self, P, IO, user, tool, a, v, speed, cp, r):
+        """
+        Move the robot to a specified point through linear motion setting status of the digital output.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            IO (string): IO control. See the TCP protocols for details.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+            """
+        if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+
+    dispatch(str, str)
+    def MovJIO(self, P, IO):
+        """
+        Move the robot to a specified point through joint motion setting status of the digital output.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            IO (string): IO control. See the TCP protocols for details.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}")
+        return self.Send_command(f"MovJ({P},{IO})")
+    
+    @dispatch(str, str, int, int, int, int, int, int, int)
+    def MovJIO(self, P, IO, user, tool, a, v, cp, r):
+        """
+        Move the robot to a specified point through joint motion setting status of the digital output.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            IO (string): IO control. See the TCP protocols for details.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp},r={r})")
+
+    @dispatch(str, str)
+    def Arc(self, P1, P2):
+        """
+        Move the robot to a specified point through arc motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion")
+        return self.Send_command(f"Arc({P1},{P2})")
+
+    @dispatch(str, str, str)
+    def Arc(self, P1, P2, parameters):
+        """
+        Move the robot to a specified point through arc motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
+        return self.Send_command(f"Arc({P1},{P2},{parameters})")
+
+    @dispatch(str, str, int, int, int, int, int, int, int)
+    def Arc(self, P1, P2, user, tool, a, v, speed, cp, r):
+        """
+        Move the robot to a specified point through arc motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+
+    @dispatch(str,str)
+    def Circle(self, P1, P2):
+        """
+        Move the robot to a specified point through circular motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion")
+        return self.Send_command(f"Circle({P1},{P2})")
+    
+    @dispatch(str,str,str)
+    def Circle(self, P1, P2, parameters):
+        """
+        Move the robot to a specified point through circular motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters}")
+        return self.Send_command(f"Circle({P1},{P2},{parameters})")
+
+    @dispatch(str,str,int,int,int,int,int,int,int)
+    def Circle(self, P1, P2, user, tool, a, v, speed, cp, r):
+        """
+        Move the robot to a specified point through circular motion.
+
+        Args:
+            P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"Circle({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+
+    def ServoJ(self, Joint, t=0.1, aheadtime=50, gain=500):
+        """
+        The dynamic following command based on joint space.
+
+        Args:
+            Joint (string): Target point joint varaibles. Format: {j1,j2,j3,j4,j5,j6}
+            t (int): Running time of the point. Unit: s. Range: 0.02~3600.0. Default is 0.1.
+            aheadtime (int): Advanced time, similar to the D in PID control. Range: 20.0~100.0. default is 50.
+            gain (int): Proportional gain of the target position, similar to the P in PID control. Range: 200.0~1000.0. Default is 500.
+
+        Returns:
+            Response from the robot.
+        """
+        if self.isDebug: print(f"  Moving robot to joint {Joint} with time {t}, ahead time {aheadtime}, gain {gain}")
+        return self.Send_command(f"ServoJ({Joint},{t},{aheadtime},{gain})")
+
+    def ServoP(self, Pose, t=0.1, aheadtime=50, gain=500):
+        """
+        The dynamic following command based on pose space.
+
+        Args:
+            Pose (string): Target point pose varaibles. Format: {x,y,z,a,b,c}
+            t (int): Running time of the point. Unit: s. Range: 0.02~3600.0. Default is 0.1.
+            aheadtime (int): Advanced time, similar to the D in PID control. Range: 20.0~100.0. default is 50.
+            gain (int): Proportional gain of the target position, similar to the P in PID control. Range: 200.0~1000.0. Default is 500.
+
+        Returns:
+            Response from the robot.
+        """
+        if self.isDebug: print(f"  Moving robot to pose {Pose} with time {t}, ahead time {aheadtime}, gain {gain}")
+        return self.Send_command(f"ServoP({Pose},{t},{aheadtime},{gain})")
+
+    def MoveJog(self, axisID, coordType, user, tool):
+        """
+        Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm.
+
+        Args:
+            axisID (string): Axis ID (case sensitive). 0: Axis 1, 1: Axis 2, 2: Axis 3, 3: Axis 4, 4: Axis 5, 5: Axis 6.
+            coordType (int): Coordinate type. 0: Joint, 1: Cartesian.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+
+        Returns:
+            Response from the robot.
+        """
+        if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
+        return self.Send_command(f"MoveJog({axisID},{coordType},{user},{tool})")
+
+
+
+
+
+
+
+
+
+
 
 
     # Added Commands:
 
-    def MoveJ_J(self,j1,j2,j3,j4,j5,j6):
+    def MoveJJ(self,j1,j2,j3,j4,j5,j6):
         """
         Move the robot to a specified joint position using joint motion.
 
@@ -1500,7 +1785,7 @@ class DobotMagicianE6:
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
 
-    def MoveJ_P(self,j1,j2,j3,j4,j5,j6):
+    def MoveJP(self,j1,j2,j3,j4,j5,j6):
         """
         Move the robot to a specified pose using joint motion.
 
@@ -1519,10 +1804,9 @@ class DobotMagicianE6:
         move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
 
-
-    def MoveL(self,j1,j2,j3,j4,j5,j6):
+    def MoveLJ(self,j1,j2,j3,j4,j5,j6):
         """
-        Move the robot to a specified joint position.
+        Move the robot to a specified joint position using linear motion.
 
         Args:
             j1 (int): Joint 1 angle.
@@ -1533,24 +1817,50 @@ class DobotMagicianE6:
             j6 (int): Joint 6 angle.
 
         Returns:
-            The response from the robot.
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
-        if self.isDebug: print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.isDebug: print(f"  Joint move robot to joint({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
+        return self.Send_command(move_command)
+
+    def MoveLP(self,j1,j2,j3,j4,j5,j6):
+        """
+        Move the robot to a specified pose using linear motion.
+
+        Args:
+            j1 (int): Joint 1 angle.
+            j2 (int): Joint 2 angle.
+            j3 (int): Joint 3 angle.
+            j4 (int): Joint 4 angle.
+            j5 (int): Joint 5 angle.
+            j6 (int): Joint 6 angle.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
+        move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
 
     def Home(self):
         """
-        Move the robot to the home position.
+        Move the robot to the home position through joint motion.
 
         Returns:
             The response from the robot.
         """
         if self.isDebug: print("  Moving robot to home position")
-        return self.MoveJ(0,0,0,0,0,0)
+        return self.MoveJ(0, 0, 0, 0, 0, 0)
 
+    def Pack(self):
+        """
+        Move the robot to the packing position through joint motion.
 
-    
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print("  Moving robot to packing position")
+        return self.MoveJJ(-90, 0, -140, -40, 0, 0)
        
 
     def SetSucker(self, status):
