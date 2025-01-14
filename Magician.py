@@ -1231,3 +1231,4 @@ if __name__ == "__main__":
     dobot.Connect()
     dobot.EnableRobot()
     dobot.Home()
+    dobot.MoveJ(269.8520, -40.3747, -131.4702, 81.4597, 88.3569, 88.6418)

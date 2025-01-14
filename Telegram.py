@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 from Magician import DobotMagicianE6
 
 isConnected = False
+hasSign = 0 # 0: No sign, 1: Hi sign, 2: Bye sign
 
 # Function to read the API token and user IDs from the config file
 def read_config(file_path):
@@ -237,11 +238,18 @@ async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     robot.SetSucker(0)
 
 @authorized_users_only()
-async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
         return
+    if hasSign > 0:
+        if hasSign == 1:
+            await update.message.reply_text("Robot already carying the HI sign.")
+        else:
+            await update.message.reply_text("Robot already carying the BYE sign.")
+        return
     await update.message.reply_text("Robot picking up sign.")
+    hasSign = 1
     robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
     time.sleep(2)
     robot.SetSucker(1)
@@ -249,17 +257,48 @@ async def pickupSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
 
 @authorized_users_only()
+async def pickupBye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not isConnected:
+        await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
+        return
+    if hasSign > 0:
+        if hasSign == 1:
+            await update.message.reply_text("Robot already carying the HI sign.")
+        else:
+            await update.message.reply_text("Robot already carying the BYE sign.")
+        return
+    await update.message.reply_text("Robot picking up sign.")
+    hasSign = 2
+    robot.MoveJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
+    robot.MoveJ(269.8520, -40.3747, -131.4702, 81.4597, 88.3569, 88.6418)
+    time.sleep(2)
+    robot.SetSucker(1)
+    time.sleep(2)
+    robot.MoveJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
+
+@authorized_users_only()
 async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
         return
     await update.message.reply_text("Robot returning sign.")
-    robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
-    robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
-    time.sleep(1)
-    robot.SetSucker(0)
-    time.sleep(1)
-    robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
+    if hasSign > 0:
+        if hasSign == 1: # HI sign
+            robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
+            robot.MoveJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
+            time.sleep(1)
+            robot.SetSucker(0)
+            time.sleep(1)
+            robot.MoveJ(248.9177, -25.8053, -109.9558, 45.9886, 88.3278, 67.6986)
+        else: # BYE sign
+            robot.MoveJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
+            robot.MoveJ(269.8520, -40.3747, -131.4702, 81.4597, 88.3569, 88.6418)
+            time.sleep(1)
+            robot.SetSucker(0)
+            time.sleep(1)
+            robot.MoveJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
+    else:
+        await update.message.reply_text("Robot is not carying any sign.")
 
 @authorized_users_only()
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -363,8 +402,9 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 "  /mute - Unsubscribe from notifications",
                 "  /notify - Subscribe to notifications",
                 "  /pack - Return the robot to the pack position",
-                "  /pickupSign - Pickup the sign",
-                "  /returnSign - Return the sign",
+                "  /pickuphi - Pickup the HI sign",
+                "  /returnhi - Return the HI sign",
+                "  /returnsign - Return the sign",
                 "  /start - Start the robot",
                 "  /stop - Stop and disconnect the robot",
                 "  /suckerOFF - Deactivate the sucker",
@@ -469,8 +509,9 @@ def main():
     application.add_handler(CommandHandler("wiggle", wiggle))
     application.add_handler(CommandHandler("suckerON", suckerON))
     application.add_handler(CommandHandler("suckerOFF", suckerOFF))
-    application.add_handler(CommandHandler("pickupSign", pickupSign))
-    application.add_handler(CommandHandler("returnSign", returnSign))
+    application.add_handler(CommandHandler("pickuphi", pickupHi))
+    application.add_handler(CommandHandler("pickupbye", pickupBye))
+    application.add_handler(CommandHandler("returnsign", returnSign))
     application.add_handler(CommandHandler("greet", greet))
     application.add_handler(CommandHandler("authorize", authorize))
     application.add_handler(CommandHandler("deauthorize", deauthorize))
