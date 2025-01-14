@@ -2031,27 +2031,7 @@ class DobotMagicianE6:
         return self.Send_command("GetCurrentCommandID()")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # Added Commands:
+    # Added Commands (no standard command from TCP protocol):
 
     def MoveJJ(self,j1,j2,j3,j4,j5,j6):
         """
@@ -2149,7 +2129,6 @@ class DobotMagicianE6:
         if self.isDebug: print("  Moving robot to packing position")
         return self.MoveJJ(-90, 0, -140, -40, 0, 0)
        
-
     def SetSucker(self, status):
         """
         Set the sucker status.
@@ -2162,12 +2141,4 @@ class DobotMagicianE6:
         """
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
-
     
-# Example usage
-if __name__ == "__main__":
-    dobot = DobotMagicianE6()
-    dobot.Connect()
-    dobot.EnableRobot()
-    dobot.Home()
-    dobot.MoveJ(269.8520, -40.3747, -131.4702, 81.4597, 88.3569, 88.6418)
