@@ -239,6 +239,7 @@ async def suckerOFF(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 @authorized_users_only()
 async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global hasSign
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
         return
@@ -258,6 +259,7 @@ async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 @authorized_users_only()
 async def pickupBye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global hasSign
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
         return
