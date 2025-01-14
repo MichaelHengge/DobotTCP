@@ -839,7 +839,7 @@ class DobotMagicianE6:
     # IO Commands:
 
     @dispatch(int, int)
-    def DO(self, index, status):
+    def DO(self, index:int, status:int) -> str:
         """
         Set the digital output of the robot.
 
@@ -854,7 +854,7 @@ class DobotMagicianE6:
         return self.Send_command(f"DO({index},{status})")
 
     @dispatch(int, int, int)
-    def DO(self, index, status, time):
+    def DO(self, index:int, status:int, time:int):
         """
         Set the digital output of the robot (queue command).
 
@@ -1584,7 +1584,7 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
-    dispatch(str, str)
+    @dispatch(str, str)
     def MovJIO(self, P, IO):
         """
         Move the robot to a specified point through joint motion setting status of the digital output.
@@ -1599,7 +1599,7 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}")
         return self.Send_command(f"MovJ({P},{IO})")
     
-    @dispatch(str, str, int, int, int, int, int, int, int)
+    @dispatch(str, str, int, int, int, int, int, int)
     def MovJIO(self, P, IO, user, tool, a, v, cp, r):
         """
         Move the robot to a specified point through joint motion setting status of the digital output.
@@ -2175,3 +2175,4 @@ class DobotMagicianE6:
         """
         if self.isDebug: print(f"  Parsing error code {errcode}")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
+    
