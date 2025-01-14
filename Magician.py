@@ -2176,3 +2176,25 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Parsing error code {errcode}")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
     
+    def FlexGrip(self, status:int, vacuum:int=1, pressure:int=2):
+        """
+        Set the status of the flexible gripper
+
+        Args:
+            status (int): Status of the gripper. 0: Vacuum (closed), 1:Neutral, 2:Pressure (open)
+            vacuum (int): Digital port for the vacuum. Default is 1.
+            pressure (int): Digital port for the pressure. Default is 2.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting flexible gripper to {status}")
+        match status:
+            case 0:
+                return self.DO(1,1)
+            case 1:
+                self.DO(1,0)
+                return self.DO(2,0)
+            case 2:
+                return self.DO(2,1)
+
