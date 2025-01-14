@@ -1426,14 +1426,64 @@ class DobotMagicianE6:
         return self.Send_command(f"SetOutputFloat({adress},{value})")
 
 
-
-
-
     # Movement Commands:
 
-    def MoveJ(self,j1,j2,j3,j4,j5,j6):
+    @dispatch(str)
+    def MoveJ(self, P):
         """
-        Move the robot to a specified joint position.
+        Move the robot to a specified point through joint motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to {P}")
+        return self.Send_command(f"MoveJ({P})")
+    
+    @dispatch(str, str)
+    def MoveJ(self, P, parameters):
+        """
+        Move the robot to a specified point through joint motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},cp={cp}
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to {P} with parameters {parameters}")
+        return self.Send_command(f"MoveJ({P},{parameters})")
+
+    @dispatch(str, int, int, int, int, int)
+    def MoveJ(self, P, user, tool, a, v, cp):
+        """
+        Move the robot to a specified point through joint motion.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~1000.
+            cp (int): Continuous path rate. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
+        return self.Send_command(f"MoveJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
+
+    
+
+
+    # Added Commands:
+
+    def MoveJ_J(self,j1,j2,j3,j4,j5,j6):
+        """
+        Move the robot to a specified joint position using joint motion.
 
         Args:
             j1 (int): Joint 1 angle.
@@ -1444,12 +1494,32 @@ class DobotMagicianE6:
             j6 (int): Joint 6 angle.
 
         Returns:
-            The response from the robot.
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
-        if self.isDebug: print(f"  Joint move robot to ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.isDebug: print(f"  Joint move robot to joint ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.Send_command(move_command)
-    
+
+    def MoveJ_P(self,j1,j2,j3,j4,j5,j6):
+        """
+        Move the robot to a specified pose using joint motion.
+
+        Args:
+            j1 (int): Joint 1 angle.
+            j2 (int): Joint 2 angle.
+            j3 (int): Joint 3 angle.
+            j4 (int): Joint 4 angle.
+            j5 (int): Joint 5 angle.
+            j6 (int): Joint 6 angle.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
+        move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
+        return self.Send_command(move_command)
+
+
     def MoveL(self,j1,j2,j3,j4,j5,j6):
         """
         Move the robot to a specified joint position.
