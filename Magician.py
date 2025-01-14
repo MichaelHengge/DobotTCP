@@ -2174,4 +2174,4 @@ class DobotMagicianE6:
             The error message.
         """
         if self.isDebug: print(f"  Parsing error code {errcode}")
-        return self.error_codes[errcode]
+        return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
