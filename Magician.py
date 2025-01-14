@@ -1302,8 +1302,128 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
         return self.Send_command(f"SetHoldRegs({index},{address},{valTab},{valType})")
 
-    
 
+    # Bus register Commands:
+
+    def GetInputBool(self, adress):
+        """
+        Get the input boolean value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~63.
+
+        Returns:
+            The input boolean value. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting input boolean value from bus register {adress}")
+        return self.Send_command(f"GetInputBool({adress})")
+
+    def GetInputInt(self, adress):
+        """
+        Get the input integer value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+
+        Returns:
+            The input integer value.
+        """
+        if self.isDebug: print(f"  Getting input integer value from bus register {adress}")
+        return self.Send_command(f"GetInputInt({adress})")
+
+    def GetInputFloat(self, adress):
+        """
+        Get the input float value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+
+        Returns:
+            The input float value.
+        """
+        if self.isDebug: print(f"  Getting input float value from bus register {adress}")
+        return self.Send_command(f"GetInputFloat({adress})")
+
+    def GetOutputBool(self, adress):
+        """
+        Get the output boolean value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~63.
+
+        Returns:
+            The output boolean value. 0: OFF, 1: ON.
+        """
+        if self.isDebug: print(f"  Getting output boolean value from bus register {adress}")
+        return self.Send_command(f"GetOutputBool({adress})")
+
+    def GetOutputInt(self, adress):
+        """
+        Get the output integer value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+
+        Returns:
+            The output integer value.
+        """
+        if self.isDebug: print(f"  Getting output integer value from bus register {adress}")
+        return self.Send_command(f"GetOutputInt({adress})")
+
+    def GetOutputFloat(self, adress):
+        """
+        Get the output float value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+
+        Returns:
+            The output float value.
+        """
+        if self.isDebug: print(f"  Getting output float value from bus register {adress}")
+        return self.Send_command(f"GetOutputFloat({adress})")
+
+    def SetOutputBool(self, adress, value):
+        """
+        Set the output boolean value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~63.
+            value (int): Boolean value. 0: OFF, 1: ON.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting output boolean value of bus register {adress} to {value}")
+        return self.Send_command(f"SetOutputBool({adress},{value})")
+
+    def SetOutputInt(self, adress, value):
+        """
+        Set the output integer value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+            value (int): Integer value.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting output integer value of bus register {adress} to {value}")
+        return self.Send_command(f"SetOutputInt({adress},{value})")
+
+    def SetOutputFloat(self, adress, value):
+        """
+        Set the output float value of the bus register.
+
+        Args:
+            adress (int): Bus register address. Range: 0~23.
+            value (float): Float value.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting output float value of bus register {adress} to {value}")
+        return self.Send_command(f"SetOutputFloat({adress},{value})")
 
 
 
