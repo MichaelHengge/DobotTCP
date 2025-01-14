@@ -2,7 +2,7 @@ import asyncio
 import time
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-from Magician import DobotMagicianE6
+from DobotTCP import Dobot
 
 isConnected = False
 hasSign = 0 # 0: No sign, 1: Hi sign, 2: Bye sign
@@ -60,7 +60,7 @@ def write_config(file_path, token, admin_id, user_ids, notify_ids):
         raise Exception(f"Error writing to config file: {e}")
 
 # Initialize the Dobot Magician
-robot = DobotMagicianE6(ip='192.168.5.1', port=29999)
+robot = Dobot(ip='192.168.5.1', port=29999)
 
 # Decorator to check user authorization
 def authorized_users_only():

@@ -3,7 +3,7 @@ import time
 
 from multipledispatch import dispatch
 
-class DobotMagicianE6:
+class Dobot:
     def __init__(self, ip='192.168.5.1', port=29999):
         self.ip = ip
         self.port = port
@@ -2182,6 +2182,9 @@ class DobotMagicianE6:
 
 
 class FlexGripper:
+    """
+    
+    """
     def __init__(self, robot, DOvacuum:int=1, DOpressure:int=2):
         self.robot = robot
         self.DOvacuum = DOvacuum

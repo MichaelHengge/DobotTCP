@@ -1,7 +1,8 @@
 import time
-from Magician import DobotMagicianE6
+from DobotTCP import Dobot, FlexGripper
 
-dobot = DobotMagicianE6()
+dobot = Dobot()
+gripper = FlexGripper()
 dobot.Connect()
 dobot.EnableRobot()
 dobot.FlexGrip(1)
