@@ -2183,9 +2183,17 @@ class Dobot:
 
 class FlexGripper:
     """
-    
+    Class for the flexible gripper.
     """
-    def __init__(self, robot, DOvacuum:int=1, DOpressure:int=2):
+    def __init__(self, robot:Dobot, DOvacuum:int=1, DOpressure:int=2):
+        """
+        Constructor for the flexible gripper.
+        
+        Args:
+            robot (DobotTCP): The robot object.
+            DOvacuum (int): Digital port for the vacuum. Default is 1.
+            DOpressure (int): Digital port for the pressure. Default is 2.
+        """
         self.robot = robot
         self.DOvacuum = DOvacuum
         self.DOpressure = DOpressure
