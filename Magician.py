@@ -11,6 +11,27 @@ class DobotMagicianE6:
         self.isEnabled = False
         self.isDebug = True
 
+    # Error Codes:
+    error_codes = {
+        0: "No error: The command has been delivered successfully.",
+        -1: "Fail to execute: The command has been received but failed to be executed.",
+        -2: "In alarm status: The robot cannot execute commands in the alarm status. Clear the alarm and redeliver the command.",
+        -3: "In emergency stop status: The robot cannot execute commands in the emergency stop status. Release the emergency stop switch, clear the alarm, and redeliver the command.",
+        -4: "In power-off status: The robot cannot execute commands in the power-off status. Power the robot on.",
+        -5: "In script running/pause status: The robot cannot execute some commands when it is in script running/pause status. Stop the script first.",
+        -10000: "Command error: The command does not exist.",
+        -20000: "Parameter number error: The number of parameters in the command is incorrect.",
+        -30001: "The type of the first parameter is incorrect: The parameter type is not valid.",
+        -30002: "The type of the second parameter is incorrect: The parameter type is not valid.",
+        -40001: "The range of the first parameter is incorrect: Ensure the parameter value falls within the valid range.",
+        -40002: "The range of the second parameter is incorrect: Ensure the parameter value falls within the valid range.",
+        -50001: "The type of the first optional parameter is incorrect: Optional parameter type mismatch.",
+        -50002: "The type of the second optional parameter is incorrect: Optional parameter type mismatch.",
+        -60001: "The range of the first optional parameter is incorrect: Ensure the optional parameter value is within the valid range.",
+        -60002: "The range of the second optional parameter is incorrect: Ensure the optional parameter value is within the valid range."
+    }
+
+
     # General Python Commands:
 
     def Connect(self):
@@ -2142,3 +2163,15 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
     
+    def ParseError(self, errcode):
+        """
+        Parse the error code to a human readable error message.
+
+        Args:
+            errcode (int): Error code.
+
+        Returns:
+            The error message.
+        """
+        if self.isDebug: print(f"  Parsing error code {errcode}")
+        return self.error_codes[errcode]
