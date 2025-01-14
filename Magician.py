@@ -1142,15 +1142,167 @@ class DobotMagicianE6:
         return self.Send_command(f"SetToolMode({mode},{type},{identify})")
 
     
+    # Modbus Commands:
 
+    @dispatch(str, int, int)
+    def ModbusCreate(self, ip, port, slave_id):
+        """
+        Create a Modbus master station and establish slave connection (max 5 devices).
 
+        Args:
+            ip (string): IP address of the slave device.
+            port (int): Port number of the slave device.
+            slave_id (int): ID of the slave station.
 
+        Returns:
+            Index: master station index, used when other Modbus commands are called.
+        """
+        if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}")
+        return self.Send_command(f"ModbusCreate({ip},{port},{slave_id})")
 
+    @dispatch(str, int, int, int)
+    def ModbusCreate(self, ip, port, slave_id, isRTU):
+        """
+        Create a Modbus master station and establish slave connection (max 5 devices).
 
+        Args:
+            ip (string): IP address of the slave device.
+            port (int): Port number of the slave device.
+            slave_id (int): ID of the slave station.
+            isRTU (int): Communication mode. 0: modbusTCP, 1: modbusRTU.
 
+        Returns:
+            Index: master station index, used when other Modbus commands are called.
+        """
+        if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
+        return self.Send_command(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
 
+    def ModbusRTUCreate(self, slave_id, baud, parity="E", data_bit=8, stop_bit=1):
+        """
+        Create a Modbus master station based on RS485 and establish slave connection (max 5 devices).
 
+        Args:
+            slave_id (int): ID of the slave station.
+            baud (int): Baud rate.
+            parity (string): Parity bit. N: None, O: Odd, E: Even. Default is even.
+            data_bit (int): Data bit length. 8. Default is 8.
+            stop_bit (int): Stop bit length. 1. Default is 1.
 
+        Returns:
+            Index: master station index, used when other Modbus commands are called.
+        """
+        if self.isDebug: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
+        return self.Send_command(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
+
+    def ModbusClose(self, index):
+        """
+        Close the Modbus master station.
+
+        Args:
+            index (int): Master station index.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Closing Modbus master station {index}")
+        return self.Send_command(f"ModbusClose({index})")
+
+    def GetInBits(self, index, address, count):
+        """
+        Read the contact register from the modbus slave device.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the contact register.
+            count (int): Number of contact registers. Range: 1~16.
+
+        Returns:
+            Values of the contact register. Format: {value1,value2,...}.
+        """
+        if self.isDebug: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
+        return self.Send_command(f"GetInBits({index},{address},{count})")
+
+    def GetInRegs(self, index, address, count, valType="U16"):
+        """
+        Read the input register from the modbus slave device with a specified data type.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the input register.
+            count (int): Number of values from input registers. Range: 1~4.
+            valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
+
+        Returns:
+            Values of the input register. Format: {value1,value2,...}.
+        """
+        if self.isDebug: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
+        return self.Send_command(f"GetInRegs({index},{address},{count},{valType})")
+
+    def GetCoils(self, index, address, count):
+        """
+        Read the coil register from the modbus slave device.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the coil register.
+            count (int): Number of values from the coil registers. Range: 1~16.
+
+        Returns:
+            Values of the register coil. Format: {value1,value2,...}.
+        """
+        if self.isDebug: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
+        return self.Send_command(f"GetCoils({index},{address},{count})")
+
+    def SetCoils(self, index, address, count, valTab):
+        """
+        Write the coil register of the modbus slave device.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the coil register.
+            count (int): Number of values from coil register. Range: 1~16.
+            valTab (string): Values to write. Format: {value1,value2,...}.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
+        return self.Send_command(f"SetCoils({index},{address},{valTab})")
+
+    def getHoldRegs(self, index, address, count, valType="U16"):
+        """
+        Read the holding register from the modbus slave device with a specified data type.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the holding register.
+            count (int): Number of values from holding registers. Range: 1~4.
+            valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
+
+        Returns:
+            Values of the holding register. Format: {value1,value2,...}.
+        """
+        if self.isDebug: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
+        return self.Send_command(f"GetHoldRegs({index},{address},{count},{valType})")
+
+    def setHoldRegs(self, index, address, count, valTab, valType="U16"):
+        """
+        Write the holding register of the modbus slave device with a specified data type.
+
+        Args:
+            index (int): Master station index.
+            address (int): Start address of the holding register.
+            count (int): Number of values from holding registers. Range: 1~4.
+            valTab (string): Values to write. Format: {value1,value2,...}.
+            valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.isDebug: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
+        return self.Send_command(f"SetHoldRegs({index},{address},{valTab},{valType})")
+
+    
 
 
 
