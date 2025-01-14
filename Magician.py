@@ -1737,21 +1737,308 @@ class DobotMagicianE6:
         if self.isDebug: print(f"  Moving robot to pose {Pose} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.Send_command(f"ServoP({Pose},{t},{aheadtime},{gain})")
 
-    def MoveJog(self, axisID, coordType, user, tool):
+    def MoveJog(self, axisID, coordType=0, user=0, tool=0):
         """
         Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm.
 
         Args:
-            axisID (string): Axis ID (case sensitive). 0: Axis 1, 1: Axis 2, 2: Axis 3, 3: Axis 4, 4: Axis 5, 5: Axis 6.
-            coordType (int): Coordinate type. 0: Joint, 1: Cartesian.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            axisID (string): Axis ID (case sensitive). J1-6/X/Y/Z/Rx/Ry/Rz+: positive direction. J1-6/X/Y/Z/Rx/Ry/Rz-: negative direction.
+            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Default is 0.
 
         Returns:
             Response from the robot.
         """
         if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
         return self.Send_command(f"MoveJog({axisID},{coordType},{user},{tool})")
+
+    def GetStartPose(self, traceName):
+        """
+        Get the start point of the trajectory.
+
+        Args:
+            traceName (string): Trajectory file name (including suffix). The trajectory file is stored in /dobot/userdata/project/process/trajectory/
+
+        Returns:
+            Pointtype, refers to the type of point returned. 0: taught point, 1: joint variable, 2: posture variable. See the TCP protocols for details.
+        """
+        if self.isDebug: print(f"  Getting start pose of trace {traceName}")
+        return self.Send_command(f"GetStartPose({traceName})")
+
+    @dispatch(str)
+    def StartPath(self, traceName):
+        """
+        Move according to the recorded points (including at least 4 points) in the specified trajectory file to play back the recorded trajectory.
+
+        Args:
+            traceName (string): Trajectory file name (including suffix). The trajectory file is stored in /dobot/userdata/project/process/trajectory/
+
+        Returns:
+            Response from the robot.
+        """
+        if self.isDebug: print(f"  Starting path {traceName}")
+        return self.Send_command(f"StartPath({traceName})")
+
+    @dispatch(str, int, float, int, int)
+    def StartPath(self, traceName, isConst, multi, user, tool):
+        """
+        Move according to the recorded points (including at least 4 points) in the specified trajectory file to play back the recorded trajectory.
+
+        Args:
+            traceName (string): Trajectory file name (including suffix). The trajectory file is stored in /dobot/userdata/project/process/trajectory/
+            isConst (int): Whether the trajectory is played at constant speed. 0: variable speed as recorded, 1: constant speed.
+            multi (float): Playback speed multiplier. Valid only when isConst is 0. Range: 0.25~2. Default is 1
+            user (int): User coordinate system index. If not specified use the system in the trajectory file.
+            tool (int): Tool coordinate system index. If not specified use the system in the trajectory file.
+
+        Returns:
+            Response from the robot.
+        """
+        if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, repetitions {multi}, user {user}, tool {tool}")
+        return self.Send_command(f"StartPath({traceName},{isConst},{multi},{user},{tool})")
+
+    @dispatch(float, float, float, float, float, float)
+    def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform relative motion along the tool coordinate system, and the end motion is joint motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            cp (int): Continuous path rate. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+
+    @dispatch(float, float, float, float, float, float, int, int, int, int, int)
+    def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
+        """
+        Perform relative motion along the tool coordinate system, and the end motion is joint motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            cp (int): Continuous path rate. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
+
+    @dispatch(float, float, float, float, float, float)
+    def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform relative motion along the tool coordinate system, and the end motion is linear motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+
+    @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
+    def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
+        """
+        Perform relative motion along the tool coordinate system, and the end motion is linear motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
+
+    @dispatch(float, float, float, float, float, float)
+    def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform relative motion along the user coordinate system, and the end motion is joint motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+
+    @dispatch(float, float, float, float, float, float, int, int, int, int, int)
+    def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
+        """
+        Perform relative motion along the user coordinate system, and the end motion is joint motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            cp (int): Continuous path rate. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
+
+    @dispatch(float, float, float, float, float, float)
+    def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform relative motion along the user coordinate system, and the end motion is linear motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+
+    @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
+    def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
+        """
+        Perform relative motion along the user coordinate system, and the end motion is linear motion.
+
+        Args:
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system.
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
+            cp (int): Continuous path rate. Range: 0~100.
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
+
+    @dispatch(float, float, float, float, float, float)
+    def RelJointMovJ(self, Offset1, Offset2, Offset3, Offset4, Offset5, Offset6):
+        """
+        Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
+
+        Args:
+            Offset1 (float): Joint 1 offset. Unit: degree.
+            Offset2 (float): Joint 2 offset. Unit: degree.
+            Offset3 (float): Joint 3 offset. Unit: degree.
+            Offset4 (float): Joint 4 offset. Unit: degree.
+            Offset5 (float): Joint 5 offset. Unit: degree.
+            Offset6 (float): Joint 6 offset. Unit: degree.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
+        return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
+
+    @dispatch(float, float, float, float, float, float, int, int, int)
+    def RelJointMovJ(self, Offset1, Offset2, Offset3, Offset4, Offset5, Offset6, a, v, cp):
+        """
+        Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
+
+        Args:
+            Offset1 (float): Joint 1 offset. Unit: degree.
+            Offset2 (float): Joint 2 offset. Unit: degree.
+            Offset3 (float): Joint 3 offset. Unit: degree.
+            Offset4 (float): Joint 4 offset. Unit: degree.
+            Offset5 (float): Joint 5 offset. Unit: degree.
+            Offset6 (float): Joint 6 offset. Unit: degree.
+            a (int): Acceleration rate. Range: 0~100.
+            v (int): Velocity rate. Range: 0~100.
+            cp (int): Continuous path rate. Range: 0~100.
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6}) with acceleration {a}, v {v}, continuos path {cp}")
+        return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6},{a},{v},{cp})")
+
+    def GetCurrentCommandID(self):
+        """
+        Get the current command ID. It can be used to determine which command the robot is executing.
+
+        Returns:
+            ResultID, the algorithm queue ID of the current command.
+        """
+        if self.isDebug: print("  Getting current command ID")
+        return self.Send_command("GetCurrentCommandID()")
+
+
+
+
+
+
+
+
+
+
 
 
 
