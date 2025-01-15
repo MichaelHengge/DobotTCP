@@ -256,7 +256,7 @@ async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             )
         return
     await update.message.reply_text("Robot picking up sign.")
-    hasSign = 1
+    hasSign = 1 # HI sign
     robot.MoveJJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
     time.sleep(2)
     robot.SetSucker(1)
@@ -282,7 +282,7 @@ async def pickupBye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             )
         return
     await update.message.reply_text("Robot picking up sign.")
-    hasSign = 2
+    hasSign = 2 # BYE sign
     robot.MoveJJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
     robot.MoveJJ(269.8520, -40.3747, -131.4702, 81.4597, 88.3569, 88.6418)
     time.sleep(2)
@@ -292,6 +292,7 @@ async def pickupBye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 @authorized_users_only()
 async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global hasSign
     if not isConnected:
         await update.message.reply_text("Robot not connected! Use /connect to connect to the robot.")
         return
@@ -311,6 +312,7 @@ async def returnSign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             robot.SetSucker(0)
             time.sleep(1)
             robot.MoveJJ(269.8520, -32.2451, -131.6856, 73.5455, 88.3569, 88.6418)
+        hasSign = 0 # No sign
     else:
         await update.message.reply_text("Robot is not carying any sign.")
 
