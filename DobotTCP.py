@@ -2206,6 +2206,7 @@ class FlexGripper:
             The response from the robot.
         """
         if self.robot.isDebug: print(f"  Opening flexible gripper")
+        self.robot.DO(self.DOvacuum,0)
         return self.robot.DO(self.DOpressure,1)  
 
     def close(self) -> str:
@@ -2216,6 +2217,7 @@ class FlexGripper:
             The response from the robot.
         """
         if self.robot.isDebug: print(f"  Closing flexible gripper")
+        self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,1) 
     
     def neutral(self) -> str:
@@ -2244,10 +2246,12 @@ class FlexGripper:
         if self.robot.isDebug: print(f"  Setting flexible gripper to {state}")
         match state:
             case -1:
+                self.robot.DO(pressure,0)
                 return self.robot.DO(vacuum,1)
             case 0:
-                self.DO(1,0)
+                self.robot.DO(vacuum,0)
                 return self.robot.DO(pressure,0)
             case 1:
+                self.robot.DO(vacuum,1)
                 return self.robot.DO(pressure,1)
 
