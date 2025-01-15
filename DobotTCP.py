@@ -2203,7 +2203,7 @@ class FlexGripper:
         Returns:
             The response from the robot.
         """
-        if self.robot.isDebug: print(f"  Opening flexible gripper")
+        if self.robot.isDebug: print(f"  Opening flexible gripper\n    ", end="")
         self.robot.DO(self.DOvacuum,0)
         return self.robot.DO(self.DOpressure,1)  
 
@@ -2214,7 +2214,7 @@ class FlexGripper:
         Returns:
             The response from the robot.
         """
-        if self.robot.isDebug: print(f"  Closing flexible gripper")
+        if self.robot.isDebug: print(f"  Closing flexible gripper\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,1) 
     
@@ -2225,7 +2225,7 @@ class FlexGripper:
         Returns:
             The response from the robot.
         """
-        if self.robot.isDebug: print(f"  Setting flexible gripper to neutral")
+        if self.robot.isDebug: print(f"  Setting flexible gripper to neutral\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,0)
     
@@ -2241,7 +2241,7 @@ class FlexGripper:
         Returns:
             The response from the robot.
         """
-        if self.robot.isDebug: print(f"  Setting flexible gripper to {state}")
+        if self.robot.isDebug: print(f"  Setting flexible gripper to {state}\n    ", end="")
         match state:
             case -1:
                 self.robot.DO(pressure,0)
@@ -2279,7 +2279,7 @@ class ServoGripper:
         self.DIout1 = DIout1
         self.DIout2 = DIout2
     
-    def setIO(self, state) -> str:
+    def setState(self, state) -> str:
         """
         Set the state of the servo gripper.
 
@@ -2289,20 +2289,26 @@ class ServoGripper:
         Returns:
             The response from the robot.
         """
-        if self.robot.isDebug: print(f"  Setting servo gripper group to {state}")
+        if self.robot.isDebug: print(f"  Setting servo gripper group to {state}\n    ", end="")
         match state:
             case 1:
-                self.robot.SetDO(self.DOin1,0)
-                return self.robot.SetDO(self.DOin2,0)
+                self.robot.DO(self.DOin1,0)
+                if self.robot.isDebug: print("    ", end="")
+                return self.robot.DO(self.DOin2,0)
             case 2:
-                self.robot.SetDO(self.DOin1,1)
-                return self.robot.SetDO(self.DOin2,0)
+                self.robot.DO(self.DOin1,1)
+                if self.robot.isDebug: print("    ", end="")
+                return self.robot.DO(self.DOin2,0)
             case 3:
-                self.robot.SetDO(self.DOin1,0)
-                return self.robot.SetDO(self.DOin2,1)
+                self.robot.DO(self.DOin1,0)
+                if self.robot.isDebug: print("    ", end="")
+                return self.robot.DO(self.DOin2,1)
             case 4:
-                self.robot.SetDO(self.DOin1,1)
-                return self.robot.SetDO(self.DOin2,1)
+                self.robot.DO(self.DOin1,1)
+                if self.robot.isDebug: print("    ", end="")
+                return self.robot.DO(self.DOin2,1)
+            case _:
+                return "    Invalid state group. Please choose a value between 1 and 4."
             
     def getState(self) -> str:
         """
@@ -2311,7 +2317,7 @@ class ServoGripper:
         Returns:
             The state of the gripper.
         """
-        if self.robot.isDebug: print(f"  Getting servo gripper state")
+        if self.robot.isDebug: print(f"  Getting servo gripper state\n    ", end="")
         output1 = self.robot.GetDO(self.DIout1)
         output2 = self.robot.GetDO(self.DIout2)
         match (output1, output2):
@@ -2323,4 +2329,3 @@ class ServoGripper:
                 return "Fingers have stopped due to an object detection"
             case (1,1):
                 return "Unknown state"
-        return self.robot.GetDO(self.DIout1) + self.robot.GetDO(self.DIout2)

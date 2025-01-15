@@ -1,12 +1,10 @@
 import time
-from DobotTCP import Dobot, FlexGripper
+from DobotTCP import Dobot, ServoGripper
 
 robot = Dobot()
-gripper = FlexGripper(robot)
+gripper = ServoGripper(robot)
 robot.Connect()
 robot.EnableRobot()
-gripper.open()
+gripper.setState(4)
 time.sleep(3)
-gripper.close()
-time.sleep(3)
-gripper.neutral()
+gripper.setState(1)
