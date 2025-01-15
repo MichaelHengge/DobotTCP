@@ -2176,10 +2176,8 @@ class Dobot:
         if self.isDebug: print(f"  Parsing error code {errcode}")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
 
-    
 
-
-
+# Class for the flexible gripper
 
 class FlexGripper:
     """
@@ -2255,3 +2253,74 @@ class FlexGripper:
                 self.robot.DO(vacuum,1)
                 return self.robot.DO(pressure,1)
 
+
+# Class for the servo gripper
+
+class ServoGripper:
+    """
+    Class for the servo gripper.
+    """
+
+    def __init__(self, robot:Dobot, DOin1:int=1, DOin2:int=2, DIout1:int=1, DIout2:int=2):
+        """
+        Constructor for the servo gripper.
+
+        Args:
+            robot (DobotTCP): The robot object.
+            DOin1 (int): Digital input port 1. Default is 1.
+            DOin2 (int): Digital input port 2. Default is 2.
+            DIout1 (int): Digital output port 1. Default is 1.
+            DIout2 (int): Digital output port 2. Default is 2.
+        """
+
+        self.robot = robot
+        self.DOin1 = DOin1
+        self.DOin2 = DOin2
+        self.DIout1 = DIout1
+        self.DIout2 = DIout2
+    
+    def setIO(self, state) -> str:
+        """
+        Set the state of the servo gripper.
+
+        Args:
+            state (int): IO State group of the gripper. Range: 1-4.
+
+        Returns:
+            The response from the robot.
+        """
+        if self.robot.isDebug: print(f"  Setting servo gripper group to {state}")
+        match state:
+            case 1:
+                self.robot.SetDO(self.DOin1,0)
+                return self.robot.SetDO(self.DOin2,0)
+            case 2:
+                self.robot.SetDO(self.DOin1,1)
+                return self.robot.SetDO(self.DOin2,0)
+            case 3:
+                self.robot.SetDO(self.DOin1,0)
+                return self.robot.SetDO(self.DOin2,1)
+            case 4:
+                self.robot.SetDO(self.DOin1,1)
+                return self.robot.SetDO(self.DOin2,1)
+            
+    def getState(self) -> str:
+        """
+        Get the state of the servo gripper.
+
+        Returns:
+            The state of the gripper.
+        """
+        if self.robot.isDebug: print(f"  Getting servo gripper state")
+        output1 = self.robot.GetDO(self.DIout1)
+        output2 = self.robot.GetDO(self.DIout2)
+        match (output1, output2):
+            case (0,0):
+                return "Fingers are in motion"
+            case (1,0):
+                return "Fingers are at reference position, No object detected or object has been dropped"
+            case (0,1):
+                return "Fingers have stopped due to an object detection"
+            case (1,1):
+                return "Unknown state"
+        return self.robot.GetDO(self.DIout1) + self.robot.GetDO(self.DIout2)
