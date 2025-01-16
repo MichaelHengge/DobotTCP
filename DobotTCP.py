@@ -1,4 +1,5 @@
 import socket
+import struct
 import time
 
 from multipledispatch import dispatch
@@ -2440,6 +2441,129 @@ class Dobot:
         else:
             raise Exception("  ! Not connected to Dobot Magician E6")
 
+    def parse_feedback(data):
+        """
+        Parse the feedback data from the Dobot Magician E6 robot.
+
+        Args:
+            data (bytes): The feedback data from the robot.
+
+        Returns:
+            A dictionary containing the parsed data.
+
+        Example:
+            parse_feedback(data)
+        """
+        parsed_data = {}
+
+        # Helper function to unpack data and assign it a key
+        def unpack(offset, fmt, key):
+            """
+            Unpack data from the feedback and assign it a key.
+
+            Args:
+                offset (int): The current offset in the data.
+                fmt (string): The format of the data to unpack.
+                key (string): The key to assign the data to.
+
+            Returns:
+                The parsed data.
+
+            Example:
+                unpack(offset, 'H', 'MessageSize')
+            """
+            size = struct.calcsize(fmt)
+            parsed_data[key] = struct.unpack_from(fmt, data, offset)
+            return offset + size
+
+        # Parse fields based on their "Meaning" in the document
+        offset = 0
+        offset = unpack(offset, 'H', 'MessageSize')                # Message size (2 bytes)
+        offset += 6                                               # Reserved (6 bytes)
+        offset = unpack(offset, 'Q', 'DigitalInputs')             # Digital inputs (8 bytes)
+        offset = unpack(offset, 'Q', 'DigitalOutputs')            # Digital outputs (8 bytes)
+        offset = unpack(offset, 'Q', 'RobotMode')                 # Robot mode (8 bytes)
+        offset = unpack(offset, 'Q', 'TimeStamp')                 # Timestamp in milliseconds (8 bytes)
+        offset = unpack(offset, 'Q', 'RunTime')                   # Robot running time in milliseconds (8 bytes)
+        offset = unpack(offset, 'Q', 'TestValue')                 # Memory test value (8 bytes)
+        offset += 8                                               # Reserved (8 bytes)
+        offset = unpack(offset, 'd', 'SpeedScaling')              # Speed scaling (8 bytes)
+        offset += 16                                              # Reserved (16 bytes)
+        offset = unpack(offset, 'd', 'VRobot')                    # Robot voltage (8 bytes)
+        offset = unpack(offset, 'd', 'IRobot')                    # Robot current (8 bytes)
+        offset = unpack(offset, 'd', 'ProgramState')              # Script running status (8 bytes)
+        offset += 80                                              # Reserved (80 bytes)
+
+        # Joint information
+        for joint, meaning in [
+            ('QTarget', 'Target Joint Position'),                 # Target joint positions (6 doubles, 48 bytes)
+            ('QDTarget', 'Target Joint Velocity'),                # Target joint velocities (6 doubles, 48 bytes)
+            ('QDDTarget', 'Target Joint Acceleration'),           # Target joint accelerations (6 doubles, 48 bytes)
+            ('ITarget', 'Target Joint Current'),                  # Target joint currents (6 doubles, 48 bytes)
+            ('MTarget', 'Target Joint Torque'),                   # Target joint torques (6 doubles, 48 bytes)
+            ('QActual', 'Actual Joint Position'),                 # Actual joint positions (6 doubles, 48 bytes)
+            ('QDActual', 'Actual Joint Velocity'),                # Actual joint velocities (6 doubles, 48 bytes)
+            ('IActual', 'Actual Joint Current'),                  # Actual joint currents (6 doubles, 48 bytes)
+            ('ToolVectorActual', 'TCP Actual Cartesian Coordinates'),  # TCP Cartesian coordinates (6 doubles, 48 bytes)
+            ('TCPSpeedActual', 'TCP Actual Speed'),               # TCP speed (6 doubles, 48 bytes)
+            ('TCPForce', 'TCP Force Value'),                      # TCP force values (6 doubles, 48 bytes)
+            ('ToolVectorTarget', 'TCP Target Cartesian Coordinates'),  # TCP target Cartesian coordinates (6 doubles, 48 bytes)
+            ('TCPSpeedTarget', 'TCP Target Speed'),               # TCP target speeds (6 doubles, 48 bytes)
+            ('MotorTemperatures', 'Joint Temperatures'),          # Joint temperatures (6 doubles, 48 bytes)
+            ('JointModes', 'Joint Control Modes'),                # Joint control modes (6 doubles, 48 bytes)
+            ('VActual', 'Joint Voltage'),                         # Joint voltages (6 doubles, 48 bytes)
+        ]:
+            offset = unpack(offset, '6d', meaning)
+
+        offset += 4                                               # Reserved (4 bytes)
+        offset = unpack(offset, 'B', 'User Coordinate System')    # User coordinate system (1 byte)
+        offset = unpack(offset, 'B', 'Tool Coordinate System')    # Tool coordinate system (1 byte)
+        offset = unpack(offset, 'B', 'Queue Running Flag')        # Run queued command flag (1 byte)
+        offset = unpack(offset, 'B', 'Queue Pause Flag')          # Queue pause flag (1 byte)
+        offset = unpack(offset, 'B', 'Joint Velocity Rate')       # Joint velocity rate (1 byte)
+        offset = unpack(offset, 'B', 'Joint Acceleration Rate')   # Joint acceleration rate (1 byte)
+        offset += 1                                               # Reserved (1 byte)
+        offset = unpack(offset, 'B', 'Cartesian Velocity Rate')   # Cartesian velocity rate (1 byte)
+        offset = unpack(offset, 'B', 'Cartesian Pose Velocity Rate')  # Cartesian pose velocity rate (1 byte)
+        offset = unpack(offset, 'B', 'Cartesian Acceleration Rate')  # Cartesian acceleration rate (1 byte)
+        offset = unpack(offset, 'B', 'Cartesian Pose Acceleration Rate')  # Cartesian pose acceleration rate (1 byte)
+        offset = unpack(offset, 'B', 'Brake Status')             # Brake status (1 byte)
+        offset = unpack(offset, 'B', 'Enable Status')            # Enable status (1 byte)
+        offset = unpack(offset, 'B', 'Drag Status')              # Drag status (1 byte)
+        offset = unpack(offset, 'B', 'Running Status')           # Running status (1 byte)
+        offset = unpack(offset, 'B', 'Alarm Status')             # Alarm status (1 byte)
+        offset = unpack(offset, 'B', 'Jogging Status')           # Jogging status (1 byte)
+        offset = unpack(offset, 'B', 'Robot Type')               # Robot type (1 byte)
+        offset = unpack(offset, 'B', 'Drag Signal')              # Drag signal (1 byte)
+        offset = unpack(offset, 'B', 'Enable Signal')            # Enable signal (1 byte)
+        offset = unpack(offset, 'B', 'Recording Signal')         # Recording signal (1 byte)
+        offset = unpack(offset, 'B', 'Playback Signal')          # Playback signal (1 byte)
+        offset = unpack(offset, 'B', 'Gripper Control Signal')   # Gripper control signal (1 byte)
+        offset += 1                                               # Reserved (1 byte)
+        offset = unpack(offset, 'B', 'Collision State')          # Collision state (1 byte)
+        offset = unpack(offset, 'B', 'Forearm SafeSkin Approach Pause')  # Forearm pause state (1 byte)
+        offset = unpack(offset, 'B', 'J4 SafeSkin Approach Pause')       # J4 pause state (1 byte)
+        offset = unpack(offset, 'B', 'J5 SafeSkin Approach Pause')       # J5 pause state (1 byte)
+        offset = unpack(offset, 'B', 'J6 SafeSkin Approach Pause')       # J6 pause state (1 byte)
+        offset += 77                                              # Reserved (77 bytes)
+        offset = unpack(offset, 'd', 'Z-axis Jitter Displacement')  # Z-axis jitter displacement (8 bytes)
+        offset = unpack(offset, 'Q', 'Current Command ID')        # Current command ID (8 bytes)
+        offset = unpack(offset, '6d', 'Actual Torque')            # Actual torques (6 doubles, 48 bytes)
+        offset = unpack(offset, 'd', 'Payload (kg)')              # Payload in kg (8 bytes)
+        offset = unpack(offset, 'd', 'Eccentric Distance X')      # Eccentric distance X (8 bytes)
+        offset = unpack(offset, 'd', 'Eccentric Distance Y')      # Eccentric distance Y (8 bytes)
+        offset = unpack(offset, 'd', 'Eccentric Distance Z')      # Eccentric distance Z (8 bytes)
+        offset = unpack(offset, '6d', 'User Coordinates')         # User coordinates (6 doubles, 48 bytes)
+        offset = unpack(offset, '6d', 'Tool Coordinates')         # Tool coordinates (6 doubles, 48 bytes)
+        offset += 8                                               # Reserved (8 bytes)
+        offset = unpack(offset, '6d', 'Six-Axis Force')           # Six-axis force values (6 doubles, 48 bytes)
+        offset = unpack(offset, '4d', 'Target Quaternion')        # Target quaternion (4 doubles, 32 bytes)
+        offset = unpack(offset, '4d', 'Actual Quaternion')        # Actual quaternion (4 doubles, 32 bytes)
+        offset = unpack(offset, 'B', 'Manual/Automatic Mode')     # Manual/automatic mode (1 byte)
+        offset += 24                                              # Reserved (24 bytes)
+
+        return parsed_data
+
     def setDebug(self, isDebug):
         """
         Set the debug mode for the Dobot Object
@@ -2783,10 +2907,14 @@ class ServoGripper:
         output2 = self.robot.GetDO(self.DIout2)
         match (output1, output2):
             case (0,0):
+                print("    Fingers are in motion")
                 return "Fingers are in motion"
             case (1,0):
+                print("    Fingers are at reference position, No object detected or object has been dropped")
                 return "Fingers are at reference position, No object detected or object has been dropped"
             case (0,1):
+                print("    Fingers have stopped due to an object detection")
                 return "Fingers have stopped due to an object detection"
             case (1,1):
+                print("    Fingers are holding an object")
                 return "Unknown state"
