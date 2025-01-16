@@ -31,85 +31,20 @@ class Dobot:
         -60002: "The range of the second optional parameter is incorrect: Ensure the optional parameter value is within the valid range."
     }
 
-
-    # General Python Commands:
-
-    def Connect(self):
-        """
-        Connect to the Dobot Magician E6 robot.
-
-        Args:
-            None
-        
-        Returns:
-            None
-        
-        Raises:
-            Exception: If the connection fails.
-        """
-        try :
-            if self.isDebug: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
-            self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.connection.connect((self.ip, self.port))
-            time.sleep(2)  # Wait for the connection to establish
-            if self.isDebug: print("  Connected to Dobot Magician E6")
-            if self.connection == None:
-                raise Exception("Connection error")
-        except:
-            print("  Connection error")
-            self.connection = None
-
-    def Disconnect(self):
-        """
-        Disconnect from the Dobot Magician E6 robot.
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        if self.connection:
-            self.connection.close()
-            self.connection = None
-            if self.isDebug: print("  Disconnected from Dobot Magician E6")
-
-    def Send_command(self, command):
-        """
-        Send a command to the Dobot and receive a response.
-
-        Args:
-            command (string): The command to send to the robot.
-
-        Returns:
-            The response from the robot.
-
-        Raises:
-            Exception: If not connected to the Dobot Magician E6.
-        """
-        if self.connection:
-            try:
-                self.connection.sendall(command.encode() + b'\n')
-                response = self.connection.recv(1024).decode()
-                return response.strip()
-            except Exception as e:
-                print(f"  Python error sending command: {e}")
-                return None
-        else:
-            raise Exception("  ! Not connected to Dobot Magician E6")
-
-    def SetDebug(self, isDebug):
-        """
-        Set the debug mode for the Dobot Object
-
-        Args
-        isDebug (bool): Print Debug messages yes (True) or no  (False).
-
-        Returns:
-            None
-        """
-        self.isDebug = isDebug
-
+    # Robot Modes:
+    robot_modes = {
+    1: "ROBOT_MODE_INIT: Initialized status",
+    2: "ROBOT_MODE_BRAKE_OPEN: Brake switched on",
+    3: "ROBOT_MODE_POWER_STATUS: Power-off status",
+    4: "ROBOT_MODE_DISABLED: Disabled (no brake switched on)",
+    5: "ROBOT_MODE_ENABLE: Enabled and idle",
+    6: "ROBOT_MODE_BACKDRIVE: Drag mode",
+    7: "ROBOT_MODE_RUNNING: Running status (project, TCP queue motion, etc.)",
+    8: "ROBOT_MODE_SINGLE_MOVE: Single motion status (jog, RunTo, etc.)",
+    9: "ROBOT_MODE_ERROR: There are uncleared alarms. This status has the highest priority. It returns 9 when there is an alarm, regardless of the status of the robot arm",
+    10: "ROBOT_MODE_PAUSE: Project pause status",
+    11: "ROBOT_MODE_COLLISION: Collision detection trigger status"
+}
 
     # Control Commands:
 
@@ -119,6 +54,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+        
+        Example:
+            PowerON()
         """
         if self.isDebug: print("  Powering on Dobot Magician E6...")
         return self.Send_command("PowerOn()")
@@ -136,6 +74,9 @@ class Dobot:
         
         Raises:
             Exception: If the control mode is not TCP.
+
+        Example:
+            EnableRobot()
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
@@ -160,6 +101,9 @@ class Dobot:
         
         Raises:
             Exception: If the control mode is not TCP.
+
+        Example:
+            EnableRobot(0.5)
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
@@ -187,6 +131,9 @@ class Dobot:
         
         Raises:
             Exception: If the control mode is not TCP.
+
+        Example:
+            EnableRobot(0.5, 0, 0, 0)
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
@@ -215,6 +162,9 @@ class Dobot:
         
         Raises:
             Exception: If the control mode is not TCP.
+
+        Example:
+            EnableRobot(0.5, 0, 0, 0, 1)
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
@@ -235,6 +185,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            DisableRobot()
         """
         if self.isEnabled:
             response = self.Send_command("DisableRobot()")
@@ -251,6 +204,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            ClearError()
         """
         if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
         return self.Send_command("ClearError()")
@@ -264,6 +220,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            RunScript("123")
         """
         if self.isDebug: print(f"  Running script {projectName} on Dobot Magician E6...")
         return self.Send_command(f"RunScript({projectName})")
@@ -277,6 +236,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            Stop()
         """
         if self.isDebug: print("  Stopping Dobot Magician E6...")
         return self.Send_command("Stop()")
@@ -290,6 +252,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            Pause()
         """
         if self.isDebug: print("  Pausing Dobot Magician E6...")
         return self.Send_command("Pause()")
@@ -303,6 +268,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            Continue()
         """
         if self.isDebug: print("  Continuing Dobot Magician E6...")
         return self.Send_command("Continue()")
@@ -316,6 +284,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            EmergencyStop(1)
         """
         if self.isDebug: print("  Emergency stopping Dobot Magician E6...")
         return self.Send_command("EmergencyStop()")
@@ -330,6 +301,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            BrakeControl(1, 1)
         """
         if self.isDebug: print(f"  Setting brake control of axis {axisID} to value {value}")
         return self.Send_command(f"BrakeControl({axisID},{value})")
@@ -343,6 +317,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            StartDrag()
         """
         if self.isDebug: print("  Entering drag mode...")
         return self.Send_command("StartDrag()")
@@ -356,6 +333,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            StopDrag()
         """
         if self.isDebug: print("  Exiting drag mode...")
         return self.Send_command("StopDrag()")
@@ -372,6 +352,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SpeedFactor(50)
         """
         if self.isDebug: print(f"  Setting global speed factor to {ratio}")
         return self.Send_command(f"SpeedFactor({ratio})")
@@ -385,6 +368,9 @@ class Dobot:
 
         Returns:
              ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands. -1 indicates that the set user coordinate system index does not exist.
+
+        Example:
+            User(1)
         """
         if self.isDebug: print(f"  Setting user index to {index}")
         return self.Send_command(f"User({index})")
@@ -399,6 +385,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetUser(1, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Setting user coordinate system {index} to {table}")
         return self.Send_command(f"SetUser({index},{table})")
@@ -414,6 +403,9 @@ class Dobot:
 
         Returns:
             The user coordinate system after calculation {x, y, z, rx, ry, rz}.
+
+        Example:
+            CalcUser(1, 0, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Calculating user coordinate system {index} to {table}")
         return self.Send_command(f"CalcUser({index},{matrix_direction},{table})")
@@ -427,6 +419,9 @@ class Dobot:
 
         Returns:
             ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands. -1 indicates that the set user coordinate system index does not exist.
+
+        Example:
+            Tool(1)
         """
         if self.isDebug: print(f"  Setting tool index to {index}")
         return self.Send_command(f"Tool({index})")
@@ -441,6 +436,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetTool(1, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Setting tool coordinate system {index} to {table}")
         return self.Send_command(f"SetTool({index},{table})")
@@ -456,6 +454,9 @@ class Dobot:
 
         Returns:
             The tool coordinate system after calculation {x, y, z, rx, ry, rz}.
+
+        Example:
+            CalcTool(1, 0, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Calculating tool coordinate system {index} to {table}")
         return self.Send_command(f"CalcTool({index},{matrix_direction},{table})")
@@ -470,6 +471,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetPayload("Load1")
         """
         if self.isDebug: print(f"  Setting payload to preset {name})")
         return self.Send_command(f"SetPayload({name})")
@@ -484,6 +488,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetPayload(0.5)
         """
         if self.isDebug: print(f"  Setting payload to {load} kg)")
         return self.Send_command(f"SetPayload({load})")
@@ -501,6 +508,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetPayload(0.5, 0, 0, 0)
         """
         if self.isDebug: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
         return self.Send_command(f"SetPayload({load},{x},{y},{z})")
@@ -514,6 +524,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            AccJ(50)
         """
         if self.isDebug: print(f"  Setting joint acceleration to {R}")
         return self.Send_command(f"AccJ({R})")
@@ -527,6 +540,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            AccL(50)
         """
         if self.isDebug: print(f"  Setting linear acceleration to {R}")
         return self.Send_command(f"AccL({R})")
@@ -540,6 +556,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            VelJ(50)
         """
         if self.isDebug: print(f"  Setting joint velocity to {R}")
         return self.Send_command(f"VelJ({R})")
@@ -553,6 +572,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            VelL(50)
         """
         if self.isDebug: print(f"  Setting linear velocity to {R}")
         return self.Send_command(f"VelL({R})")
@@ -566,6 +588,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            CP(50)
         """
         if self.isDebug: print(f"  Setting continuous path rate to {R}")
         return self.Send_command(f"CP({R})")
@@ -579,6 +604,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetCollisionLevel(3)
         """
         if self.isDebug: print(f"  Setting collision sensitivity level to {level}")
         return self.Send_command(f"SetCollisionLevel({level})")
@@ -592,6 +620,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetBackDistance(10)
         """
         if self.isDebug: print(f"  Setting back distance to {distance}")
         return self.Send_command(f"SetBackDistance({distance})")
@@ -605,6 +636,9 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetPostCollisionMode(1)
         """
         if self.isDebug: print(f"  Setting post-collision mode to {mode}")
         return self.Send_command(f"SetPostCollisionMode({mode})")
@@ -619,6 +653,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            DragSensitivity(1, 50)
         """
         if self.isDebug: print(f"  Setting drag sensitivity of axis {index} to {value}")
         return self.Send_command(f"DragSensitivity({index},{value})")
@@ -632,6 +669,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            EnableSafeSkin(1)
         """
         if self.isDebug: print(f"  Setting safe skin to {status}")
         return self.Send_command(f"EnableSafeSkin({status})")
@@ -646,6 +686,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetSafeSkin(3, 1)
         """
         if self.isDebug: print(f"  Setting safe skin of part {part} to {status}")
         return self.Send_command(f"SetSafeSkin({part},{status})")
@@ -660,6 +703,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetSafeWallEnable(1, 1)
         """
         if self.isDebug: print(f"  Setting safety wall {index} to {value}")
         return self.Send_command(f"SetSafeWallEnable({index},{value})")
@@ -674,6 +720,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            SetWorkZoneEnable(1, 1)
         """
         if self.isDebug: print(f"  Setting work zone {index} to {value}")
         return self.Send_command(f"SetWorkZoneEnable({index},{value})")
@@ -690,6 +739,9 @@ class Dobot:
 
         Returns:
             The robot mode.See TCP protocols for details.
+
+        Example:
+            RobotMode()
         """
         if self.isDebug: print("  Getting robot mode...")
         return self.Send_command("RobotMode()")
@@ -710,6 +762,9 @@ class Dobot:
 
         Returns:
             The cartesian point coordinates {x,y,z,a,b,c}
+
+        Example:
+            PositiveKin(0,0,-90,0,90,0,user=1,tool=1)
         """
         if self.isDebug: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
         return self.Send_command(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={User},tool={Tool})")
@@ -732,6 +787,9 @@ class Dobot:
 
         Returns:
             Joint coordinates {J1, J2, J3, J4, J5, J6}.
+
+        Example:
+            InverseKin(473.000000,-141.000000,469.000000,-180.000000,0.000,-90.000)
         """
         if self.isDebug: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
         return self.Send_command(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={User},tool={Tool},useJointNear={useJointNear},JointNear={JointNear})")
@@ -745,6 +803,9 @@ class Dobot:
 
         Returns:
             The joint angles {J1, J2, J3, J4, J5, J6}.
+
+        Example:
+            GetAngle()
         """
         if self.isDebug: print("  Getting robot joint angles...")
         return self.Send_command("GetAngle()")
@@ -759,6 +820,9 @@ class Dobot:
 
         Returns:
             The cartesian coordinate points of the current pose {X,Y,Z,Rx,Ry,Rz}.
+
+        Example:
+            GetPose(user=1,tool=1)
         """
         if self.isDebug: print("  Getting robot pose...")
         return self.Send_command("GetPose(user={User},tool={Tool})")
@@ -772,6 +836,9 @@ class Dobot:
 
         Returns:
             [[id,...,id], [id], [id], [id], [id], [id], [id]]. [id,...,id]: alarm information of the controller and algorithm. The last six indices are the alarm information of the six servos.
+
+        Example:
+            GetErrorID()
         """
         if self.isDebug: print("  Getting robot error ID...")
         return self.Send_command("GetErrorID()")
@@ -787,6 +854,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            CreateTray(t1, {5}, {pose = {x1,y1,z1,rx1,ry1,rz1},pose = {x2,y2,z2,rx2,ry2,rz2}})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
         return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
@@ -802,6 +872,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            CreateTray(t2, {4,5}, {P1,P2,P3,P4})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
         return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
@@ -817,6 +890,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            CreateTray(t2, {4,5,6}, {P1,P2,P3,P4,P5,P6,P7,P8})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
         return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
@@ -831,6 +907,9 @@ class Dobot:
 
         Returns:
             The point coordinates and result {isErr,x,y,z,rx,ry,rz}. isErr: 0: Success, -1: Failure.
+
+        Example:
+            GetTrayPoint(t1, 1)
         """
         if self.isDebug: print(f"  Getting point {index} of tray {Trayname}")
         return self.Send_command(f"GetTrayPoint({Trayname},{index})")
@@ -849,6 +928,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            DO(1, 1)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status}")
         return self.Send_command(f"DO({index},{status})")
@@ -865,6 +947,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            DO(1, 1, 1000)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status} for {time} ms")
         return self.Send_command(f"DO({index},{status},{time})")
@@ -879,6 +964,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            DOInstant(1, 1)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status} instantly")
         return self.Send_command(f"DOInstant({index},{status})")
@@ -892,6 +980,9 @@ class Dobot:
 
         Returns:
             The digital output status. 0: OFF, 1: ON.
+
+        Example:
+            GetDO(1)
         """
         if self.isDebug: print(f"  Getting digital output pin {index}")
         return self.Send_command(f"GetDO({index})")
@@ -905,6 +996,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            DOGroup("1,1,2,0,3,1")
         """
         if self.isDebug: print(f"  Setting digital output group to {string}")
         return self.Send_command(f"DOGroup({string})")
@@ -918,6 +1012,9 @@ class Dobot:
 
         Returns:
             The digital output status of the group. Format: {status1,status2,...}. Status: Digital output status. 0: OFF, 1: ON.
+
+        Example:
+            GetDOGroup("1,2,3")
         """
         if self.isDebug: print(f"  Getting digital output group {string}")
         return self.Send_command(f"GetDOGroup({string})")
@@ -932,6 +1029,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
+
+        Example:
+            ToolDO(1, 1)
         """
         if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
         return self.Send_command(f"ToolDO({index},{status})")
@@ -946,6 +1046,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            ToolDOInstant(1, 1)
         """
         if self.isDebug: print(f"  Setting tool digital output pin {index} to {status} instantly")
         return self.Send_command(f"ToolDOInstant({index},{status})")
@@ -959,6 +1062,9 @@ class Dobot:
 
         Returns:
             The digital output status. 0: OFF, 1: ON.
+
+        Example:
+            GetToolDO(1)
         """
         if self.isDebug: print(f"  Getting tool digital output pin {index}")
         return self.Send_command(f"GetToolDO({index})")
@@ -973,6 +1079,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            AO(1, 5)
         """
         if self.isDebug: print(f"  Setting analog output pin {index} to {value}")
         return self.Send_command(f"AO({index},{value})")
@@ -987,6 +1096,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            AOInstant(1, 5)
         """
         if self.isDebug: print(f"  Setting analog output pin {index} to {value} instantly")
         return self.Send_command(f"AOInstant({index},{value})")
@@ -1000,6 +1112,9 @@ class Dobot:
 
         Returns:
             The analog output value.
+
+        Example:
+            GetAO(1)
         """
         if self.isDebug: print(f"  Getting analog output pin {index}")
         return self.Send_command(f"GetAO({index})")
@@ -1013,6 +1128,9 @@ class Dobot:
 
         Returns:
             The digital input status. 0: no signal, 1: signal.
+
+        Example:
+            DI(1)
         """
         if self.isDebug: print(f"  Getting digital input pin {index}")
         return self.Send_command(f"DI({index})")
@@ -1026,6 +1144,9 @@ class Dobot:
 
         Returns:
             The digital input status of the group. Format: {status1,status2,...}. Status: Digital input status. 0: no signal, 1: signal.
+
+        Example:
+            DIGroup("1,2,3")
         """
         if self.isDebug: print(f"  Getting digital input group {string}")
         return self.Send_command(f"DIGroup({string})")
@@ -1039,6 +1160,9 @@ class Dobot:
 
         Returns:
             The digital input status of the tool. 0: OFF, 1: ON.
+
+        Example:
+            ToolDI(1)
         """
         if self.isDebug: print(f"  Getting tool digital input pin {index}")
         return self.Send_command(f"ToolDI({index})")
@@ -1052,6 +1176,9 @@ class Dobot:
 
         Returns:
             The analog input value.
+
+        Example:
+            AI(1)
         """
         if self.isDebug: print(f"  Getting analog input pin {index}")
         return self.Send_command(f"AI({index})")
@@ -1065,6 +1192,9 @@ class Dobot:
 
         Returns:
             The analog input value of the tool.
+
+        Example:
+            ToolAI(1)
         """
         if self.isDebug: print(f"  Getting tool analog input pin {index}")
         return self.Send_command(f"ToolAI({index})")
@@ -1081,6 +1211,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetTool485(115200, "N", 1)
         """
         if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit}")
         return self.Send_command(f"SetTool485({baud},{parity},{stopbit})")
@@ -1098,6 +1231,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetTool485(115200, "N", 1, 1)
         """
         if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit} for socket {identify}")
         return self.Send_command(f"SetTool485({baud},{parity},{stopbit},{identify})")
@@ -1112,6 +1248,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetToolPower(1)
         """
         if self.isDebug: print(f"  Setting tool power to {status}")
         return self.Send_command(f"SetToolPower({status})")
@@ -1127,6 +1266,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetToolPower(1, 1)
         """
         if self.isDebug: print(f"  Setting tool power to {status} for socket {identify}")
         return self.Send_command(f"SetToolPower({status},{identify})")
@@ -1142,6 +1284,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetToolMode(1, 0)
         """
         if self.isDebug: print(f"  Setting tool mode to {mode}")
         return self.Send_command(f"SetToolMode({mode},{type})")
@@ -1158,6 +1303,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetToolMode(1, 0, 1)
         """
         if self.isDebug: print(f"  Setting tool mode to {mode} for socket {identify}")
         return self.Send_command(f"SetToolMode({mode},{type},{identify})")
@@ -1177,6 +1325,9 @@ class Dobot:
 
         Returns:
             Index: master station index, used when other Modbus commands are called.
+
+        Example:
+            ModbusCreate("127.0.0.1",60000,1)
         """
         if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}")
         return self.Send_command(f"ModbusCreate({ip},{port},{slave_id})")
@@ -1194,6 +1345,9 @@ class Dobot:
 
         Returns:
             Index: master station index, used when other Modbus commands are called.
+
+        Example:
+            ModbusCreate(127.0.0.1,60000,1,1)
         """
         if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
         return self.Send_command(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
@@ -1211,6 +1365,9 @@ class Dobot:
 
         Returns:
             Index: master station index, used when other Modbus commands are called.
+
+        Example:
+            ModbusRTUCreate(1, 115200)
         """
         if self.isDebug: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
         return self.Send_command(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
@@ -1224,6 +1381,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            ModbusClose(1)
         """
         if self.isDebug: print(f"  Closing Modbus master station {index}")
         return self.Send_command(f"ModbusClose({index})")
@@ -1239,6 +1399,9 @@ class Dobot:
 
         Returns:
             Values of the contact register. Format: {value1,value2,...}.
+
+        Example:
+            GetInBits(0, 3000, 5)
         """
         if self.isDebug: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
         return self.Send_command(f"GetInBits({index},{address},{count})")
@@ -1255,6 +1418,9 @@ class Dobot:
 
         Returns:
             Values of the input register. Format: {value1,value2,...}.
+
+        Example:
+            GetInRegs(0, 3000, 3, "U16")
         """
         if self.isDebug: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.Send_command(f"GetInRegs({index},{address},{count},{valType})")
@@ -1270,6 +1436,9 @@ class Dobot:
 
         Returns:
             Values of the register coil. Format: {value1,value2,...}.
+
+        Example:
+            GetCoils(0, 3000, 5)
         """
         if self.isDebug: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
         return self.Send_command(f"GetCoils({index},{address},{count})")
@@ -1286,11 +1455,14 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetCoils(0, 3000, 5, {1,0,1,0,1})
         """
         if self.isDebug: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
         return self.Send_command(f"SetCoils({index},{address},{valTab})")
 
-    def getHoldRegs(self, index, address, count, valType="U16"):
+    def GetHoldRegs(self, index, address, count, valType="U16"):
         """
         Read the holding register from the modbus slave device with a specified data type.
 
@@ -1302,6 +1474,9 @@ class Dobot:
 
         Returns:
             Values of the holding register. Format: {value1,value2,...}.
+
+        Example:
+            GetHoldRegs(0, 3095, 1, "U16")
         """
         if self.isDebug: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.Send_command(f"GetHoldRegs({index},{address},{count},{valType})")
@@ -1319,6 +1494,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetHoldRegs(0,3095,2,{6000,300}, "U16")
         """
         if self.isDebug: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
         return self.Send_command(f"SetHoldRegs({index},{address},{valTab},{valType})")
@@ -1335,6 +1513,9 @@ class Dobot:
 
         Returns:
             The input boolean value. 0: OFF, 1: ON.
+
+        Example:
+            GetInputBool(1)
         """
         if self.isDebug: print(f"  Getting input boolean value from bus register {adress}")
         return self.Send_command(f"GetInputBool({adress})")
@@ -1348,6 +1529,9 @@ class Dobot:
 
         Returns:
             The input integer value.
+
+        Example:
+            GetInputInt(1)
         """
         if self.isDebug: print(f"  Getting input integer value from bus register {adress}")
         return self.Send_command(f"GetInputInt({adress})")
@@ -1361,6 +1545,9 @@ class Dobot:
 
         Returns:
             The input float value.
+
+        Example:
+            GetInputFloat(1)
         """
         if self.isDebug: print(f"  Getting input float value from bus register {adress}")
         return self.Send_command(f"GetInputFloat({adress})")
@@ -1374,6 +1561,9 @@ class Dobot:
 
         Returns:
             The output boolean value. 0: OFF, 1: ON.
+
+        Example:
+            GetOutputBool(1)
         """
         if self.isDebug: print(f"  Getting output boolean value from bus register {adress}")
         return self.Send_command(f"GetOutputBool({adress})")
@@ -1387,6 +1577,9 @@ class Dobot:
 
         Returns:
             The output integer value.
+
+        Example:
+            GetOutputInt(1)
         """
         if self.isDebug: print(f"  Getting output integer value from bus register {adress}")
         return self.Send_command(f"GetOutputInt({adress})")
@@ -1400,6 +1593,9 @@ class Dobot:
 
         Returns:
             The output float value.
+
+        Example:
+            GetOutputFloat(1)
         """
         if self.isDebug: print(f"  Getting output float value from bus register {adress}")
         return self.Send_command(f"GetOutputFloat({adress})")
@@ -1414,6 +1610,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetOutputBool(1, 1)
         """
         if self.isDebug: print(f"  Setting output boolean value of bus register {adress} to {value}")
         return self.Send_command(f"SetOutputBool({adress},{value})")
@@ -1428,6 +1627,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetOutputInt(1, 100)
         """
         if self.isDebug: print(f"  Setting output integer value of bus register {adress} to {value}")
         return self.Send_command(f"SetOutputInt({adress},{value})")
@@ -1442,6 +1644,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            SetOutputFloat(1, 100.5)
         """
         if self.isDebug: print(f"  Setting output float value of bus register {adress} to {value}")
         return self.Send_command(f"SetOutputFloat({adress},{value})")
@@ -1459,6 +1664,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovJ("pose={200,200,200,0,0,0}")
         """
         if self.isDebug: print(f"  Joint move robot to {P}")
         return self.Send_command(f"MovJ({P})")
@@ -1474,6 +1682,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovJ("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
         if self.isDebug: print(f"  Joint move robot to {P} with parameters {parameters}")
         return self.Send_command(f"MovJ({P},{parameters})")
@@ -1493,6 +1704,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovJ("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50)
         """
         if self.isDebug: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
         return self.Send_command(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
@@ -1507,6 +1721,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovL("pose={200,200,200,0,0,0}")
         """
         if self.isDebug: print(f"  Linear move robot to {P}")
         return self.Send_command(f"MovL({P})")
@@ -1522,6 +1739,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovL("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
         if self.isDebug: print(f"  Linear move robot to {P} with parameters {parameters}")
         return self.Send_command(f"MovL({P},{parameters})")
@@ -1543,6 +1763,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovL("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50, 0, 0)
         """
         if self.isDebug: print(f"  Linear move robot to {P} with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
@@ -1558,6 +1781,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
         if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}")
         return self.Send_command(f"MovL({P},{IO})")
@@ -1580,7 +1806,10 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
-            """
+
+        Example:
+            MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50, 0, 0)
+        """
         if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
@@ -1595,6 +1824,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
         if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}")
         return self.Send_command(f"MovJ({P},{IO})")
@@ -1616,6 +1848,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50, 0)
         """
         if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp},r={r})")
@@ -1631,6 +1866,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}")
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion")
         return self.Send_command(f"Arc({P1},{P2})")
@@ -1647,6 +1885,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}","user=0,tool=0,a=50,v=100,speed=100,cp=50")
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
         return self.Send_command(f"Arc({P1},{P2},{parameters})")
@@ -1669,49 +1910,61 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}", 0, 0, 50, 100, 100, 50, 0)
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
-    @dispatch(str,str)
-    def Circle(self, P1, P2):
+    @dispatch(str, str, int)
+    def Circle(self, P1, P2, count):
         """
         Move the robot to a specified point through circular motion.
 
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            count (int): Number of circular motion. Range: 1~999.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1)
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion")
-        return self.Send_command(f"Circle({P1},{P2})")
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion for {count} times")
+        return self.Send_command(f"Circle({P1},{P2},{count})")
     
-    @dispatch(str,str,str)
-    def Circle(self, P1, P2, parameters):
+    @dispatch(str, str, int, str)
+    def Circle(self, P1, P2, count, parameters):
         """
         Move the robot to a specified point through circular motion.
 
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            count (int): Number of circular motion. Range: 1~999.
             parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r}
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
-        """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters}")
-        return self.Send_command(f"Circle({P1},{P2},{parameters})")
 
-    @dispatch(str,str,int,int,int,int,int,int,int)
-    def Circle(self, P1, P2, user, tool, a, v, speed, cp, r):
+        Example:
+            Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1,"user=0,tool=0,a=50,v=100,speed=100,cp=50")
+        """
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters} for {count} times")
+        return self.Send_command(f"Circle({P1},{P2},{count},{parameters})")
+
+    @dispatch(str, str, int, int, int, int, int, int, int, int)
+    def Circle(self, P1, P2, count, user, tool, a, v, speed, cp, r):
         """
         Move the robot to a specified point through circular motion.
 
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            count (int): Number of circular motion. Range: 1~999.
             user (int): User coordinate system index. (0) is the global user coordinate system.
             tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
             a (int): Acceleration rate. Range: 0~100.
@@ -1723,8 +1976,8 @@ class Dobot:
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"Circle({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
+        return self.Send_command(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     def ServoJ(self, Joint, t=0.1, aheadtime=50, gain=500):
         """
@@ -1738,6 +1991,9 @@ class Dobot:
 
         Returns:
             Response from the robot.
+
+        Example:
+            ServoJ("{0,0,0,0,0,0}", 0.1, 50, 500)
         """
         if self.isDebug: print(f"  Moving robot to joint {Joint} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.Send_command(f"ServoJ({Joint},{t},{aheadtime},{gain})")
@@ -1754,6 +2010,9 @@ class Dobot:
 
         Returns:
             Response from the robot.
+
+        Example:
+            ServoP("{200,200,200,0,0,0}", 0.1, 50, 500)
         """
         if self.isDebug: print(f"  Moving robot to pose {Pose} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.Send_command(f"ServoP({Pose},{t},{aheadtime},{gain})")
@@ -1770,6 +2029,9 @@ class Dobot:
 
         Returns:
             Response from the robot.
+
+        Example:
+            MoveJog("X+",coordType=1,user=1,tool=1)
         """
         if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
         return self.Send_command(f"MoveJog({axisID},{coordType},{user},{tool})")
@@ -1783,6 +2045,9 @@ class Dobot:
 
         Returns:
             Pointtype, refers to the type of point returned. 0: taught point, 1: joint variable, 2: posture variable. See the TCP protocols for details.
+
+        Example:
+            GetStartPose("test1.csv")
         """
         if self.isDebug: print(f"  Getting start pose of trace {traceName}")
         return self.Send_command(f"GetStartPose({traceName})")
@@ -1797,6 +2062,9 @@ class Dobot:
 
         Returns:
             Response from the robot.
+
+        Example:
+            StartPath("test1.csv")
         """
         if self.isDebug: print(f"  Starting path {traceName}")
         return self.Send_command(f"StartPath({traceName})")
@@ -1815,6 +2083,9 @@ class Dobot:
 
         Returns:
             Response from the robot.
+
+        Example:
+            StartPath("test1.csv", 0, 1, 0, 0)
         """
         if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, repetitions {multi}, user {user}, tool {tool}")
         return self.Send_command(f"StartPath({traceName},{isConst},{multi},{user},{tool})")
@@ -1839,6 +2110,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovJTool(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
@@ -1863,6 +2137,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovJTool(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
@@ -1882,6 +2159,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovLTool(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
@@ -1908,6 +2188,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovLTool(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
@@ -1927,6 +2210,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovJUser(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
@@ -1951,6 +2237,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovJUser(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
@@ -1970,6 +2259,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovLUser(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
@@ -1996,6 +2288,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelMovLUser(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
@@ -2015,6 +2310,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelJointMovJ(10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
         return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
@@ -2037,6 +2335,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            RelJointMovJ(10,10,10,10,10,10,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6}) with acceleration {a}, v {v}, continuos path {cp}")
         return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6},{a},{v},{cp})")
@@ -2047,12 +2348,112 @@ class Dobot:
 
         Returns:
             ResultID, the algorithm queue ID of the current command.
+
+        Example:
+            GetCurrentCommandID()
         """
         if self.isDebug: print("  Getting current command ID")
         return self.Send_command("GetCurrentCommandID()")
 
 
+
+
+
+
+
+
+
+
+
     # Added Commands (no standard command from TCP protocol):
+
+    def connect(self):
+        """
+        Connect to the Dobot Magician E6 robot.
+
+        Args:
+            None
+        
+        Returns:
+            None
+        
+        Raises:
+            Exception: If the connection fails.
+
+        Example:
+            connect()
+        """
+        try :
+            if self.isDebug: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
+            self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.connection.connect((self.ip, self.port))
+            time.sleep(2)  # Wait for the connection to establish
+            if self.isDebug: print("  Connected to Dobot Magician E6")
+            if self.connection == None:
+                raise Exception("Connection error")
+        except:
+            print("  Connection error")
+            self.connection = None
+
+    def disconnect(self):
+        """
+        Disconnect from the Dobot Magician E6 robot.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Example:
+            disconnect()
+        """
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            if self.isDebug: print("  Disconnected from Dobot Magician E6")
+
+    def send_command(self, command):
+        """
+        Send a command to the Dobot and receive a response.
+
+        Args:
+            command (string): The command to send to the robot.
+
+        Returns:
+            The response from the robot.
+
+        Raises:
+            Exception: If not connected to the Dobot Magician E6.
+        
+        Example:
+            send_command("GetPose()")
+        """
+        if self.connection:
+            try:
+                self.connection.sendall(command.encode() + b'\n')
+                response = self.connection.recv(1024).decode()
+                return response.strip()
+            except Exception as e:
+                print(f"  Python error sending command: {e}")
+                return None
+        else:
+            raise Exception("  ! Not connected to Dobot Magician E6")
+
+    def setDebug(self, isDebug):
+        """
+        Set the debug mode for the Dobot Object
+
+        Args
+        isDebug (bool): Print Debug messages yes (True) or no  (False).
+
+        Returns:
+            None
+
+        Example:
+            setDebug(True)
+        """
+        self.isDebug = isDebug
 
     def MoveJJ(self,j1,j2,j3,j4,j5,j6):
         """
@@ -2068,6 +2469,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MoveJJ(-90, 0, -140, -40, 0, 0)
         """
         if self.isDebug: print(f"  Joint move robot to joint ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
@@ -2087,6 +2491,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MoveJP(0, 0, 0, 0, 0, 0)
         """
         if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
@@ -2106,6 +2513,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MoveLJ(-90, 0, -140, -40, 0, 0)
         """
         if self.isDebug: print(f"  Joint move robot to joint({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
@@ -2125,6 +2535,9 @@ class Dobot:
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
+
+        Example:
+            MoveLP(0, 0, 0, 0, 0, 0)
         """
         if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
@@ -2136,6 +2549,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            Home()
         """
         if self.isDebug: print("  Moving robot to home position")
         return self.MoveJ(0, 0, 0, 0, 0, 0)
@@ -2146,6 +2562,9 @@ class Dobot:
 
         Returns:
             The response from the robot.
+
+        Example:
+            Pack()
         """
         if self.isDebug: print("  Moving robot to packing position")
         return self.MoveJJ(-90, 0, -140, -40, 0, 0)
@@ -2159,6 +2578,9 @@ class Dobot:
         
         Returns:
             The response from the robot.
+
+        Example:
+            SetSucker(1)
         """
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
@@ -2172,9 +2594,30 @@ class Dobot:
 
         Returns:
             The error message.
+
+        Example:
+            ParseError(1)
         """
         if self.isDebug: print(f"  Parsing error code {errcode}")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
+
+    def ParseRobotMode(self, mode):
+        """
+        Parse the robot mode to a human readable message.
+
+        Args:
+            mode (int): Robot mode.
+
+        Returns:
+            The robot mode message.
+
+        Example:
+            ParseRobotMode(1)
+        """
+        if self.isDebug: print(f"  Parsing robot mode {mode}")
+        return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
+
+
 
 
 # Class for the flexible gripper
@@ -2202,6 +2645,9 @@ class FlexGripper:
 
         Returns:
             The response from the robot.
+
+        Example:
+            open()
         """
         if self.robot.isDebug: print(f"  Opening flexible gripper\n    ", end="")
         self.robot.DO(self.DOvacuum,0)
@@ -2213,6 +2659,9 @@ class FlexGripper:
 
         Returns:
             The response from the robot.
+
+        Example:
+            close()
         """
         if self.robot.isDebug: print(f"  Closing flexible gripper\n    ", end="")
         self.robot.DO(self.DOpressure,0)
@@ -2224,6 +2673,9 @@ class FlexGripper:
 
         Returns:
             The response from the robot.
+
+        Example:
+            neutral()
         """
         if self.robot.isDebug: print(f"  Setting flexible gripper to neutral\n    ", end="")
         self.robot.DO(self.DOpressure,0)
@@ -2240,6 +2692,9 @@ class FlexGripper:
 
         Returns:
             The response from the robot.
+
+        Example:
+            setState(1)
         """
         if self.robot.isDebug: print(f"  Setting flexible gripper to {state}\n    ", end="")
         match state:
@@ -2288,6 +2743,9 @@ class ServoGripper:
 
         Returns:
             The response from the robot.
+
+        Example:
+            setState(1)
         """
         if self.robot.isDebug: print(f"  Setting servo gripper group to {state}\n    ", end="")
         match state:
@@ -2316,6 +2774,9 @@ class ServoGripper:
 
         Returns:
             The state of the gripper.
+
+        Example:
+            getState()
         """
         if self.robot.isDebug: print(f"  Getting servo gripper state\n    ", end="")
         output1 = self.robot.GetDO(self.DIout1)
