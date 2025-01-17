@@ -38,7 +38,7 @@ from DobotTCP import Dobot
 ```python
 from DobotTCP import Dobot
 
-# COnnect and enable the robot
+# Connect and enable the robot
 robot = Dobot(ip="192.168.5.1", port=29999)
 robot.Connect()
 robot.EnableRobot()
@@ -98,7 +98,7 @@ print(feedback.data.get("RobotType"))
 
 ## Notes
 
-- This class was written with the intention to stay as close to the syntax formatting of the original Dobot TCP protocol. Therefore, not all python style guids are followed. For example function names start with a capital letter.
+- This class was written with the intention to stay as close to the syntax formatting of the original [Dobot TCP protocol](https://download.dobot.cc/2025/01/Dobot%20TCP_IP%20Remote%20Control%20Interface%20Guide%20V4.6.0_20250115_en.pdf). Therefore, not all python style guides are followed. For example function names start with a capital letter.
 
 - Since method overloading is not trivial in python, some functions had to be changed in order to make them work in python. This is especially the case for the tray functions.
 
