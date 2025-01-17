@@ -34,18 +34,38 @@ class Dobot:
 
     # Robot Modes:
     robot_modes = {
-    1: "ROBOT_MODE_INIT: Initialized status",
-    2: "ROBOT_MODE_BRAKE_OPEN: Brake switched on",
-    3: "ROBOT_MODE_POWER_STATUS: Power-off status",
-    4: "ROBOT_MODE_DISABLED: Disabled (no brake switched on)",
-    5: "ROBOT_MODE_ENABLE: Enabled and idle",
-    6: "ROBOT_MODE_BACKDRIVE: Drag mode",
-    7: "ROBOT_MODE_RUNNING: Running status (project, TCP queue motion, etc.)",
-    8: "ROBOT_MODE_SINGLE_MOVE: Single motion status (jog, RunTo, etc.)",
-    9: "ROBOT_MODE_ERROR: There are uncleared alarms. This status has the highest priority. It returns 9 when there is an alarm, regardless of the status of the robot arm",
-    10: "ROBOT_MODE_PAUSE: Project pause status",
-    11: "ROBOT_MODE_COLLISION: Collision detection trigger status"
-}
+        1: "ROBOT_MODE_INIT: Initialized status",
+        2: "ROBOT_MODE_BRAKE_OPEN: Brake switched on",
+        3: "ROBOT_MODE_POWER_STATUS: Power-off status",
+        4: "ROBOT_MODE_DISABLED: Disabled (no brake switched on)",
+        5: "ROBOT_MODE_ENABLE: Enabled and idle",
+        6: "ROBOT_MODE_BACKDRIVE: Drag mode",
+        7: "ROBOT_MODE_RUNNING: Running status (project, TCP queue motion, etc.)",
+        8: "ROBOT_MODE_SINGLE_MOVE: Single motion status (jog, RunTo, etc.)",
+        9: "ROBOT_MODE_ERROR: There are uncleared alarms. This status has the highest priority. It returns 9 when there is an alarm, regardless of the status of the robot arm",
+        10: "ROBOT_MODE_PAUSE: Project pause status",
+        11: "ROBOT_MODE_COLLISION: Collision detection trigger status"
+    }
+
+    # Robot Types:
+    robot_types = {
+        3: "CR3",
+        5: "CR5",
+        7: "CR7",
+        10: "CR10",
+        12: "CR12",
+        16: "CR16",
+        101: "Nova 2",
+        103: "Nova 5",
+        113: "CR3A",
+        115: "CR5A",
+        117: "CR7A",
+        120: "CR10A",
+        122: "CR12A",
+        126: "CR16A",
+        130: "CR20A",
+        150: "Magician E6"
+    }
 
     # Control Commands:
 
@@ -2366,9 +2386,9 @@ class Dobot:
 
 
 
-    # Added Commands (no standard command from TCP protocol):
+    # Added Commands (not standard command from TCP protocol):
 
-    def connect(self):
+    def Connect(self):
         """
         Connect to the Dobot Magician E6 robot.
 
@@ -2382,21 +2402,22 @@ class Dobot:
             Exception: If the connection fails.
 
         Example:
-            connect()
+           Connect()
         """
         try :
             if self.isDebug: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
             self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connection.connect((self.ip, self.port))
             time.sleep(2)  # Wait for the connection to establish
-            if self.isDebug: print("  Connected to Dobot Magician E6")
             if self.connection == None:
                 raise Exception("Connection error")
+            else:
+                if self.isDebug: print("  Connected to Dobot Magician E6")
         except:
             print("  Connection error")
             self.connection = None
 
-    def disconnect(self):
+    def Disconnect(self):
         """
         Disconnect from the Dobot Magician E6 robot.
 
@@ -2407,14 +2428,14 @@ class Dobot:
             None
 
         Example:
-            disconnect()
+            Disconnect()
         """
         if self.connection:
             self.connection.close()
             self.connection = None
             if self.isDebug: print("  Disconnected from Dobot Magician E6")
 
-    def send_command(self, command):
+    def Send_command(self, command):
         """
         Send a command to the Dobot and receive a response.
 
@@ -2428,7 +2449,7 @@ class Dobot:
             Exception: If not connected to the Dobot Magician E6.
         
         Example:
-            send_command("GetPose()")
+            Send_command("GetPose()")
         """
         if self.connection:
             try:
@@ -2441,7 +2462,7 @@ class Dobot:
         else:
             raise Exception("  ! Not connected to Dobot Magician E6")
 
-    def setDebug(self, isDebug):
+    def SetDebug(self, isDebug):
         """
         Set the debug mode for the Dobot Object
 
@@ -2452,7 +2473,7 @@ class Dobot:
             None
 
         Example:
-            setDebug(True)
+            SetDebug(True)
         """
         self.isDebug = isDebug
 
@@ -2618,6 +2639,21 @@ class Dobot:
         if self.isDebug: print(f"  Parsing robot mode {mode}")
         return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
 
+    def ParseRobotType(self, type):
+        """
+        Parse the robot type to a human readable message.
+
+        Args:
+            type (int): Robot type.
+
+        Returns:
+            The robot type message.
+
+        Example:
+            ParseRobotType(1)
+        """
+        if self.isDebug: print(f"  Parsing robot type {type}")
+        return self.robot_types.get(type, "Unknown robot type. Check the TCP protocol for further info.")
 
 
 
@@ -2640,7 +2676,7 @@ class FlexGripper:
         self.DOvacuum = DOvacuum
         self.DOpressure = DOpressure
 
-    def open(self) -> str:
+    def Open(self) -> str:
         """
         Open the flexible gripper
 
@@ -2648,13 +2684,13 @@ class FlexGripper:
             The response from the robot.
 
         Example:
-            open()
+            Open()
         """
         if self.robot.isDebug: print(f"  Opening flexible gripper\n    ", end="")
         self.robot.DO(self.DOvacuum,0)
         return self.robot.DO(self.DOpressure,1)  
 
-    def close(self) -> str:
+    def Close(self) -> str:
         """
         Closes the flexible gripper
 
@@ -2662,13 +2698,13 @@ class FlexGripper:
             The response from the robot.
 
         Example:
-            close()
+            Close()
         """
         if self.robot.isDebug: print(f"  Closing flexible gripper\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,1) 
     
-    def neutral(self) -> str:
+    def Neutral(self) -> str:
         """
         Puts the flexible gripper in the neutral state.
 
@@ -2676,13 +2712,13 @@ class FlexGripper:
             The response from the robot.
 
         Example:
-            neutral()
+            Neutral()
         """
         if self.robot.isDebug: print(f"  Setting flexible gripper to neutral\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,0)
     
-    def setState(self, state:int, vacuum:int=1, pressure:int=2) -> str:
+    def SetState(self, state:int, vacuum:int=1, pressure:int=2) -> str:
         """
         Set the status of the flexible gripper
 
@@ -2695,7 +2731,7 @@ class FlexGripper:
             The response from the robot.
 
         Example:
-            setState(1)
+            SetState(1)
         """
         if self.robot.isDebug: print(f"  Setting flexible gripper to {state}\n    ", end="")
         match state:
@@ -2735,7 +2771,7 @@ class ServoGripper:
         self.DIout1 = DIout1
         self.DIout2 = DIout2
     
-    def setState(self, state) -> str:
+    def SetState(self, state) -> str:
         """
         Set the state of the servo gripper.
 
@@ -2746,7 +2782,7 @@ class ServoGripper:
             The response from the robot.
 
         Example:
-            setState(1)
+            SetState(1)
         """
         if self.robot.isDebug: print(f"  Setting servo gripper group to {state}\n    ", end="")
         match state:
@@ -2769,7 +2805,7 @@ class ServoGripper:
             case _:
                 return "    Invalid state group. Please choose a value between 1 and 4."
             
-    def getState(self) -> str:
+    def GetState(self) -> str:
         """
         Get the state of the servo gripper.
 
@@ -2777,7 +2813,7 @@ class ServoGripper:
             The state of the gripper.
 
         Example:
-            getState()
+            GetState()
         """
         if self.robot.isDebug: print(f"  Getting servo gripper state\n    ", end="")
         output1 = self.robot.GetDO(self.DIout1)
@@ -2817,7 +2853,7 @@ class Feedback:
         self.client = None
         self.data = {}
 
-    def init(self):
+    def Connect(self):
         """
         Connect to the robot's feedback port.
 
@@ -2825,12 +2861,12 @@ class Feedback:
             None
 
         Example:
-            init()
+            Connect()
         """
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect((self.robot.ip, self.port))
+        self.client.Connect((self.robot.ip, self.port))
 
-    def get(self):
+    def Get(self):
         """
         Get feedback from the robot.
 
@@ -2838,12 +2874,12 @@ class Feedback:
             None
 
         Example:
-            get()
+            Get()
         """
         rawdata = self.client.recv(1440)
         self.data = self.parse_feedback(rawdata)
 
-    def parse_feedback(self, data):
+    def Parse_feedback(self, data):
         """
         Parse the feedback data from the robot.
         
@@ -2854,7 +2890,7 @@ class Feedback:
             A dictionary with the feedback data.
         
         Example:
-            parse_feedback(data)
+            Parse_feedback(data)
         """
         feedback_dict = {}
 
@@ -2864,7 +2900,7 @@ class Feedback:
             feedback_dict[key] = struct.unpack_from(fmt, data, offset)
             return offset + size
 
-        # Parse fields based on their "Meaning" in the document
+        # Parse fields based on their "Meaning" in the TCP protocol
         offset = 0
         offset = unpack(offset, 'H', 'MessageSize')                        # Message size (2 bytes)
         offset += 6                                                        # Reserved (6 bytes)
