@@ -20,6 +20,9 @@ class Dobot:
         -3: "In emergency stop status: The robot cannot execute commands in the emergency stop status. Release the emergency stop switch, clear the alarm, and redeliver the command.",
         -4: "In power-off status: The robot cannot execute commands in the power-off status. Power the robot on.",
         -5: "In script running/pause status: The robot cannot execute some commands when it is in script running/pause status. Stop the script first.",
+        -6: "The axis and motion type of MoveJog command do not match: Adjust the coordtype parameter. See the MoveJog command description for details.",
+        -7: "Robot in script paused status: The robot cannot execute some commands when it is in the script paused status, you need to stop the script first.",
+        -8: "Robot certification expired: The robot is in an unavailable status. Please contact FAE for assistance",
         -10000: "Command error: The command does not exist.",
         -20000: "Parameter number error: The number of parameters in the command is incorrect.",
         -30001: "The type of the first parameter is incorrect: The parameter type is not valid.",
@@ -36,15 +39,15 @@ class Dobot:
     robot_modes = {
         1: "ROBOT_MODE_INIT: Initialized status",
         2: "ROBOT_MODE_BRAKE_OPEN: Brake switched on",
-        3: "ROBOT_MODE_POWER_STATUS: Power-off status",
+        3: "ROBOT_MODE_POWEROFF: Power-off status",
         4: "ROBOT_MODE_DISABLED: Disabled (no brake switched on)",
         5: "ROBOT_MODE_ENABLE: Enabled and idle",
-        6: "ROBOT_MODE_BACKDRIVE: Drag mode",
+        6: "ROBOT_MODE_BACKDRIVE: Drag mode (Joint drag or Force-control drag)",
         7: "ROBOT_MODE_RUNNING: Running status (project, TCP queue motion, etc.)",
         8: "ROBOT_MODE_SINGLE_MOVE: Single motion status (jog, RunTo, etc.)",
         9: "ROBOT_MODE_ERROR: There are uncleared alarms. This status has the highest priority. It returns 9 when there is an alarm, regardless of the status of the robot arm",
-        10: "ROBOT_MODE_PAUSE: Project pause status",
-        11: "ROBOT_MODE_COLLISION: Collision detection trigger status"
+        10: "ROBOT_MODE_PAUSE: P status",
+        11: "ROBOT_MODE_COLLISION: Collision detection triggered status"
     }
 
     # Robot Types:
@@ -68,6 +71,22 @@ class Dobot:
     }
 
     # Control Commands:
+
+    def RequestControl(self):
+        """
+        Request  tochange the device control mode to TCP. TCP miode can only be entered when in non-powered or disabled state.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            RequestControl()
+        """
+        if self.isDebug: print("  Requesting change to TCP control...")
+        return self.Send_command("RequestControl()")
 
     def PowerON(self):
         """
@@ -143,9 +162,9 @@ class Dobot:
 
         Args:
             load (float): The load weight on the robot. Unit: kg
-            centerX (float): Eccentric distance in X direction, range: -999~999, unit: mm
-            centerY (float): Eccentric distance in Y direction, range: -999~999, unit: mm
-            centerZ (float): Eccentric distance in Z direction, range: -999~999, unit: mm
+            centerX (float): Eccentric distance in X direction, range: [-999,999], unit: mm
+            centerY (float): Eccentric distance in Y direction, range: [-999,999], unit: mm
+            centerZ (float): Eccentric distance in Z direction, range: [-999,999], unit: mm
 
         Returns:
             The response from the robot.
@@ -166,17 +185,17 @@ class Dobot:
                 self.isEnabled = True
                 return response
 
-    @dispatch(float, float, float, float, int)
+    @dispatch(float, float, float, float, int=0)
     def EnableRobot(self, load, centerX, centerY, centerZ, isCheck):
         """
         Enable the Dobot Magician E6 robot.
 
         Args:
             load (float): The load weight on the robot. Unit: kg
-            centerX (float): Eccentric distance in X direction, range: -999~999. Unit: mm
-            centerY (float): Eccentric distance in Y direction, range: -999~999. Unit: mm
-            centerZ (float): Eccentric distance in Z direction, range: -999~999. Unit: mm
-            isCheck (int): Whether to check the load. 0: No, 1: Yes
+            centerX (float): Eccentric distance in X direction, range: [-999,999]. Unit: mm
+            centerY (float): Eccentric distance in Y direction, range: [-999,999]. Unit: mm
+            centerZ (float): Eccentric distance in Z direction, range: [-999,999]. Unit: mm
+            isCheck (int): Whether to check the load. 0: No, 1: Yes. Default is 0.
 
         Returns:
             The response from the robot.
@@ -317,7 +336,7 @@ class Dobot:
         Cotrol the brake of robot joints. Can only be used when the robot is disabled otherise it will return an error (-1).
 
         Args:
-            axisID (int): The joint ID to brake.
+            axisID (int): The joint ID to brake. Range: [1,6]
             value (int): Brake status. 0: Switch off brake (joints cannot be dragged), 1: switch on brake (joints can be dragged)
 
         Returns:
@@ -331,7 +350,7 @@ class Dobot:
 
     def StartDrag(self):
         """
-        Enter the drag mode of the robot. CAn't be used when in error state.
+        Enter the drag mode of the robot. Can't be used when in error state.
 
         Args:
             None
@@ -369,7 +388,7 @@ class Dobot:
         Set the global speed factor of the robot.
 
         Args:
-            ratio (int): The global speed factor. Range: 1~100
+            ratio (int): The global speed factor. Range: [1,100]
 
         Returns:
             The response from the robot.
@@ -396,13 +415,14 @@ class Dobot:
         if self.isDebug: print(f"  Setting user index to {index}")
         return self.Send_command(f"User({index})")
 
-    def SetUser(self, index, table):
+    def SetUser(self, index, value, type=0):
         """
         Modify the specified user coordinate system of the robot.
 
         Args:
-            index (int): User coordinate system index. Range: [0,9]
-            table (string): User coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+            index (int): User coordinate system index. Range: [1,50]
+            value (string): User coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+            type (int): Changes take effect globally or locally. 0: Local, 1: Global. Default is 0.
 
         Returns:
             The response from the robot.
@@ -410,17 +430,17 @@ class Dobot:
         Example:
             SetUser(1, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Setting user coordinate system {index} to {table}")
-        return self.Send_command(f"SetUser({index},{table})")
+        if self.isDebug: print(f"  Setting user coordinate system {index} to {value}. Type: {type}")
+        return self.Send_command(f"SetUser({index},{value},{type})")
 
-    def CalcUser(self, index, matrix_direction, table):
+    def CalcUser(self, index, matrix, offset):
         """
         Calculate the user coordinate system of the robot.
 
         Args:
             index (int): User coordinate system index. Range: [0,9]
-            matrix_direction (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
-            table (string): User coordinate system offset (format: {x, y, z, rx, ry, rz}).
+            matrix (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
+            offset (string): User coordinate system offset (format: {x, y, z, rx, ry, rz}).
 
         Returns:
             The user coordinate system after calculation {x, y, z, rx, ry, rz}.
@@ -428,15 +448,15 @@ class Dobot:
         Example:
             CalcUser(1, 0, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Calculating user coordinate system {index} to {table}")
-        return self.Send_command(f"CalcUser({index},{matrix_direction},{table})")
+        if self.isDebug: print(f"  Calculating user coordinate system {index} to {offset}")
+        return self.Send_command(f"CalcUser({index},{matrix},{offset})")
 
-    def Tool(self, index):
+    def Tool(self, index=0):
         """
         Set the global tool coordinate system of the robot. Default is 0.
 
         Args:
-            index (int): Calibrated tool coordinate system. Needs to be set up in DobotStudio before it can be used here.
+            index (int): Calibrated tool coordinate system. Needs to be set up in DobotStudio before it can be used here. Range: [0,50]. Default is 0.
 
         Returns:
             ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands. -1 indicates that the set user coordinate system index does not exist.
@@ -447,13 +467,14 @@ class Dobot:
         if self.isDebug: print(f"  Setting tool index to {index}")
         return self.Send_command(f"Tool({index})")
     
-    def SetTool(self, index, table):
+    def SetTool(self, index, value, type=0):
         """
         Modify the specified tool coordinate system of the robot.
 
         Args:
-            index (int): Tool coordinate system index. Range: [0,9]
-            table (string): Tool coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+            index (int): Tool coordinate system index. Range: [1,50]
+            value (string): Tool coordinate system after modification (format: {x, y, z, rx, ry, rz}).
+            type (int): Changes take effect globally or locally. 0: Local, 1: Global. Default is 0.
 
         Returns:
             The response from the robot.
@@ -461,17 +482,17 @@ class Dobot:
         Example:
             SetTool(1, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Setting tool coordinate system {index} to {table}")
-        return self.Send_command(f"SetTool({index},{table})")
+        if self.isDebug: print(f"  Setting tool coordinate system {index} to {value}. Type: {type}")
+        return self.Send_command(f"SetTool({index},{value},{type})")
     
-    def CalcTool(self, index, matrix_direction, table):
+    def CalcTool(self, index, matrix, offset):
         """
         Calculate the tool coordinate system of the robot.
 
         Args:
-            index (int): Tool coordinate system index. Range: [0,9]
-            matrix_direction (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
-            table (string): Tool coordinate system offset (format: {x, y, z, rx, ry, rz}).
+            index (int): Tool coordinate system index. Range: [0,50]
+            matrix (int): Calculation method (see TCP protocols for details). 0: right multiplication, 1: left multiplication.
+            offset (string): Tool coordinate system offset (format: {x, y, z, rx, ry, rz}).
 
         Returns:
             The tool coordinate system after calculation {x, y, z, rx, ry, rz}.
@@ -479,8 +500,8 @@ class Dobot:
         Example:
             CalcTool(1, 0, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Calculating tool coordinate system {index} to {table}")
-        return self.Send_command(f"CalcTool({index},{matrix_direction},{table})")
+        if self.isDebug: print(f"  Calculating tool coordinate system {index} to {offset}")
+        return self.Send_command(f"CalcTool({index},{matrix},{offset})")
 
     @dispatch(str)
     def SetPayload(self, name):
@@ -523,9 +544,9 @@ class Dobot:
 
         Args:
             load (float): The load weight on the robot. Unit: kg
-            x (float): Eccentric distance in X direction, range: -500~500. Unit: mm
-            y (float): Eccentric distance in Y direction, range: -500~500. Unit: mm
-            z (float): Eccentric distance in Z direction, range: -500~500. Unit: mm
+            x (float): Eccentric distance in X direction, range: [-500,500]. Unit: mm
+            y (float): Eccentric distance in Y direction, range: [-500,500]. Unit: mm
+            z (float): Eccentric distance in Z direction, range: [-500,500]. Unit: mm
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
@@ -541,7 +562,7 @@ class Dobot:
         Set the robot acceleration rate for joint motions.
 
         Args:
-            R (int): Acceleration rate. Range: 1~100. Default is 100.
+            R (int): Acceleration rate. Range: [1,100]. Default is 100.
 
         Returns:
             The response from the robot.
@@ -557,7 +578,7 @@ class Dobot:
         Set the robot acceleration rate for linear motions.
 
         Args:
-            R (int): Acceleration rate. Range: 1~100. Default is 100.
+            R (int): Acceleration rate. Range: [1,100]. Default is 100.
 
         Returns:
             The response from the robot.
@@ -573,7 +594,7 @@ class Dobot:
         Set the robot velocity rate for joint motions.
 
         Args:
-            R (int): Velocity rate. Range: 1~100. Default is 100.
+            R (int): Velocity rate. Range: [1,100]. Default is 100.
 
         Returns:
             The response from the robot.
@@ -589,7 +610,7 @@ class Dobot:
         Set the robot velocity rate for linear motions.
 
         Args:
-            R (int): Velocity rate. Range: 1~100. Default is 100.
+            R (int): Velocity rate. Range: [1,100]. Default is 100.
 
         Returns:
             The response from the robot.
@@ -605,7 +626,7 @@ class Dobot:
         Set the robot continuous path (CP) rate.
 
         Args:
-            R (int): Continuous path rate. Range: 0~100. Default is 0.
+            R (int): Continuous path rate. Range: [0,100]. Default is 0.
 
         Returns:
             The response from the robot.
@@ -621,7 +642,7 @@ class Dobot:
         Set the robot collision sensitivity level.
 
         Args:
-            level (int): Collision sensitivity level. Range: 0~5. 0: Disable collision detection, 5: More sensitive with higher level.
+            level (int): Collision sensitivity level. Range: [0,5]. 0: Disable collision detection, 1-5: More sensitive with higher level.
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
@@ -637,7 +658,7 @@ class Dobot:
         Set the robot backoff distance after a collision is detected.
 
         Args:
-            distance (float): Backoff distance. Range: 0~50. Unit: mm.
+            distance (float): Backoff distance. Range: [0,50]. Unit: mm.
 
         Returns:
             ResultID, the algorithm queue ID, which can be used to judge the execution sequence of commands.
@@ -669,8 +690,8 @@ class Dobot:
         Set the drag sensitivity of the robot. 
 
         Args:
-            index (int): Axis number. 0: All axis, 1-6: J1-J6.
-            value (int): Drag sensitivity value. Smaller values equal larger resistance force Range: 1~90.
+            index (int): Axis number. 0: All axis, [1,6]: J1-J6.
+            value (int): Drag sensitivity value. Smaller values equal larger resistance force Range: [1,90].
 
         Returns:
             The response from the robot.
@@ -719,7 +740,7 @@ class Dobot:
         Enable or disable the specified robot safe wall feature. Safety wall needs to be set up in DobotStudio before it can be used here.
 
         Args:
-            index (int): Safety wall index. Range: 1~8
+            index (int): Safety wall index. Range: [1,8]
             value (int): Safety wall value. 0: Disable, 1: Enable
 
         Returns:
@@ -736,7 +757,7 @@ class Dobot:
         Enable or disable the specified robot interference area. Work zone needs to be set up in DobotStudio before it can be used here.
 
         Args:
-            index (int): Work zone index. Range: 1~6
+            index (int): Work zone index. Range: [1,6]
             value (int): Work zone value. 0: Disable, 1: Enable
 
         Returns:
@@ -767,7 +788,7 @@ class Dobot:
         if self.isDebug: print("  Getting robot mode...")
         return self.Send_command("RobotMode()")
     
-    def PositiveKin(self, J1, J2, J3, J4, J5, J6, User=0, Tool=0):
+    def PositiveKin(self, J1, J2, J3, J4, J5, J6, user=0, tool=0):
         """
         Calculate the coordinates of the end of the robot in the specified Cartesian coordinate system, based on the given angle of each joint. Positive solution.
 
@@ -778,8 +799,8 @@ class Dobot:
             J4 (float): Joint 4 angle. Unit: degree.
             J5 (float): Joint 5 angle. Unit: degree.
             J6 (float): Joint 6 angle. Unit: degree.
-            User (int): User coordinate system index. Default (0) is the global user coordinate system.
-            Tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system.
+            user (int): User coordinate system index. Default (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system. Range: [0,50]
 
         Returns:
             The cartesian point coordinates {x,y,z,a,b,c}
@@ -788,9 +809,9 @@ class Dobot:
             PositiveKin(0,0,-90,0,90,0,user=1,tool=1)
         """
         if self.isDebug: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
-        return self.Send_command(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={User},tool={Tool})")
+        return self.Send_command(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={user},tool={tool})")
 
-    def InverseKin(self, X, Y, Z, Rx, Ry, Rz, User=0, Tool=0, useJointNear=0, JointNear={}):
+    def InverseKin(self, X, Y, Z, Rx, Ry, Rz, useJointNear=0, JointNear={}, user=0, tool=0):
         """
         Calculate the joint angles of the robot based on the given Cartesian coordinates of the end of the robot. Positive solution.
 
@@ -801,11 +822,11 @@ class Dobot:
             Rx (float): Rotation angle around the X axis. Unit: degree.
             Ry (float): Rotation angle around the Y axis. Unit: degree.
             Rz (float): Rotation angle around the Z axis. Unit: degree.
-            User (int): User coordinate system index. Default (0) is the global user coordinate system.
-            Tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system.
             useJointNear (int): Whether to use the joint near data. 0: No, 1: Yes. Default is 0.
             JointNear (string):  Joint coordinates for selecting joint angles, format: jointNear={j1,j2,j3,j4,j5,j6}
-
+            user (int): User coordinate system index. Default (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system. Range: [0,50]
+            
         Returns:
             Joint coordinates {J1, J2, J3, J4, J5, J6}.
 
@@ -813,7 +834,7 @@ class Dobot:
             InverseKin(473.000000,-141.000000,469.000000,-180.000000,0.000,-90.000)
         """
         if self.isDebug: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
-        return self.Send_command(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={User},tool={Tool},useJointNear={useJointNear},JointNear={JointNear})")
+        return self.Send_command(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={user},tool={tool},useJointNear={useJointNear},JointNear={JointNear})")
 
     def GetAngle(self):
         """
@@ -831,13 +852,13 @@ class Dobot:
         if self.isDebug: print("  Getting robot joint angles...")
         return self.Send_command("GetAngle()")
 
-    def GetPose(self, User=0, Tool=0):
+    def GetPose(self, user=0, tool=0):
         """
         Get the cartesian coordinates of the current pose of the robot.
 
         Args:
-            User (string): User coordinate system index. Default (0) is the global user coordinate system.
-            Tool (string): Tool coordinate system index. Default (0) is the global tool coordinate system.
+            user (string): User coordinate system index. Default (0) is the global user coordinate system. Range: [0,50]
+            tool (string): Tool coordinate system index. Default (0) is the global tool coordinate system. Range: [0,50]
 
         Returns:
             The cartesian coordinate points of the current pose {X,Y,Z,Rx,Ry,Rz}.
@@ -846,7 +867,7 @@ class Dobot:
             GetPose(user=1,tool=1)
         """
         if self.isDebug: print("  Getting robot pose...")
-        return self.Send_command("GetPose(user={User},tool={Tool})")
+        return self.Send_command("GetPose(user={user},tool={tool})")
 
     def GetErrorID(self):
         """
@@ -944,7 +965,7 @@ class Dobot:
         Set the digital output of the robot.
 
         Args:
-            index (int): Digital output index.
+            index (int): Digital output index. Range: [1,MAX] or [100,1000]
             status (int): Digital output status. 0: OFF, 1: ON.
 
         Returns:
@@ -962,9 +983,9 @@ class Dobot:
         Set the digital output of the robot (queue command).
 
         Args:
-            index (int): Digital output index.
+            index (int): Digital output index. Range: [1,MAX] or [100,1000]
             status (int): Digital output status. 0: OFF, 1: ON.
-            time (int): Continuous output time. If set the input will be inverted after the specified amount of time. Unit: ms. Range: 25~60000.
+            time (int): Continuous output time. If set the input will be inverted after the specified amount of time. Unit: ms. Range: [25,60000].
 
         Returns:
             ResultID is the algorithm queue ID, which can be used to judge the execution sequence of commands.
@@ -980,7 +1001,7 @@ class Dobot:
         Set the digital output of the robot instantly.
 
         Args:
-            index (int): Digital output index.
+            index (int): Digital output index. Range: [1,MAX] or [100,1000]
             status (int): Digital output status. 0: OFF, 1: ON.
 
         Returns:
@@ -997,7 +1018,7 @@ class Dobot:
         Get the digital output status of the robot.
 
         Args:
-            index (int): Digital output index.
+            index (int): Digital output index. Range: [1,MAX] or [100,1000]
 
         Returns:
             The digital output status. 0: OFF, 1: ON.
@@ -1045,7 +1066,7 @@ class Dobot:
         Set the digital output of the tool (queue command).
 
         Args:
-            index (int): Tool DO index.
+            index (int): Tool DO index. Range: [1,MAX]
             status (int): Tool DO status. 1: ON, 0: OFF.
 
         Returns:
@@ -1062,7 +1083,7 @@ class Dobot:
         Set the digital output of the tool instantly.
 
         Args:
-            index (int): Tool DO index.
+            index (int): Tool DO index. Range: [1,MAX]
             status (int): Tool DO status. 1: ON, 0: OFF.
 
         Returns:
@@ -1079,7 +1100,7 @@ class Dobot:
         Get the digital output status of the tool.
 
         Args:
-            index (int): Tool DO index.
+            index (int): Tool DO index. Range: [1,MAX]
 
         Returns:
             The digital output status. 0: OFF, 1: ON.
@@ -1095,11 +1116,11 @@ class Dobot:
         Set the analog output of the robot (queue command).
 
         Args:
-            index (int): Analog output index.
-            value (int): Analog output value. Voltage range: 0~10, Unit: V; Current range: 4~20, Unit: mA
+            index (int): Analog output index. Range [1,2]
+            value (int): Analog output value. Voltage range: [0,10], Unit: V; Current range: [4,20], Unit: mA
 
         Returns:
-            The response from the robot.
+            ResultID which is the algorithm queue ID, which can be used to judge the execution sequence of commands.
 
         Example:
             AO(1, 5)
@@ -1112,8 +1133,8 @@ class Dobot:
         Set the analog output of the robot instantly.
 
         Args:
-            index (int): Analog output index.
-            value (int): Analog output value. Voltage range: 0~10, Unit: V; Current range: 4~20, Unit: mA
+            index (int): Analog output index. Range: [1,2]
+            value (int): Analog output value. Voltage range: [0,10], Unit: V; Current range: [4,20], Unit: mA
 
         Returns:
             The response from the robot.
@@ -1129,7 +1150,7 @@ class Dobot:
         Get the analog output status of the robot.
 
         Args:
-            index (int): Analog output index.
+            index (int): Analog output index. Range: [1,2]
 
         Returns:
             The analog output value.
@@ -1145,7 +1166,7 @@ class Dobot:
         Get the digital input status of the robot.
 
         Args:
-            index (int): Digital input index.
+            index (int): Digital input index. Range: [1,MAX] or [100,1000]
 
         Returns:
             The digital input status. 0: no signal, 1: signal.
@@ -1177,7 +1198,7 @@ class Dobot:
         Get the digital input status of the tool.
 
         Args:
-            index (int): Tool DI index.
+            index (int): Tool DI index. Range: [1,MAX]
 
         Returns:
             The digital input status of the tool. 0: OFF, 1: ON.
@@ -1193,7 +1214,7 @@ class Dobot:
         Get the analog input status of the robot.
 
         Args:
-            index (int): Analog input index.
+            index (int): Analog input index. Range: [1,2]
 
         Returns:
             The analog input value.
@@ -1209,7 +1230,7 @@ class Dobot:
         Get the analog input status of the tool.
 
         Args:
-            index (int): Tool AI index.
+            index (int): Tool AI index. Range: [1,MAX]
 
         Returns:
             The analog input value of the tool.
@@ -1228,7 +1249,7 @@ class Dobot:
         Args:
             baud (int): Baud rate.
             parity (string): Parity bit. N: None, O: Odd, E: Even. Default is none.
-            stopbit (int): Stop bit length. 1 or 2. Default is 1.
+            stopbit (int): Stop bit length. Range: [1,2]. Default is 1.
 
         Returns:
             The response from the robot.
@@ -1247,7 +1268,7 @@ class Dobot:
         Args:
             baud (int): Baud rate.
             parity (string): Parity bit. N: None, O: Odd, E: Even. Default is none.
-            stopbit (int): Stop bit length. 1 or 2. Default is 1.
+            stopbit (int): Stop bit length. Range [1,2]. Default is 1.
             identify (int): If the robot has multiple aviation sockets, which one to use. 1: socket 1, 2: socket 2. Default is 1.
 
         Returns:
@@ -1416,7 +1437,7 @@ class Dobot:
         Args:
             index (int): Master station index.
             address (int): Start address of the contact register.
-            count (int): Number of contact registers. Range: 1~16.
+            count (int): Number of contact registers. Range: [1,16].
 
         Returns:
             Values of the contact register. Format: {value1,value2,...}.
@@ -1434,7 +1455,7 @@ class Dobot:
         Args:
             index (int): Master station index.
             address (int): Start address of the input register.
-            count (int): Number of values from input registers. Range: 1~4.
+            count (int): Number of values from input registers. Range: [1,4].
             valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
 
         Returns:
@@ -1453,7 +1474,7 @@ class Dobot:
         Args:
             index (int): Master station index.
             address (int): Start address of the coil register.
-            count (int): Number of values from the coil registers. Range: 1~16.
+            count (int): Number of values from the coil registers. Range: [1,16].
 
         Returns:
             Values of the register coil. Format: {value1,value2,...}.
@@ -1471,7 +1492,7 @@ class Dobot:
         Args:
             index (int): Master station index.
             address (int): Start address of the coil register.
-            count (int): Number of values from coil register. Range: 1~16.
+            count (int): Number of values from coil register. Range: [1,16].
             valTab (string): Values to write. Format: {value1,value2,...}.
 
         Returns:
@@ -1488,9 +1509,9 @@ class Dobot:
         Read the holding register from the modbus slave device with a specified data type.
 
         Args:
-            index (int): Master station index.
+            index (int): Master station index. Range: [0,4]
             address (int): Start address of the holding register.
-            count (int): Number of values from holding registers. Range: 1~4.
+            count (int): Number of values from holding registers..
             valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
 
         Returns:
@@ -1507,9 +1528,9 @@ class Dobot:
         Write the holding register of the modbus slave device with a specified data type.
 
         Args:
-            index (int): Master station index.
+            index (int): Master station index. Range: [0,4].
             address (int): Start address of the holding register.
-            count (int): Number of values from holding registers. Range: 1~4.
+            count (int): Number of values from holding registers. Range: [1,4].
             valTab (string): Values to write. Format: {value1,value2,...}.
             valType (string): Data type. U16: 16-bit unsigned integer (two bytes, occupy one register), 32-bit unsigned integer (four bytes, occupy two registers) ,F32: 32-bit single-precision floating-point number (four bytes, occupy two registers) ,F64: 64-bit double-precision floating-point number (eight bytes, occupy four registers). Default is U16.
 
@@ -1530,7 +1551,7 @@ class Dobot:
         Get the input boolean value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~63.
+            adress (int): Bus register address. Range: [0,63].
 
         Returns:
             The input boolean value. 0: OFF, 1: ON.
@@ -1546,7 +1567,7 @@ class Dobot:
         Get the input integer value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
 
         Returns:
             The input integer value.
@@ -1562,7 +1583,7 @@ class Dobot:
         Get the input float value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
 
         Returns:
             The input float value.
@@ -1578,7 +1599,7 @@ class Dobot:
         Get the output boolean value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~63.
+            adress (int): Bus register address. Range: [0,63].
 
         Returns:
             The output boolean value. 0: OFF, 1: ON.
@@ -1594,7 +1615,7 @@ class Dobot:
         Get the output integer value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
 
         Returns:
             The output integer value.
@@ -1610,7 +1631,7 @@ class Dobot:
         Get the output float value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
 
         Returns:
             The output float value.
@@ -1626,7 +1647,7 @@ class Dobot:
         Set the output boolean value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~63.
+            adress (int): Bus register address. Range: [0,63].
             value (int): Boolean value. 0: OFF, 1: ON.
 
         Returns:
@@ -1643,7 +1664,7 @@ class Dobot:
         Set the output integer value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
             value (int): Integer value.
 
         Returns:
@@ -1660,7 +1681,7 @@ class Dobot:
         Set the output float value of the bus register.
 
         Args:
-            adress (int): Bus register address. Range: 0~23.
+            adress (int): Bus register address. Range: [0,23].
             value (float): Float value.
 
         Returns:
@@ -1717,11 +1738,11 @@ class Dobot:
 
         Args:
             P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            cp (int): Continuous path rate. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            cp (int): Continuous path rate. Range: [0,100].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -1774,13 +1795,13 @@ class Dobot:
 
         Args:
             P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,1000].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -1817,13 +1838,13 @@ class Dobot:
         Args:
             P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             IO (string): IO control. See the TCP protocols for details.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -1853,28 +1874,27 @@ class Dobot:
         return self.Send_command(f"MovJ({P},{IO})")
     
     @dispatch(str, str, int, int, int, int, int, int)
-    def MovJIO(self, P, IO, user, tool, a, v, cp, r):
+    def MovJIO(self, P, IO, user, tool, a, v, cp):
         """
         Move the robot to a specified point through joint motion setting status of the digital output.
 
         Args:
             P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             IO (string): IO control. See the TCP protocols for details.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            cp (int): Continuous path rate. Range: [0,100].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
 
         Example:
-            MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50, 0)
+            MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50)
         """
-        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp},r={r})")
+        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        return self.Send_command(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str, str)
     def Arc(self, P1, P2):
@@ -1902,32 +1922,33 @@ class Dobot:
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r}
+            parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r},ori_mode
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
 
         Example:
-            Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}","user=0,tool=0,a=50,v=100,speed=100,cp=50")
+            Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}","user=0,tool=0,a=50,v=100,speed=100,cp=50",1)
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
         return self.Send_command(f"Arc({P1},{P2},{parameters})")
 
-    @dispatch(str, str, int, int, int, int, int, int, int)
-    def Arc(self, P1, P2, user, tool, a, v, speed, cp, r):
+    @dispatch(str, str, int, int, int, int, int, int, int, int)
+    def Arc(self, P1, P2, user, tool, a, v, speed, cp, r, ori_mode):
         """
         Move the robot to a specified point through arc motion.
 
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50].
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50].
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
+            ori_mode (int): Starting posture interpolation: 0: Slerp (target posture reachable), 1: Z-Arc (target posture unreachable).
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -1935,8 +1956,8 @@ class Dobot:
         Example:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}", 0, 0, 50, 100, 100, 50, 0)
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}, orientation mode {ori_mode}")
+        return self.Send_command(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r},{ori_mode})")
 
     @dispatch(str, str, int)
     def Circle(self, P1, P2, count):
@@ -1946,7 +1967,7 @@ class Dobot:
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            count (int): Number of circular motion. Range: 1~999.
+            count (int): Number of circular motion. Range: [1,999].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -1965,7 +1986,7 @@ class Dobot:
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            count (int): Number of circular motion. Range: 1~999.
+            count (int): Number of circular motion. Range: [1,999].
             parameters (string): Additional parameters. Format: user={user},tool={tool},a={a},v={v},speed={speed},cp={cp|r}
 
         Returns:
@@ -1985,14 +2006,14 @@ class Dobot:
         Args:
             P1 (string): Intermediate point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
             P2 (string): End point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
-            count (int): Number of circular motion. Range: 1~999.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~1000.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            count (int): Number of circular motion. Range: [1,999].
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50].
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50].
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2000,53 +2021,60 @@ class Dobot:
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
         return self.Send_command(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
-    def ServoJ(self, Joint, t=0.1, aheadtime=50, gain=500):
+    def ServoJ(self, J1, J2, J3, J4, J5, J6, t=0.1, aheadtime=50, gain=500):
         """
         The dynamic following command based on joint space.
 
         Args:
-            Joint (string): Target point joint varaibles. Format: {j1,j2,j3,j4,j5,j6}
-            t (int): Running time of the point. Unit: s. Range: 0.02~3600.0. Default is 0.1.
-            aheadtime (int): Advanced time, similar to the D in PID control. Range: 20.0~100.0. default is 50.
-            gain (int): Proportional gain of the target position, similar to the P in PID control. Range: 200.0~1000.0. Default is 500.
+            J1 (double): Target position of joint 1. Unit: degree.
+            J2 (double): Target position of joint 2. Unit: degree.
+            J3 (double): Target position of joint 3. Unit: degree.
+            J4 (double): Target position of joint 4. Unit: degree.
+            J5 (double): Target position of joint 5. Unit: degree.
+            J6 (double): Target position of joint 6. Unit: degree.
+            t (float): Running time of the point. Unit: s. Range: [0.4,3600.0]. Default is 0.1.
+            aheadtime (float): Advanced time, similar to the D in PID control. Range: [20.0,100.0]. default is 50.
+            gain (float): Proportional gain of the target position, similar to the P in PID control. Range: [200.0,1000.0]. Default is 500.
 
         Returns:
             Response from the robot.
 
         Example:
-            ServoJ("{0,0,0,0,0,0}", 0.1, 50, 500)
+            ServoJ(0,0,0,0,0,0, 0.1, 50, 500)
         """
-        if self.isDebug: print(f"  Moving robot to joint {Joint} with time {t}, ahead time {aheadtime}, gain {gain}")
-        return self.Send_command(f"ServoJ({Joint},{t},{aheadtime},{gain})")
+        if self.isDebug: print(f"  Moving robot to joint {J1},{J2},{J3},{J4},{J5},{J6} with time {t}, ahead time {aheadtime}, gain {gain}")
+        return self.Send_command(f"ServoJ({J1},{J2},{J3},{J4},{J5},{J6},{t},{aheadtime},{gain})")
 
-    def ServoP(self, Pose, t=0.1, aheadtime=50, gain=500):
+    def ServoP(self, X, Y, Z, Rx, Ry, Rz, t=0.1, aheadtime=50, gain=500):
         """
         The dynamic following command based on pose space.
 
         Args:
-            Pose (string): Target point pose varaibles. Format: {x,y,z,a,b,c}
-            t (int): Running time of the point. Unit: s. Range: 0.02~3600.0. Default is 0.1.
-            aheadtime (int): Advanced time, similar to the D in PID control. Range: 20.0~100.0. default is 50.
-            gain (int): Proportional gain of the target position, similar to the P in PID control. Range: 200.0~1000.0. Default is 500.
+            X (double): Target position of X. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            Y (double): Target position of Y. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            Z (double): Target position of Z. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            t (float): Running time of the point. Unit: s. Range: [0.4,3600.0]. Default is 0.1.
+            aheadtime (float): Advanced time, similar to the D in PID control. Range: [20.0,100.0]. default is 50.
+            gain (float): Proportional gain of the target position, similar to the P in PID control. Range: [200.0,1000.0]. Default is 500.
 
         Returns:
             Response from the robot.
 
         Example:
-            ServoP("{200,200,200,0,0,0}", 0.1, 50, 500)
+            ServoP(200,200,200,0,0,0, 0.1, 50, 500)
         """
-        if self.isDebug: print(f"  Moving robot to pose {Pose} with time {t}, ahead time {aheadtime}, gain {gain}")
-        return self.Send_command(f"ServoP({Pose},{t},{aheadtime},{gain})")
+        if self.isDebug: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
+        return self.Send_command(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
 
     def MoveJog(self, axisID, coordType=0, user=0, tool=0):
         """
-        Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm.
+        Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm. (Immediate command)
 
         Args:
-            axisID (string): Axis ID (case sensitive). J1-6/X/Y/Z/Rx/Ry/Rz+: positive direction. J1-6/X/Y/Z/Rx/Ry/Rz-: negative direction.
-            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0.
-            user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Default is 0.
+            axisID (string): Axis ID (case sensitive). (J1-6/X/Y/Z/Rx/Ry/Rz)+: positive direction. (J1-6/X/Y/Z/Rx/Ry/Rz)-: negative direction.
+            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0. Has to be 1 or when axisID is cartesian
+            user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Default is 0. Range: [0,50]
 
         Returns:
             Response from the robot.
@@ -2055,7 +2083,29 @@ class Dobot:
             MoveJog("X+",coordType=1,user=1,tool=1)
         """
         if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
-        return self.Send_command(f"MoveJog({axisID},{coordType},{user},{tool})")
+        return self.Send_command(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
+
+    @dispatch(str, int, int, int, int, int)
+    def RunTo(self, P, moveType, user, tool, a, v):
+        """
+        Move the robot to a specified point through joint motion or linear motion. (Immediate command)
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            moveType (int): Move type. 0: joint motion, 1: linear motion.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50].
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50].
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            RunTo("pose={200,200,200,0,0,0}", 0, 0, 0, 50, 100)
+        """
+        if self.isDebug: print(f"  Moving robot to {P} with move type {moveType}, user {user}, tool {tool}, acceleration {a}, speed {v}")
+        return self.Send_command(f"RunTo({P},{moveType},user={user},tool={tool},a={a},v={v})")
 
     def GetStartPose(self, traceName):
         """
@@ -2090,8 +2140,8 @@ class Dobot:
         if self.isDebug: print(f"  Starting path {traceName}")
         return self.Send_command(f"StartPath({traceName})")
 
-    @dispatch(str, int, float, int, int)
-    def StartPath(self, traceName, isConst, multi, user, tool):
+    @dispatch(str, int, float, int, float, int, int)
+    def StartPath(self, traceName, isConst, multi, sample=50, freq=0.2, user=0, tool=0):
         """
         Move according to the recorded points (including at least 4 points) in the specified trajectory file to play back the recorded trajectory.
 
@@ -2099,17 +2149,19 @@ class Dobot:
             traceName (string): Trajectory file name (including suffix). The trajectory file is stored in /dobot/userdata/project/process/trajectory/
             isConst (int): Whether the trajectory is played at constant speed. 0: variable speed as recorded, 1: constant speed.
             multi (float): Playback speed multiplier. Valid only when isConst is 0. Range: 0.25~2. Default is 1
-            user (int): User coordinate system index. If not specified use the system in the trajectory file.
-            tool (int): Tool coordinate system index. If not specified use the system in the trajectory file.
+            sample (int): Sampling interval. Unit:ms Range: [8,1000]. Default is 50.
+            freq (float): Filter coefficient. Range: (0,1]. 1 means filtering is off. Default is 0.2.
+            user (int): User coordinate system index. If not specified use the system in the trajectory file. Range: [0,50]
+            tool (int): Tool coordinate system index. If not specified use the system in the trajectory file. Range: [0,50]
 
         Returns:
             Response from the robot.
 
         Example:
-            StartPath("test1.csv", 0, 1, 0, 0)
+            StartPath("test1.csv", 0, 1, 50, 0.2, 0, 0)
         """
-        if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, repetitions {multi}, user {user}, tool {tool}")
-        return self.Send_command(f"StartPath({traceName},{isConst},{multi},{user},{tool})")
+        if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, multiplier {multi}, sample {sample}, freq {freq}, user {user}, tool {tool}")
+        return self.Send_command(f"StartPath({traceName},{isConst},{multi},sample={sample},freq={freq},user={user},tool={tool})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2123,11 +2175,6 @@ class Dobot:
             offsetRx (float): Rx-axis coordinates. Unit: degree.
             offsetRy (float): Ry-axis coordinates. Unit: degree.
             offsetRz (float): Rz-axis coordinates. Unit: degree.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            cp (int): Continuous path rate. Range: 0~100.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2150,11 +2197,11 @@ class Dobot:
             offsetRx (float): Rx-axis coordinates. Unit: degree.
             offsetRy (float): Ry-axis coordinates. Unit: degree.
             offsetRz (float): Rz-axis coordinates. Unit: degree.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            cp (int): Continuous path rate. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            cp (int): Continuous path rate. Range: [0,100].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2163,7 +2210,7 @@ class Dobot:
             RelMovJTool(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
+        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2199,13 +2246,13 @@ class Dobot:
             offsetRx (float): Rx-axis coordinates. Unit: degree.
             offsetRy (float): Ry-axis coordinates. Unit: degree.
             offsetRz (float): Rz-axis coordinates. Unit: degree.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2214,7 +2261,7 @@ class Dobot:
             RelMovLTool(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
+        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2250,11 +2297,11 @@ class Dobot:
             offsetRx (float): Rx-axis coordinates. Unit: degree.
             offsetRy (float): Ry-axis coordinates. Unit: degree.
             offsetRz (float): Rz-axis coordinates. Unit: degree.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            cp (int): Continuous path rate. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            cp (int): Continuous path rate. Range: [0,100].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2263,7 +2310,7 @@ class Dobot:
             RelMovJUser(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{cp})")
+        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2299,13 +2346,13 @@ class Dobot:
             offsetRx (float): Rx-axis coordinates. Unit: degree.
             offsetRy (float): Ry-axis coordinates. Unit: degree.
             offsetRz (float): Rz-axis coordinates. Unit: degree.
-            user (int): User coordinate system index. (0) is the global user coordinate system.
-            tool (int): Tool coordinate system index. (0) is the global tool coordinate system.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: 1~maxSpeed.
-            cp (int): Continuous path rate. Range: 0~100.
-            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm. Range: 0~100.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            speed (int): Target speed. Incompatible with v. Speed takes precedence if both are given. Unit: mm/s. Range: [1,maxSpeed].
+            cp (int): Continuous path rate. Range: [0,100].
+            r (int): Continuous path radius. Incompatible with cp. R takes precedence if both are given. Unit: mm.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2314,20 +2361,20 @@ class Dobot:
             RelMovLUser(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},{user},{tool},{a},{v},{speed},{cp},{r})")
+        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelJointMovJ(self, Offset1, Offset2, Offset3, Offset4, Offset5, Offset6):
+    def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6):
         """
         Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
 
         Args:
-            Offset1 (float): Joint 1 offset. Unit: degree.
-            Offset2 (float): Joint 2 offset. Unit: degree.
-            Offset3 (float): Joint 3 offset. Unit: degree.
-            Offset4 (float): Joint 4 offset. Unit: degree.
-            Offset5 (float): Joint 5 offset. Unit: degree.
-            Offset6 (float): Joint 6 offset. Unit: degree.
+            offset1 (float): Joint 1 offset. Unit: degree.
+            offset2 (float): Joint 2 offset. Unit: degree.
+            offset3 (float): Joint 3 offset. Unit: degree.
+            offset4 (float): Joint 4 offset. Unit: degree.
+            offset5 (float): Joint 5 offset. Unit: degree.
+            offset6 (float): Joint 6 offset. Unit: degree.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -2335,33 +2382,106 @@ class Dobot:
         Example:
             RelJointMovJ(10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
-        return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6})")
+        if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
+        return self.Send_command(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
 
     @dispatch(float, float, float, float, float, float, int, int, int)
-    def RelJointMovJ(self, Offset1, Offset2, Offset3, Offset4, Offset5, Offset6, a, v, cp):
+    def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6, user, tool, a, v, cp):
         """
         Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
 
         Args:
-            Offset1 (float): Joint 1 offset. Unit: degree.
-            Offset2 (float): Joint 2 offset. Unit: degree.
-            Offset3 (float): Joint 3 offset. Unit: degree.
-            Offset4 (float): Joint 4 offset. Unit: degree.
-            Offset5 (float): Joint 5 offset. Unit: degree.
-            Offset6 (float): Joint 6 offset. Unit: degree.
-            a (int): Acceleration rate. Range: 0~100.
-            v (int): Velocity rate. Range: 0~100.
-            cp (int): Continuous path rate. Range: 0~100.
+            offset1 (float): Joint 1 offset. Unit: degree.
+            offset2 (float): Joint 2 offset. Unit: degree.
+            offset3 (float): Joint 3 offset. Unit: degree.
+            offset4 (float): Joint 4 offset. Unit: degree.
+            offset5 (float): Joint 5 offset. Unit: degree.
+            offset6 (float): Joint 6 offset. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+            a (int): Acceleration rate. Range: [1,100].
+            v (int): Velocity rate. Range: [1,100].
+            cp (int): Continuous path rate. Range: [0,100].
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
 
         Example:
-            RelJointMovJ(10,10,10,10,10,10,50,100,50)
+            RelJointMovJ(10,10,10,10,10,10,0,0,50,100,50)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6}) with acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelJointMovJ({Offset1},{Offset2},{Offset3},{Offset4},{Offset5},{Offset6},{a},{v},{cp})")
+        if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        return self.Send_command(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
+
+    def RelPointTool(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform Cartesian point offset along the tool coordinate system.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+
+        Returns:
+            Cartesian Coordinates {X,Y,Z,Rx,Ry,Rz}.
+
+        Example:
+            RelPointTool("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
+        """
+        if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        return self.Send_command(f"RelPointTool({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+
+    def RelPointUser(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+        """
+        Perform Cartesian point offset along the user coordinate system.
+
+        Args:
+            P (string): Target point, supporting joint variables or posture variables Format: pose={x,y,z,a,b,c} or joint={j1,j2,j3,j4,j5,j6}
+            offsetX (float): X-axis coordinates. Unit: mm
+            offsetY (float): Y-axis coordinates. Unit: mm.
+            offsetZ (float): Z-axis coordinates. Unit: mm.
+            offsetRx (float): Rx-axis coordinates. Unit: degree.
+            offsetRy (float): Ry-axis coordinates. Unit: degree.
+            offsetRz (float): Rz-axis coordinates. Unit: degree.
+
+        Returns:
+            Cartesian Coordinates {X,Y,Z,Rx,Ry,Rz}.
+
+        Example:
+            RelPointUser("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
+        """
+        if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        return self.Send_command(f"RelPointUser({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+
+    def RelJoint(self, J1, J2, J3, J4, J5, J6, offset1, offset2, offset3, offset4, offset5, offset6):
+        """
+        Perform relative position offset.
+
+        Args:
+            J1 (float): Joint 1 position. Unit: degree.
+            J2 (float): Joint 2 position. Unit: degree.
+            J3 (float): Joint 3 position. Unit: degree.
+            J4 (float): Joint 4 position. Unit: degree.
+            J5 (float): Joint 5 position. Unit: degree.
+            J6 (float): Joint 6 position. Unit: degree.
+            offset1 (float): Joint 1 offset. Unit: degree.
+            offset2 (float): Joint 2 offset. Unit: degree.
+            offset3 (float): Joint 3 offset. Unit: degree.
+            offset4 (float): Joint 4 offset. Unit: degree.
+            offset5 (float): Joint 5 offset. Unit: degree.
+            offset6 (float): Joint 6 offset. Unit: degree.
+
+        Returns:
+            Joint values {J1,J2,J3,J4,J5,J6}.
+
+        Example:
+            RelJoint(0,0,0,0,0,0,10,10,10,10,10,10)
+        """
+        if self.isDebug: print(f"  Joint move robot to offset ({J1},{J2},{J3},{J4},{J5},{J6} with offset:{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
+        return self.Send_command(f"RelJoint({J1},{J2},{J3},{J4},{J5},{J6},{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
 
     def GetCurrentCommandID(self):
         """
@@ -2377,6 +2497,386 @@ class Dobot:
         return self.Send_command("GetCurrentCommandID()")
 
 
+    # Trajectory recovery commands:
+
+    def SetResumeOffset(self, distance:float) -> str:
+        """
+        Set the backoff distance for trajectory recovery along the weld seam from the point where the project was paused.
+
+        Args:
+            distance (float): Backoff distance. Unit: mm.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            SetResumeOffset(10)
+        """
+        if self.isDebug: print(f"  Setting resume offset to {distance}")
+        return self.Send_command(f"SetResumeOffset({distance})")
+
+    def PathRecovery(self) -> str:
+        """
+        Resume the trajectory from the point where the project was paused.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            PathRecovery()
+        """
+        if self.isDebug: print("  Resuming path recovery")
+        return self.Send_command("PathRecovery()")
+
+    def PathRecoveryStop(self) -> str:
+        """
+        Stop the trajectory recovery.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            PathRecoveryStop()
+        """
+        if self.isDebug: print("  Stopping path recovery")
+        return self.Send_command("PathRecoveryStop()")
+    
+    def PathRecoveryStatus(self) -> str:
+        """
+        Get the status of the trajectory recovery.
+
+        Args:
+            None
+
+        Returns:
+            The path recovery status: 0: Returned to pause posture, 1: small deviation, 2: large deviation
+
+        Example:
+            PathRecoveryStatus()
+        """
+        if self.isDebug: print("  Getting path recovery status")
+        return self.Send_command("PathRecoveryStatus()")
+
+
+
+    # Log Export Commands:
+
+    def LogExportUSB(self, range:int) -> str:
+        """
+        Export the robot log file to a USB flash drive inserted into the robot.
+
+        Args:
+            range (int): Export range. 0: Export the contents of the "logs/all" and "logs/user" folders. 1: Export all contents of the "logs" folder.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            LogExportUSB(0)
+        """
+        if self.isDebug: print(f"  Exporting logs to USB with range {range}")
+        return self.Send_command(f"LogExportUSB({range})")
+
+    def GetExportStatus(self) -> str:
+        """
+        Get the status of the log export.
+
+        Args:
+            None
+
+        Returns:
+            The status of the log export: 0: Export not started.1: Exporting 2: Export completed 3: Export failed, USB drive not found 4: Export failed, insufficient USB drive space 5: Export failed, USB drive removed during the export process.
+
+        Example:
+            GetExportStatus()
+        """
+        if self.isDebug: print("  Getting export status")
+        return self.Send_command("GetExportStatus()")
+
+
+
+    # Force control commands:
+
+    def EnableFTSensor(self, status:int) -> str:
+        """
+        Enable or disable the force sensor.
+
+        Args:
+            status (int): 0: Disable the force sensor. 1: Enable the force sensor.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            EnableFTSensor(1)
+        """
+        if self.isDebug: print(f"  Enabling force sensor with status {status}")
+        return self.Send_command(f"EnableFTSensor({status})")
+    
+    def SixForceHome(self) -> str:
+        """
+        Set the current force as the zero point of the force sensor.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            SixForceHome()
+        """
+        if self.isDebug: print("  Setting force sensor home")
+        return self.Send_command("SixForceHome()")
+    
+    def GetForce(self, tool:int=0) -> str:
+        """
+        Get the force value of the force sensor.
+
+        Args:
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Range: [0,50]
+
+        Returns:
+            The force value of the force sensor.
+
+        Example:
+            GetForce(0)
+        """
+        if self.isDebug: print(f"  Getting force sensor value with tool {tool}")
+        return self.Send_command(f"GetForce({tool})")
+
+    def ForceDriveMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, user:int=0) -> str:
+        """
+        Specify the directions for dragging and enter force-control drag mode. See the TCP protocol for details.
+
+        Args:
+            x (int): X-axis coordinates. Unit: mm. 
+            y (int): Y-axis coordinates. Unit: mm.
+            z (int): Z-axis coordinates. Unit: mm.
+            rx (int): Rx-axis coordinates. Unit: degree.
+            ry (int): Ry-axis coordinates. Unit: degree.
+            rz (int): Rz-axis coordinates. Unit: degree.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0. Range: [0,50]
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            ForceDriveMode(10,10,10,0,0,0,0)
+        """
+        if self.isDebug: print(f"  Setting force sensor to drive mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and user {user}")
+        return self.Send_command(f"ForceDriveMode({{{x},{y},{z},{rx},{ry},{rz}}},user={user})")
+    
+    def ForceDriveSpped(self, speed:int) -> str:
+        """
+        Set the speed of the force control drag.
+
+        Args:
+            speed (int): Speed. Range: [1,100]
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            ForceDriveSpped(10)
+        """
+        if self.isDebug: print(f"  Setting force sensor drive speed to {speed}")
+        return self.Send_command(f"ForceDriveSpped({speed})")
+    
+    def StopDrag(self) -> str:
+        """
+        Robot exits drag mode.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            StopDrag()
+        """
+        if self.isDebug: print("  Stopping force sensor drag")
+        return self.Send_command("StopDrag()")
+
+    def FCForceMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, fx:int, fy:int, fz:int, frx:int, fry:int, frz:int, reference:int=0, user:int=0, tool:int=0) -> str:
+        """
+        Enter force control mode with user parameters. See the TCP protocol for details.
+
+        Args:
+            x (int): 0: Disable force control. : Enable.
+            y (int): 0: Disable force control. : Enable.
+            z (int): 0: Disable force control. : Enable.
+            rx (int): 0: Disable force control. : Enable.
+            ry (int): 0: Disable force control. : Enable.
+            rz (int): 0: Disable force control. : Enable.
+            fx (int): Target force. Unit: N.
+            fy (int): Target force. Unit: N.
+            fz (int): Target force. Unit: N.
+            frx (int): Target force. Unit: N.
+            fry (int): Target force. Unit: N.
+            frz (int): Target force. Unit: N.
+            reference (int): Force control reference frame. 0: Tool coordinate system. 1: User coordinate system. Default is 0.
+            user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0. Range: [0,50]
+            tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Default is 0. Range: [0,50]
+
+        Returns:
+            ResultID is the algorithm queue ID which can be used to judge the sequence of command execution
+
+        Example:
+            FCForceMode(10,10,10,0,0,0,10,10,10,0,0,0,0,0,0)
+        """
+        if self.isDebug: print(f"  Setting force control mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and forces ({fx},{fy},{fz},{frx},{fry},{frz}) with reference {reference}, user {user}, tool {tool}")
+        return self.Send_command(f"FCForceMode({{{x},{y},{z},{rx},{ry},{rz}}},{{{fx},{fy},{fz},{frx},{fry},{frz}}},reference={reference},user={user},tool={tool})")
+
+    def FCSetDeviation(self, x:int=100, y:int=100, z:int=100, rx:int=36, ry:int=36, rz:int=36, controltype:int=0) -> str:
+        """
+        Set displacement and posture deviation in force control mode, which will trigger a response if a large deviation occurs.
+
+        Args:
+            x (int): X-axis deviation. Unit: mm. Range: (0,1000]. Default is 100 mm.
+            y (int): Y-axis deviation. Unit: mm. Range: (0,1000]. Default is 100 mm.
+            z (int): Z-axis deviation. Unit: mm. Range: (0,1000]. Default is 100 mm.
+            rx (int): Rx-axis deviation. Unit: degree. Range: (0,360]. Default is 36 degree.
+            ry (int): Ry-axis deviation. Unit: degree. Range: (0,360]. Default is 36 degree.
+            rz (int): Rz-axis deviation. Unit: degree. Range: (0,360]. Default is 36 degree.
+            controltype (int): Control type. 0: Exceedin threshold triggers alarm. 1: Exceeding threshold triggers stop and robot runs along original trajectory.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetDeviation(10,10,10,0,0,0,0)
+        """
+        if self.isDebug: print(f"  Setting force control deviation with coordinates ({x},{y},{z},{rx},{ry},{rz}) and control type {controltype}")
+        return self.Send_command(f"FCSetDeviation({{{x},{y},{z},{rx},{ry},{rz}}},{controltype})")
+
+    def FCSetForceLimit(self, x:float=500, y:float=500, z:float=500, rx:float=50, ry:float=50, rz:float=50) -> str:
+        """
+        Set the force limit for each direction.
+
+        Args:
+            x (float): X-axis force limit. Unit: N. Range: [0,500]. Default is 500 N.
+            y (float): Y-axis force limit. Unit: N. Range: [0,500]. Default is 500 N.
+            z (float): Z-axis force limit. Unit: N. Range: [0,500]. Default is 500 N.
+            rx (float): Rx-axis force limit. Unit: N. Range: [0,500]. Default is 50 N.
+            ry (float): Ry-axis force limit. Unit: N. Range: [0,500]. Default is 50 N.
+            rz (float): Rz-axis force limit. Unit: N. Range: [0,500]. Default is 50 N.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetForceLimit(10,10,10,10,10,10)
+        """
+        if self.isDebug: print(f"  Setting force control force limit with forces ({x},{y},{z},{rx},{ry},{rz})")
+        return self.Send_command(f"FCSetForceLimit({x},{y},{z},{rx},{ry},{rz})")
+
+    def FCSetMass(self, x:float=20, y:float=20, z:float=20, rx:float=0.5, ry:float=0.5, rz:float=0.5) -> str:
+        """
+        Set the inertia coefficients for each direction in force control mode.
+
+        Args:
+            x (float): X-intertia coefficient. Range: (0,10000]. Default is 20.
+            y (float): Y-intertia coefficient. Range: (0,10000]. Default is 20.
+            z (float): Z-intertia coefficient. Range: (0,10000]. Default is 20.
+            rx (float): Rx-intertia coefficient. Range: (0,10000]. Default is 20.
+            ry (float): Ry-intertia coefficient. Range: (0,10000]. Default is 20.
+            rz (float): Rz-intertia coefficient. Range: (0,10000]. Default is 20.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetMass(10,10,10,0.5,0.5,0.5)
+        """
+        if self.isDebug: print(f"  Setting force control mass with mass ({x},{y},{z},{rx},{ry},{rz})")
+        return self.Send_command(f"FCSetMass({x},{y},{z},{rx},{ry},{rz})")
+
+    def FCSetDamping(self, x:float=50, y:float=50, z:float=50, rx:float=20, ry:float=20, rz:float=20) -> str:
+        """
+        Set the damping coefficients for each direction in force control mode.
+
+        Args:
+            x (float): X-damping coefficient. Range: [0,1000]. Default is 50.
+            y (float): Y-damping coefficient. Range: [0,1000]. Default is 50.
+            z (float): Z-damping coefficient. Range: [0,1000]. Default is 50.
+            rx (float): Rx-damping coefficient. Range: [0,1000]. Default is 50.
+            ry (float): Ry-damping coefficient. Range: [0,1000]. Default is 50.
+            rz (float): Rz-damping coefficient. Range: [0,1000]. Default is 50.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetDamping(10,10,10,5,5,5)
+        """
+        if self.isDebug: print(f"  Setting force control damping with damping ({x},{y},{z},{rx},{ry},{rz})")
+        return self.Send_command(f"FCSetDamping({x},{y},{z},{rx},{ry},{rz})")
+
+    def FCOff(self) -> str:
+        """
+        Exit force control mode.
+
+        Args:
+            None
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCOff()
+        """
+        if self.isDebug: print("  Exiting force control mode")
+        return self.Send_command("FCOff()")
+    
+    def FCSetForceSpeedLimit(self, x:float=20, y:float=20, z:float=20, rx:float=20, ry:float=20, rz:float=20) -> str:
+        """
+        Set the speed limit for each direction in force control mode.
+
+        Args:
+            x (float): X-axis speed limit. Unit: mm/s. Range: (0,300]. Default is 20 mm/s.
+            y (float): Y-axis speed limit. Unit: mm/s. Range: (0,300]. Default is 20 mm/s.
+            z (float): Z-axis speed limit. Unit: mm/s. Range: (0,300]. Default is 20 mm/s.
+            rx (float): Rx-axis speed limit. Unit: degree/s. Range: (0,90]. Default is 20 degree/s.
+            ry (float): Ry-axis speed limit. Unit: degree/s. Range: (0,90]. Default is 20 degree/s.
+            rz (float): Rz-axis speed limit. Unit: degree/s. Range: (0,90]. Default is 20 degree/s.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetForceSpeedLimit(10,10,10,10,10,10)
+        """
+        if self.isDebug: print(f"  Setting force control speed limit with speeds ({x},{y},{z},{rx},{ry},{rz})")
+        return self.Send_command(f"FCSetForceSpeedLimit({x},{y},{z},{rx},{ry},{rz})")
+
+    def FCSetForce(self, x:float, y:float, z:float, rx:float, ry:float, rz:float) -> str:
+        """
+        Set the force value for each direction in force control mode.
+
+        Args:
+            x (float): X-axis force. Unit: N. Range: [-200,200].
+            y (float): Y-axis force. Unit: N. Range: [-200,200].
+            z (float): Z-axis force. Unit: N. Range: [-200,200].
+            rx (float): Rx-axis force. Unit: N. Range: [-12,12].
+            ry (float): Ry-axis force. Unit: N. Range: [-12,12].
+            rz (float): Rz-axis force. Unit: N. Range: [-12,12].
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            FCSetForce(10,10,10,10,10,10)
+        """
+        if self.isDebug: print(f"  Setting force control force with forces ({x},{y},{z},{rx},{ry},{rz})")
+        return self.Send_command(f"FCSetForce({x},{y},{z},{rx},{ry},{rz})")
 
 
 
@@ -2606,6 +3106,10 @@ class Dobot:
         """
         if self.isDebug: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
+    
+
+
+    # Parsing functions
     
     def ParseError(self, errcode):
         """
@@ -2916,71 +3420,74 @@ class Feedback:
         offset = unpack(offset, 'd', 'VRobot')                             # Robot voltage (8 bytes)
         offset = unpack(offset, 'd', 'IRobot')                             # Robot current (8 bytes)
         offset = unpack(offset, 'd', 'ProgramState')                       # Script running status (8 bytes)
-        offset += 80                                                       # Reserved (80 bytes)
+        offset = unpack(offset, '2B', 'SafetyIOIn')                        # Safety IO input (2 bytes)
+        offset = unpack(offset, '2B', 'SafetyIOOut')                       # Safety IO output (2 bytes)
+        offset += 76                                                       # Reserved (76 bytes)
 
-        # Explicitly parse joint-related fields
-        offset = unpack(offset, '6d', 'QTarget')                           # Target joint positions (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'QDTarget')                          # Target joint velocities (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'QDDTarget')                         # Target joint accelerations (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'ITarget')                           # Target joint currents (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'MTarget')                           # Target joint torques (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'QActual')                           # Actual joint positions (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'QDActual')                          # Actual joint velocities (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'IActual')                           # Actual joint currents (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'ToolVectorActual')                  # TCP Cartesian coordinates (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'TCPSpeedActual')                    # TCP speed (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'TCPForce')                          # TCP force values (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'ToolVectorTarget')                  # TCP target Cartesian coordinates (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'TCPSpeedTarget')                    # TCP target speeds (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'MotorTemperatures')                 # Joint temperatures (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'JointModes')                        # Joint control modes (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'VActual')                           # Joint voltages (6 doubles, 48 bytes)
-
-        offset += 4                                                        # Reserved (4 bytes)
-        offset = unpack(offset, 'B', 'User')                               # User coordinate system (1 byte)
-        offset = unpack(offset, 'B', 'Tool')                               # Tool coordinate system (1 byte)
-        offset = unpack(offset, 'B', 'RunQueuedCmd')                       # Run queued command flag (1 byte)
-        offset = unpack(offset, 'B', 'PauseCmdFlag')                       # Queue pause flag (1 byte)
-        offset = unpack(offset, 'B', 'VelocityRatio')                      # Joint velocity rate (1 byte)
-        offset = unpack(offset, 'B', 'AccelerationRatio')                  # Joint acceleration rate (1 byte)
-        offset += 1                                                        # Reserved (1 byte)
-        offset = unpack(offset, 'B', 'XYZVelocityRatio')                   # Cartesian velocity rate (1 byte)
-        offset = unpack(offset, 'B', 'RVelocityRatio')                     # Cartesian pose velocity rate (1 byte)
-        offset = unpack(offset, 'B', 'XYZAccelerationRatio')               # Cartesian acceleration rate (1 byte)
-        offset = unpack(offset, 'B', 'RAccelerationRatio')                 # Cartesian pose acceleration rate (1 byte)
-        offset = unpack(offset, 'B', 'BrakeStatus')                        # Brake status (1 byte)
-        offset = unpack(offset, 'B', 'EnableStatus')                       # Enable status (1 byte)
-        offset = unpack(offset, 'B', 'DragStatus')                         # Drag status (1 byte)
-        offset = unpack(offset, 'B', 'RunningStatus')                      # Running status (1 byte)
-        offset = unpack(offset, 'B', 'ErrorStatus')                        # Alarm status (1 byte)
-        offset = unpack(offset, 'B', 'JogStatusCR')                        # Jogging status (1 byte)
-        offset = unpack(offset, 'B', 'RobotType')                          # Robot type (1 byte)
-        offset = unpack(offset, 'B', 'DragButtonSignal')                   # Drag signal (1 byte)
-        offset = unpack(offset, 'B', 'EnableButtonSignal')                 # Enable signal (1 byte)
-        offset = unpack(offset, 'B', 'RecordButtonSignal')                 # Recording signal (1 byte)
-        offset = unpack(offset, 'B', 'ReappearButtonSignal')               # Playback signal (1 byte)
-        offset = unpack(offset, 'B', 'JawButtonSignal')                    # Gripper control signal (1 byte)
-        offset += 1                                                        # Reserved (1 byte)
-        offset = unpack(offset, 'B', 'CollisionState')                     # Collision state (1 byte)
-        offset = unpack(offset, 'B', 'ArmApproachState')                   # Forearm pause state (1 byte)
-        offset = unpack(offset, 'B', 'J4ApproachState')                    # J4 pause state (1 byte)
-        offset = unpack(offset, 'B', 'J5ApproachState')                    # J5 pause state (1 byte)
-        offset = unpack(offset, 'B', 'J6ApproachState')                    # J6 pause state (1 byte)
-        offset += 77                                                       # Reserved (77 bytes)
-        offset = unpack(offset, 'd', 'VibrationDisZ')                      # Z-axis jitter displacement (8 bytes)
-        offset = unpack(offset, 'Q', 'CurrentCommandId')                   # Current command ID (8 bytes)
-        offset = unpack(offset, '6d', 'MActual[6]')                        # Actual torques (6 doubles, 48 bytes)
-        offset = unpack(offset, 'd', 'Load')                               # Payload in kg (8 bytes)
-        offset = unpack(offset, 'd', 'CenterX')                            # Eccentric distance X (8 bytes)
-        offset = unpack(offset, 'd', 'CenterY')                            # Eccentric distance Y (8 bytes)
-        offset = unpack(offset, 'd', 'CenterZ')                            # Eccentric distance Z (8 bytes)
-        offset = unpack(offset, '6d', 'User[6] ')                          # User coordinates (6 doubles, 48 bytes)
-        offset = unpack(offset, '6d', 'Tool[6]')                           # Tool coordinates (6 doubles, 48 bytes)
-        offset += 8                                                        # Reserved (8 bytes)
-        offset = unpack(offset, '6d', 'SixForceValue[6]')                  # Six-axis force values (6 doubles, 48 bytes)
-        offset = unpack(offset, '4d', 'TargetQuaternion[4]')               # Target quaternion (4 doubles, 32 bytes)
-        offset = unpack(offset, '4d', 'ActualQuaternion[4]')               # Actual quaternion (4 doubles, 32 bytes)
-        offset = unpack(offset, 'B', 'AutoManualMode')                     # Manual/automatic mode (1 byte)
-        offset += 24                                                       # Reserved (24 bytes)
+        # Joint data
+        offset = unpack(offset, '6d', 'QTarget')                           # Target joint position (6 doubles)
+        offset = unpack(offset, '6d', 'QDTarget')                          # Target joint speed (6 doubles)
+        offset = unpack(offset, '6d', 'QDDTarget')                         # Target joint acceleration (6 doubles)
+        offset = unpack(offset, '6d', 'ITarget')                           # Target joint current (6 doubles)
+        offset = unpack(offset, '6d', 'MTarget')                           # Target joint torque (6 doubles)
+        offset = unpack(offset, '6d', 'QActual')                           # Actual joint position (6 doubles)
+        offset = unpack(offset, '6d', 'QDActual')                          # Actual joint speed (6 doubles)
+        offset = unpack(offset, '6d', 'IActual')                           # Actual joint current (6 doubles)
+        offset = unpack(offset, '6d', 'ActualTCPForce')                    # TCP actual force (6 doubles)
+        offset = unpack(offset, '6d', 'ToolVectorActual')                 # TCP actual Cartesian (6 doubles)
+        offset = unpack(offset, '6d', 'TCPSpeedActual')                   # TCP actual speed (6 doubles)
+        offset = unpack(offset, '6d', 'TCPForce')                         # TCP force (6 doubles)
+        offset = unpack(offset, '6d', 'ToolVectorTarget')                 # TCP target Cartesian (6 doubles)
+        offset = unpack(offset, '6d', 'TCPSpeedTarget')                   # TCP target speed (6 doubles)
+        offset = unpack(offset, '6d', 'MotorTemperatures')                # Joint temperatures (6 doubles)
+        offset = unpack(offset, '6d', 'JointModes')                       # Joint modes (6 doubles)
+        offset = unpack(offset, '6d', 'VActual')                          # Joint voltage (6 doubles)
+        offset += 4                                                       # Reserved (4 bytes)
+        offset = unpack(offset, 'B', 'UserCoordinateSystem')              # User coordinate system (1 byte)
+        offset = unpack(offset, 'B', 'ToolCoordinateSystem')              # Tool coordinate system (1 byte)
+        offset = unpack(offset, 'B', 'RunQueuedCmd')                      # Run queued command flag (1 byte)
+        offset = unpack(offset, 'B', 'PauseCmdFlag')                      # Pause command flag (1 byte)
+        offset = unpack(offset, 'B', 'VelocityRatio')                     # Joint velocity ratio (1 byte)
+        offset = unpack(offset, 'B', 'AccelerationRatio')                 # Joint acceleration ratio (1 byte)
+        offset += 1                                                       # Reserved (1 byte)
+        offset = unpack(offset, 'B', 'XYZVelocityRatio')                  # Cartesian velocity ratio (1 byte)
+        offset = unpack(offset, 'B', 'RVelocityRatio')                    # Cartesian posture speed ratio (1 byte)
+        offset = unpack(offset, 'B', 'XYZAccelerationRatio')              # Cartesian acceleration ratio (1 byte)
+        offset = unpack(offset, 'B', 'RAccelerationRatio')                # Cartesian posture acceleration ratio (1 byte)
+        offset = unpack(offset, 'B', 'BrakeStatus')                       # Brake status (1 byte)
+        offset = unpack(offset, 'B', 'EnableStatus')                      # Enable status (1 byte)
+        offset = unpack(offset, 'B', 'DragStatus')                        # Drag status (1 byte)
+        offset = unpack(offset, 'B', 'RunningStatus')                     # Running status (1 byte)
+        offset = unpack(offset, 'B', 'ErrorStatus')                       # Error status (1 byte)
+        offset = unpack(offset, 'B', 'JogStatus')                         # Jog status (1 byte)
+        offset = unpack(offset, 'B', 'RobotType')                         # Robot type (1 byte)
+        offset = unpack(offset, 'B', 'DragButtonSignal')                  # Drag button signal (1 byte)
+        offset = unpack(offset, 'B', 'EnableButtonSignal')                # Enable button signal (1 byte)
+        offset = unpack(offset, 'B', 'RecordButtonSignal')                # Record button signal (1 byte)
+        offset = unpack(offset, 'B', 'ReappearButtonSignal')              # Playback signal (1 byte)
+        offset = unpack(offset, 'B', 'JawButtonSignal')                   # Gripper control signal (1 byte)
+        offset = unpack(offset, 'B', 'SixForceOnline')                    # Six-axis force sensor status (1 byte)
+        offset = unpack(offset, 'B', 'CollisionState')                    # Collision state (1 byte)
+        offset = unpack(offset, 'B', 'ArmApproachState')                  # Forearm approach pause (1 byte)
+        offset = unpack(offset, 'B', 'J4ApproachState')                   # J4 approach pause (1 byte)
+        offset = unpack(offset, 'B', 'J5ApproachState')                   # J5 approach pause (1 byte)
+        offset = unpack(offset, 'B', 'J6ApproachState')                   # J6 approach pause (1 byte)
+        offset += 61                                                      # Reserved (61 bytes)
+        offset = unpack(offset, 'd', 'ZAxisJitter')                       # Z-axis jitter displacement (8 bytes)
+        offset = unpack(offset, 'Q', 'CurrentCommandID')                  # Current command ID (8 bytes)
+        offset = unpack(offset, '6d', 'ActualTorque')                     # Actual torque (6 doubles)
+        offset = unpack(offset, 'd', 'Payload')                           # Payload (8 bytes)
+        offset = unpack(offset, 'd', 'CenterX')                           # Eccentric X (8 bytes)
+        offset = unpack(offset, 'd', 'CenterY')                           # Eccentric Y (8 bytes)
+        offset = unpack(offset, 'd', 'CenterZ')                           # Eccentric Z (8 bytes)
+        offset = unpack(offset, '6d', 'UserCoordinates')                  # User coordinates (6 doubles)
+        offset = unpack(offset, '6d', 'ToolCoordinates')                  # Tool coordinates (6 doubles)
+        offset += 8                                                       # Reserved (8 bytes)
+        offset = unpack(offset, '6d', 'SixAxisForce')                     # Six-axis force (6 doubles)
+        offset = unpack(offset, '4d', 'TargetQuaternion')                 # Target quaternion (4 doubles)
+        offset = unpack(offset, '4d', 'ActualQuaternion')                 # Actual quaternion (4 doubles)
+        offset = unpack(offset, '2B', 'AutoManualMode')                   # Manual/Automatic mode (2 bytes)
+        offset = unpack(offset, 'H', 'ExportStatus')                      # USB export status (2 bytes)
+        offset = unpack(offset, 'B', 'SafetyStatus')                      # Safety status (1 byte)
 
         return feedback_dict
