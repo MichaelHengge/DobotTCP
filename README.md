@@ -2,6 +2,15 @@
 
 DobotTCP is a Python library to control the Dobot  robot range via its TCP interface. The library provides functions for managing motion, I/O, and configuration of the Dobot robot. It was specially developed with the Dobot MagicianE6 in mind.
 
+<p align="center">
+<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FMichaelHengge%2FDobotTCP&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=true"/></a>
+<img src="https://img.shields.io/github/license/MichaelHengge/DObotTCP?style=flat-square">
+<img src="https://img.shields.io/github/stars/MichaelHengge/DObotTCP?style=flat-square">
+<img src="https://img.shields.io/github/forks/MichaelHengge/DObotTCP?style=flat-square">
+<img src="https://img.shields.io/github/issues/MichaelHengge/DObotTCP?style=flat-square">
+<a href="https://www.pepy.tech/projects/DObotTCP" target="_blank"><img src="https://static.pepy.tech/badge/DObotTCP"></a>
+</p>
+
 ## Installation
 
 Install the library via pip:
