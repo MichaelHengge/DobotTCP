@@ -5,12 +5,22 @@ import time
 from multipledispatch import dispatch
 
 class Dobot:
+
+    class Response:
+        def __init__(self, data):
+            if len(data) != 3: raise ValueError("Invalid response format.")
+            self.errorcode = int(data[0].strip())
+            self.response = int(data[1].strip())
+            self.command = int(data[2].strip())
+
+
     def __init__(self, ip='192.168.5.1', port=29999):
         self.ip = ip
         self.port = port
         self.connection = None
         self.isEnabled = False
         self.isDebug = True
+        self.response = None
 
     # Error Codes:
     error_codes = {
@@ -86,7 +96,7 @@ class Dobot:
             RequestControl()
         """
         if self.isDebug: print("  Requesting change to TCP control...")
-        return self.Send_command("RequestControl()")
+        return self.SendCommand("RequestControl()")
 
     def PowerON(self):
         """
@@ -99,7 +109,7 @@ class Dobot:
             PowerON()
         """
         if self.isDebug: print("  Powering on Dobot Magician E6...")
-        return self.Send_command("PowerOn()")
+        return self.SendCommand("PowerOn()")
 
     @dispatch()
     def EnableRobot(self):
@@ -120,7 +130,7 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            response = self.Send_command("EnableRobot()")
+            response = self.SendCommand("EnableRobot()")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -147,7 +157,7 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            response = self.Send_command(f"EnableRobot({load})")
+            response = self.SendCommand(f"EnableRobot({load})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -177,7 +187,7 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
+            response = self.SendCommand(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -208,7 +218,7 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.isDebug: print("  Enabling Dobot Magician E6...")
-            response = self.Send_command(f"EnableRobot({load},{centerX},{centerY},{centerZ},{isCheck})")
+            response = self.SendCommand(f"EnableRobot({load},{centerX},{centerY},{centerZ},{isCheck})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -230,7 +240,7 @@ class Dobot:
             DisableRobot()
         """
         if self.isEnabled:
-            response = self.Send_command("DisableRobot()")
+            response = self.SendCommand("DisableRobot()")
             self.isEnabled = False
             if self.isDebug: print("  Disable Dobot Magician E6...")
             return response 
@@ -249,7 +259,7 @@ class Dobot:
             ClearError()
         """
         if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
-        return self.Send_command("ClearError()")
+        return self.SendCommand("ClearError()")
 
     def RunScript(self, projectName):
         """
@@ -265,7 +275,7 @@ class Dobot:
             RunScript("123")
         """
         if self.isDebug: print(f"  Running script {projectName} on Dobot Magician E6...")
-        return self.Send_command(f"RunScript({projectName})")
+        return self.SendCommand(f"RunScript({projectName})")
 
     def Stop(self):
         """
@@ -281,7 +291,7 @@ class Dobot:
             Stop()
         """
         if self.isDebug: print("  Stopping Dobot Magician E6...")
-        return self.Send_command("Stop()")
+        return self.SendCommand("Stop()")
 
     def Pause(self):
         """
@@ -297,7 +307,7 @@ class Dobot:
             Pause()
         """
         if self.isDebug: print("  Pausing Dobot Magician E6...")
-        return self.Send_command("Pause()")
+        return self.SendCommand("Pause()")
 
     def Continue(self):
         """
@@ -313,7 +323,7 @@ class Dobot:
             Continue()
         """
         if self.isDebug: print("  Continuing Dobot Magician E6...")
-        return self.Send_command("Continue()")
+        return self.SendCommand("Continue()")
 
     def EmergencyStop(self, mode):
         """
@@ -329,7 +339,7 @@ class Dobot:
             EmergencyStop(1)
         """
         if self.isDebug: print("  Emergency stopping Dobot Magician E6...")
-        return self.Send_command("EmergencyStop()")
+        return self.SendCommand("EmergencyStop()")
 
     def BrakeControl(self, axisID, value):
         """
@@ -346,7 +356,7 @@ class Dobot:
             BrakeControl(1, 1)
         """
         if self.isDebug: print(f"  Setting brake control of axis {axisID} to value {value}")
-        return self.Send_command(f"BrakeControl({axisID},{value})")
+        return self.SendCommand(f"BrakeControl({axisID},{value})")
 
     def StartDrag(self):
         """
@@ -362,7 +372,7 @@ class Dobot:
             StartDrag()
         """
         if self.isDebug: print("  Entering drag mode...")
-        return self.Send_command("StartDrag()")
+        return self.SendCommand("StartDrag()")
 
     def StopDrag(self):
         """
@@ -378,7 +388,7 @@ class Dobot:
             StopDrag()
         """
         if self.isDebug: print("  Exiting drag mode...")
-        return self.Send_command("StopDrag()")
+        return self.SendCommand("StopDrag()")
 
 
     # Settings Commands
@@ -397,7 +407,7 @@ class Dobot:
             SpeedFactor(50)
         """
         if self.isDebug: print(f"  Setting global speed factor to {ratio}")
-        return self.Send_command(f"SpeedFactor({ratio})")
+        return self.SendCommand(f"SpeedFactor({ratio})")
 
     def User(self,index):
         """
@@ -413,7 +423,7 @@ class Dobot:
             User(1)
         """
         if self.isDebug: print(f"  Setting user index to {index}")
-        return self.Send_command(f"User({index})")
+        return self.SendCommand(f"User({index})")
 
     def SetUser(self, index, value, type=0):
         """
@@ -431,7 +441,7 @@ class Dobot:
             SetUser(1, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Setting user coordinate system {index} to {value}. Type: {type}")
-        return self.Send_command(f"SetUser({index},{value},{type})")
+        return self.SendCommand(f"SetUser({index},{value},{type})")
 
     def CalcUser(self, index, matrix, offset):
         """
@@ -449,7 +459,7 @@ class Dobot:
             CalcUser(1, 0, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Calculating user coordinate system {index} to {offset}")
-        return self.Send_command(f"CalcUser({index},{matrix},{offset})")
+        return self.SendCommand(f"CalcUser({index},{matrix},{offset})")
 
     def Tool(self, index=0):
         """
@@ -465,7 +475,7 @@ class Dobot:
             Tool(1)
         """
         if self.isDebug: print(f"  Setting tool index to {index}")
-        return self.Send_command(f"Tool({index})")
+        return self.SendCommand(f"Tool({index})")
     
     def SetTool(self, index, value, type=0):
         """
@@ -483,7 +493,7 @@ class Dobot:
             SetTool(1, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Setting tool coordinate system {index} to {value}. Type: {type}")
-        return self.Send_command(f"SetTool({index},{value},{type})")
+        return self.SendCommand(f"SetTool({index},{value},{type})")
     
     def CalcTool(self, index, matrix, offset):
         """
@@ -501,7 +511,7 @@ class Dobot:
             CalcTool(1, 0, "{10,10,10,0,0,0}")
         """
         if self.isDebug: print(f"  Calculating tool coordinate system {index} to {offset}")
-        return self.Send_command(f"CalcTool({index},{matrix},{offset})")
+        return self.SendCommand(f"CalcTool({index},{matrix},{offset})")
 
     @dispatch(str)
     def SetPayload(self, name):
@@ -518,7 +528,7 @@ class Dobot:
             SetPayload("Load1")
         """
         if self.isDebug: print(f"  Setting payload to preset {name})")
-        return self.Send_command(f"SetPayload({name})")
+        return self.SendCommand(f"SetPayload({name})")
 
     @dispatch(float)
     def SetPayload(self, load):
@@ -535,7 +545,7 @@ class Dobot:
             SetPayload(0.5)
         """
         if self.isDebug: print(f"  Setting payload to {load} kg)")
-        return self.Send_command(f"SetPayload({load})")
+        return self.SendCommand(f"SetPayload({load})")
 
     @dispatch(float, float, float, float)
     def SetPayload(self, load, x, y, z):
@@ -555,7 +565,7 @@ class Dobot:
             SetPayload(0.5, 0, 0, 0)
         """
         if self.isDebug: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
-        return self.Send_command(f"SetPayload({load},{x},{y},{z})")
+        return self.SendCommand(f"SetPayload({load},{x},{y},{z})")
 
     def AccJ(self, R=100):
         """
@@ -571,7 +581,7 @@ class Dobot:
             AccJ(50)
         """
         if self.isDebug: print(f"  Setting joint acceleration to {R}")
-        return self.Send_command(f"AccJ({R})")
+        return self.SendCommand(f"AccJ({R})")
 
     def AccL(self, R=100):
         """
@@ -587,7 +597,7 @@ class Dobot:
             AccL(50)
         """
         if self.isDebug: print(f"  Setting linear acceleration to {R}")
-        return self.Send_command(f"AccL({R})")
+        return self.SendCommand(f"AccL({R})")
     
     def VelJ(self, R=100):
         """
@@ -603,7 +613,7 @@ class Dobot:
             VelJ(50)
         """
         if self.isDebug: print(f"  Setting joint velocity to {R}")
-        return self.Send_command(f"VelJ({R})")
+        return self.SendCommand(f"VelJ({R})")
 
     def VelL(self, R=100):
         """
@@ -619,7 +629,7 @@ class Dobot:
             VelL(50)
         """
         if self.isDebug: print(f"  Setting linear velocity to {R}")
-        return self.Send_command(f"VelL({R})")
+        return self.SendCommand(f"VelL({R})")
 
     def CP(self, R=0):
         """
@@ -635,7 +645,7 @@ class Dobot:
             CP(50)
         """
         if self.isDebug: print(f"  Setting continuous path rate to {R}")
-        return self.Send_command(f"CP({R})")
+        return self.SendCommand(f"CP({R})")
 
     def SetCollisionLevel(self, level):
         """
@@ -651,7 +661,7 @@ class Dobot:
             SetCollisionLevel(3)
         """
         if self.isDebug: print(f"  Setting collision sensitivity level to {level}")
-        return self.Send_command(f"SetCollisionLevel({level})")
+        return self.SendCommand(f"SetCollisionLevel({level})")
 
     def SetBackDistance(self, distance):
         """
@@ -667,7 +677,7 @@ class Dobot:
             SetBackDistance(10)
         """
         if self.isDebug: print(f"  Setting back distance to {distance}")
-        return self.Send_command(f"SetBackDistance({distance})")
+        return self.SendCommand(f"SetBackDistance({distance})")
 
     def SetPostCollisionMode(self, mode):
         """
@@ -683,7 +693,7 @@ class Dobot:
             SetPostCollisionMode(1)
         """
         if self.isDebug: print(f"  Setting post-collision mode to {mode}")
-        return self.Send_command(f"SetPostCollisionMode({mode})")
+        return self.SendCommand(f"SetPostCollisionMode({mode})")
 
     def DragSensitivity(self, index, value):
         """
@@ -700,7 +710,7 @@ class Dobot:
             DragSensitivity(1, 50)
         """
         if self.isDebug: print(f"  Setting drag sensitivity of axis {index} to {value}")
-        return self.Send_command(f"DragSensitivity({index},{value})")
+        return self.SendCommand(f"DragSensitivity({index},{value})")
 
     def EnableSafeSkin(self, status):
         """
@@ -716,7 +726,7 @@ class Dobot:
             EnableSafeSkin(1)
         """
         if self.isDebug: print(f"  Setting safe skin to {status}")
-        return self.Send_command(f"EnableSafeSkin({status})")
+        return self.SendCommand(f"EnableSafeSkin({status})")
 
     def SetSafeSkin(self, part, status):
         """
@@ -733,7 +743,7 @@ class Dobot:
             SetSafeSkin(3, 1)
         """
         if self.isDebug: print(f"  Setting safe skin of part {part} to {status}")
-        return self.Send_command(f"SetSafeSkin({part},{status})")
+        return self.SendCommand(f"SetSafeSkin({part},{status})")
 
     def SetSafeWallEnable(self, index, value):
         """
@@ -750,7 +760,7 @@ class Dobot:
             SetSafeWallEnable(1, 1)
         """
         if self.isDebug: print(f"  Setting safety wall {index} to {value}")
-        return self.Send_command(f"SetSafeWallEnable({index},{value})")
+        return self.SendCommand(f"SetSafeWallEnable({index},{value})")
 
     def SetWorkZoneEnable(self, index, value):
         """
@@ -767,7 +777,7 @@ class Dobot:
             SetWorkZoneEnable(1, 1)
         """
         if self.isDebug: print(f"  Setting work zone {index} to {value}")
-        return self.Send_command(f"SetWorkZoneEnable({index},{value})")
+        return self.SendCommand(f"SetWorkZoneEnable({index},{value})")
 
 
     # Calculating and obtaining commands:
@@ -786,7 +796,7 @@ class Dobot:
             RobotMode()
         """
         if self.isDebug: print("  Getting robot mode...")
-        return self.Send_command("RobotMode()")
+        return self.SendCommand("RobotMode()")
     
     def PositiveKin(self, J1, J2, J3, J4, J5, J6, user=0, tool=0):
         """
@@ -809,7 +819,7 @@ class Dobot:
             PositiveKin(0,0,-90,0,90,0,user=1,tool=1)
         """
         if self.isDebug: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
-        return self.Send_command(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={user},tool={tool})")
+        return self.SendCommand(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={user},tool={tool})")
 
     def InverseKin(self, X, Y, Z, Rx, Ry, Rz, useJointNear=0, JointNear={}, user=0, tool=0):
         """
@@ -834,7 +844,7 @@ class Dobot:
             InverseKin(473.000000,-141.000000,469.000000,-180.000000,0.000,-90.000)
         """
         if self.isDebug: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
-        return self.Send_command(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={user},tool={tool},useJointNear={useJointNear},JointNear={JointNear})")
+        return self.SendCommand(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={user},tool={tool},useJointNear={useJointNear},JointNear={JointNear})")
 
     def GetAngle(self):
         """
@@ -850,7 +860,7 @@ class Dobot:
             GetAngle()
         """
         if self.isDebug: print("  Getting robot joint angles...")
-        return self.Send_command("GetAngle()")
+        return self.SendCommand("GetAngle()")
 
     def GetPose(self, user=0, tool=0):
         """
@@ -867,7 +877,7 @@ class Dobot:
             GetPose(user=1,tool=1)
         """
         if self.isDebug: print("  Getting robot pose...")
-        return self.Send_command("GetPose(user={user},tool={tool})")
+        return self.SendCommand("GetPose(user={user},tool={tool})")
 
     def GetErrorID(self):
         """
@@ -883,7 +893,7 @@ class Dobot:
             GetErrorID()
         """
         if self.isDebug: print("  Getting robot error ID...")
-        return self.Send_command("GetErrorID()")
+        return self.SendCommand("GetErrorID()")
 
     def Create1DTray(self, Trayname, Count, Points):
         """
@@ -901,7 +911,7 @@ class Dobot:
             CreateTray(t1, {5}, {pose = {x1,y1,z1,rx1,ry1,rz1},pose = {x2,y2,z2,rx2,ry2,rz2}})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
-        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+        return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def Create2DTray(self, Trayname, Count, Points):
         """
@@ -919,7 +929,7 @@ class Dobot:
             CreateTray(t2, {4,5}, {P1,P2,P3,P4})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
-        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+        return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def Create3DTray(self, Trayname, Count, Points):
         """
@@ -937,7 +947,7 @@ class Dobot:
             CreateTray(t2, {4,5,6}, {P1,P2,P3,P4,P5,P6,P7,P8})
         """
         if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
-        return self.Send_command(f"CreateTray({Trayname},{Count},{Points})")
+        return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def GetTrayPoint(self, Trayname, index):
         """
@@ -954,7 +964,7 @@ class Dobot:
             GetTrayPoint(t1, 1)
         """
         if self.isDebug: print(f"  Getting point {index} of tray {Trayname}")
-        return self.Send_command(f"GetTrayPoint({Trayname},{index})")
+        return self.SendCommand(f"GetTrayPoint({Trayname},{index})")
 
 
     # IO Commands:
@@ -975,7 +985,7 @@ class Dobot:
             DO(1, 1)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status}")
-        return self.Send_command(f"DO({index},{status})")
+        return self.SendCommand(f"DO({index},{status})")
 
     @dispatch(int, int, int)
     def DO(self, index:int, status:int, time:int):
@@ -994,7 +1004,7 @@ class Dobot:
             DO(1, 1, 1000)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status} for {time} ms")
-        return self.Send_command(f"DO({index},{status},{time})")
+        return self.SendCommand(f"DO({index},{status},{time})")
 
     def DOInstant(self, index, status):
         """
@@ -1011,7 +1021,7 @@ class Dobot:
             DOInstant(1, 1)
         """
         if self.isDebug: print(f"  Setting digital output pin {index} to {status} instantly")
-        return self.Send_command(f"DOInstant({index},{status})")
+        return self.SendCommand(f"DOInstant({index},{status})")
 
     def GetDO(self, index):
         """
@@ -1027,7 +1037,7 @@ class Dobot:
             GetDO(1)
         """
         if self.isDebug: print(f"  Getting digital output pin {index}")
-        return self.Send_command(f"GetDO({index})")
+        return self.SendCommand(f"GetDO({index})")
 
     def DOGroup(self, string):
         """
@@ -1043,7 +1053,7 @@ class Dobot:
             DOGroup("1,1,2,0,3,1")
         """
         if self.isDebug: print(f"  Setting digital output group to {string}")
-        return self.Send_command(f"DOGroup({string})")
+        return self.SendCommand(f"DOGroup({string})")
 
     def GetDOGroup(self, string):
         """
@@ -1059,7 +1069,7 @@ class Dobot:
             GetDOGroup("1,2,3")
         """
         if self.isDebug: print(f"  Getting digital output group {string}")
-        return self.Send_command(f"GetDOGroup({string})")
+        return self.SendCommand(f"GetDOGroup({string})")
 
     def ToolDO(self, index, status):
         """
@@ -1076,7 +1086,7 @@ class Dobot:
             ToolDO(1, 1)
         """
         if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
-        return self.Send_command(f"ToolDO({index},{status})")
+        return self.SendCommand(f"ToolDO({index},{status})")
 
     def ToolDOInstant(self, index, status):
         """
@@ -1093,7 +1103,7 @@ class Dobot:
             ToolDOInstant(1, 1)
         """
         if self.isDebug: print(f"  Setting tool digital output pin {index} to {status} instantly")
-        return self.Send_command(f"ToolDOInstant({index},{status})")
+        return self.SendCommand(f"ToolDOInstant({index},{status})")
 
     def GetToolDO(self, index):
         """
@@ -1109,7 +1119,7 @@ class Dobot:
             GetToolDO(1)
         """
         if self.isDebug: print(f"  Getting tool digital output pin {index}")
-        return self.Send_command(f"GetToolDO({index})")
+        return self.SendCommand(f"GetToolDO({index})")
 
     def AO(self, index, value):
         """
@@ -1126,7 +1136,7 @@ class Dobot:
             AO(1, 5)
         """
         if self.isDebug: print(f"  Setting analog output pin {index} to {value}")
-        return self.Send_command(f"AO({index},{value})")
+        return self.SendCommand(f"AO({index},{value})")
 
     def AOInstant(self, index, value):
         """
@@ -1143,7 +1153,7 @@ class Dobot:
             AOInstant(1, 5)
         """
         if self.isDebug: print(f"  Setting analog output pin {index} to {value} instantly")
-        return self.Send_command(f"AOInstant({index},{value})")
+        return self.SendCommand(f"AOInstant({index},{value})")
 
     def GetAO(self, index):
         """
@@ -1159,7 +1169,7 @@ class Dobot:
             GetAO(1)
         """
         if self.isDebug: print(f"  Getting analog output pin {index}")
-        return self.Send_command(f"GetAO({index})")
+        return self.SendCommand(f"GetAO({index})")
 
     def DI(self, index):
         """
@@ -1175,7 +1185,7 @@ class Dobot:
             DI(1)
         """
         if self.isDebug: print(f"  Getting digital input pin {index}")
-        return self.Send_command(f"DI({index})")
+        return self.SendCommand(f"DI({index})")
 
     def DIGroup(self, string):
         """
@@ -1191,7 +1201,7 @@ class Dobot:
             DIGroup("1,2,3")
         """
         if self.isDebug: print(f"  Getting digital input group {string}")
-        return self.Send_command(f"DIGroup({string})")
+        return self.SendCommand(f"DIGroup({string})")
 
     def ToolDI(self, index):
         """
@@ -1207,7 +1217,7 @@ class Dobot:
             ToolDI(1)
         """
         if self.isDebug: print(f"  Getting tool digital input pin {index}")
-        return self.Send_command(f"ToolDI({index})")
+        return self.SendCommand(f"ToolDI({index})")
 
     def AI(self, index):
         """
@@ -1223,7 +1233,7 @@ class Dobot:
             AI(1)
         """
         if self.isDebug: print(f"  Getting analog input pin {index}")
-        return self.Send_command(f"AI({index})")
+        return self.SendCommand(f"AI({index})")
 
     def ToolAI(self, index):
         """
@@ -1239,7 +1249,7 @@ class Dobot:
             ToolAI(1)
         """
         if self.isDebug: print(f"  Getting tool analog input pin {index}")
-        return self.Send_command(f"ToolAI({index})")
+        return self.SendCommand(f"ToolAI({index})")
 
     @dispatch(int, str, int)
     def SetTool485(self, baud, parity="N", stopbit=1):
@@ -1258,7 +1268,7 @@ class Dobot:
             SetTool485(115200, "N", 1)
         """
         if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit}")
-        return self.Send_command(f"SetTool485({baud},{parity},{stopbit})")
+        return self.SendCommand(f"SetTool485({baud},{parity},{stopbit})")
 
     @dispatch(int, str, int, int)
     def SetTool485(self, baud, parity="N", stopbit=1, identify=1):
@@ -1278,7 +1288,7 @@ class Dobot:
             SetTool485(115200, "N", 1, 1)
         """
         if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit} for socket {identify}")
-        return self.Send_command(f"SetTool485({baud},{parity},{stopbit},{identify})")
+        return self.SendCommand(f"SetTool485({baud},{parity},{stopbit},{identify})")
 
     @dispatch(int)
     def SetToolPower(self, status):
@@ -1295,7 +1305,7 @@ class Dobot:
             SetToolPower(1)
         """
         if self.isDebug: print(f"  Setting tool power to {status}")
-        return self.Send_command(f"SetToolPower({status})")
+        return self.SendCommand(f"SetToolPower({status})")
 
     @dispatch(int, int)
     def SetToolPower(self, status, identify):
@@ -1313,7 +1323,7 @@ class Dobot:
             SetToolPower(1, 1)
         """
         if self.isDebug: print(f"  Setting tool power to {status} for socket {identify}")
-        return self.Send_command(f"SetToolPower({status},{identify})")
+        return self.SendCommand(f"SetToolPower({status},{identify})")
 
     @dispatch(int, int)
     def SetToolMode(self, mode, type):
@@ -1331,7 +1341,7 @@ class Dobot:
             SetToolMode(1, 0)
         """
         if self.isDebug: print(f"  Setting tool mode to {mode}")
-        return self.Send_command(f"SetToolMode({mode},{type})")
+        return self.SendCommand(f"SetToolMode({mode},{type})")
 
     @dispatch(int, int, int)
     def SetToolMode(self, mode, type, identify):
@@ -1350,7 +1360,7 @@ class Dobot:
             SetToolMode(1, 0, 1)
         """
         if self.isDebug: print(f"  Setting tool mode to {mode} for socket {identify}")
-        return self.Send_command(f"SetToolMode({mode},{type},{identify})")
+        return self.SendCommand(f"SetToolMode({mode},{type},{identify})")
 
     
     # Modbus Commands:
@@ -1372,7 +1382,7 @@ class Dobot:
             ModbusCreate("127.0.0.1",60000,1)
         """
         if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}")
-        return self.Send_command(f"ModbusCreate({ip},{port},{slave_id})")
+        return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id})")
 
     @dispatch(str, int, int, int)
     def ModbusCreate(self, ip, port, slave_id, isRTU):
@@ -1392,7 +1402,7 @@ class Dobot:
             ModbusCreate(127.0.0.1,60000,1,1)
         """
         if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
-        return self.Send_command(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
+        return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
 
     def ModbusRTUCreate(self, slave_id, baud, parity="E", data_bit=8, stop_bit=1):
         """
@@ -1412,7 +1422,7 @@ class Dobot:
             ModbusRTUCreate(1, 115200)
         """
         if self.isDebug: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
-        return self.Send_command(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
+        return self.SendCommand(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
 
     def ModbusClose(self, index):
         """
@@ -1428,7 +1438,7 @@ class Dobot:
             ModbusClose(1)
         """
         if self.isDebug: print(f"  Closing Modbus master station {index}")
-        return self.Send_command(f"ModbusClose({index})")
+        return self.SendCommand(f"ModbusClose({index})")
 
     def GetInBits(self, index, address, count):
         """
@@ -1446,7 +1456,7 @@ class Dobot:
             GetInBits(0, 3000, 5)
         """
         if self.isDebug: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
-        return self.Send_command(f"GetInBits({index},{address},{count})")
+        return self.SendCommand(f"GetInBits({index},{address},{count})")
 
     def GetInRegs(self, index, address, count, valType="U16"):
         """
@@ -1465,7 +1475,7 @@ class Dobot:
             GetInRegs(0, 3000, 3, "U16")
         """
         if self.isDebug: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
-        return self.Send_command(f"GetInRegs({index},{address},{count},{valType})")
+        return self.SendCommand(f"GetInRegs({index},{address},{count},{valType})")
 
     def GetCoils(self, index, address, count):
         """
@@ -1483,7 +1493,7 @@ class Dobot:
             GetCoils(0, 3000, 5)
         """
         if self.isDebug: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
-        return self.Send_command(f"GetCoils({index},{address},{count})")
+        return self.SendCommand(f"GetCoils({index},{address},{count})")
 
     def SetCoils(self, index, address, count, valTab):
         """
@@ -1502,7 +1512,7 @@ class Dobot:
             SetCoils(0, 3000, 5, {1,0,1,0,1})
         """
         if self.isDebug: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
-        return self.Send_command(f"SetCoils({index},{address},{valTab})")
+        return self.SendCommand(f"SetCoils({index},{address},{valTab})")
 
     def GetHoldRegs(self, index, address, count, valType="U16"):
         """
@@ -1521,7 +1531,7 @@ class Dobot:
             GetHoldRegs(0, 3095, 1, "U16")
         """
         if self.isDebug: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
-        return self.Send_command(f"GetHoldRegs({index},{address},{count},{valType})")
+        return self.SendCommand(f"GetHoldRegs({index},{address},{count},{valType})")
 
     def setHoldRegs(self, index, address, count, valTab, valType="U16"):
         """
@@ -1541,7 +1551,7 @@ class Dobot:
             SetHoldRegs(0,3095,2,{6000,300}, "U16")
         """
         if self.isDebug: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
-        return self.Send_command(f"SetHoldRegs({index},{address},{valTab},{valType})")
+        return self.SendCommand(f"SetHoldRegs({index},{address},{valTab},{valType})")
 
 
     # Bus register Commands:
@@ -1560,7 +1570,7 @@ class Dobot:
             GetInputBool(1)
         """
         if self.isDebug: print(f"  Getting input boolean value from bus register {adress}")
-        return self.Send_command(f"GetInputBool({adress})")
+        return self.SendCommand(f"GetInputBool({adress})")
 
     def GetInputInt(self, adress):
         """
@@ -1576,7 +1586,7 @@ class Dobot:
             GetInputInt(1)
         """
         if self.isDebug: print(f"  Getting input integer value from bus register {adress}")
-        return self.Send_command(f"GetInputInt({adress})")
+        return self.SendCommand(f"GetInputInt({adress})")
 
     def GetInputFloat(self, adress):
         """
@@ -1592,7 +1602,7 @@ class Dobot:
             GetInputFloat(1)
         """
         if self.isDebug: print(f"  Getting input float value from bus register {adress}")
-        return self.Send_command(f"GetInputFloat({adress})")
+        return self.SendCommand(f"GetInputFloat({adress})")
 
     def GetOutputBool(self, adress):
         """
@@ -1608,7 +1618,7 @@ class Dobot:
             GetOutputBool(1)
         """
         if self.isDebug: print(f"  Getting output boolean value from bus register {adress}")
-        return self.Send_command(f"GetOutputBool({adress})")
+        return self.SendCommand(f"GetOutputBool({adress})")
 
     def GetOutputInt(self, adress):
         """
@@ -1624,7 +1634,7 @@ class Dobot:
             GetOutputInt(1)
         """
         if self.isDebug: print(f"  Getting output integer value from bus register {adress}")
-        return self.Send_command(f"GetOutputInt({adress})")
+        return self.SendCommand(f"GetOutputInt({adress})")
 
     def GetOutputFloat(self, adress):
         """
@@ -1640,7 +1650,7 @@ class Dobot:
             GetOutputFloat(1)
         """
         if self.isDebug: print(f"  Getting output float value from bus register {adress}")
-        return self.Send_command(f"GetOutputFloat({adress})")
+        return self.SendCommand(f"GetOutputFloat({adress})")
 
     def SetOutputBool(self, adress, value):
         """
@@ -1657,7 +1667,7 @@ class Dobot:
             SetOutputBool(1, 1)
         """
         if self.isDebug: print(f"  Setting output boolean value of bus register {adress} to {value}")
-        return self.Send_command(f"SetOutputBool({adress},{value})")
+        return self.SendCommand(f"SetOutputBool({adress},{value})")
 
     def SetOutputInt(self, adress, value):
         """
@@ -1674,7 +1684,7 @@ class Dobot:
             SetOutputInt(1, 100)
         """
         if self.isDebug: print(f"  Setting output integer value of bus register {adress} to {value}")
-        return self.Send_command(f"SetOutputInt({adress},{value})")
+        return self.SendCommand(f"SetOutputInt({adress},{value})")
 
     def SetOutputFloat(self, adress, value):
         """
@@ -1691,7 +1701,7 @@ class Dobot:
             SetOutputFloat(1, 100.5)
         """
         if self.isDebug: print(f"  Setting output float value of bus register {adress} to {value}")
-        return self.Send_command(f"SetOutputFloat({adress},{value})")
+        return self.SendCommand(f"SetOutputFloat({adress},{value})")
 
 
     # Movement Commands:
@@ -1711,7 +1721,7 @@ class Dobot:
             MovJ("pose={200,200,200,0,0,0}")
         """
         if self.isDebug: print(f"  Joint move robot to {P}")
-        return self.Send_command(f"MovJ({P})")
+        return self.SendCommand(f"MovJ({P})")
     
     @dispatch(str, str)
     def MovJ(self, P, parameters):
@@ -1729,7 +1739,7 @@ class Dobot:
             MovJ("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
         if self.isDebug: print(f"  Joint move robot to {P} with parameters {parameters}")
-        return self.Send_command(f"MovJ({P},{parameters})")
+        return self.SendCommand(f"MovJ({P},{parameters})")
 
     @dispatch(str, int, int, int, int, int)
     def MovJ(self, P, user, tool, a, v, cp):
@@ -1751,7 +1761,7 @@ class Dobot:
             MovJ("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50)
         """
         if self.isDebug: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
-        return self.Send_command(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str)
     def MovL(self, P):
@@ -1768,7 +1778,7 @@ class Dobot:
             MovL("pose={200,200,200,0,0,0}")
         """
         if self.isDebug: print(f"  Linear move robot to {P}")
-        return self.Send_command(f"MovL({P})")
+        return self.SendCommand(f"MovL({P})")
 
     @dispatch(str, str)
     def MovL(self, P, parameters):
@@ -1786,7 +1796,7 @@ class Dobot:
             MovL("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
         if self.isDebug: print(f"  Linear move robot to {P} with parameters {parameters}")
-        return self.Send_command(f"MovL({P},{parameters})")
+        return self.SendCommand(f"MovL({P},{parameters})")
     
     @dispatch(str, int, int, int, int, int, int, int)
     def MovL(self, P, user, tool, a, v, speed, cp, r):
@@ -1810,7 +1820,7 @@ class Dobot:
             MovL("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50, 0, 0)
         """
         if self.isDebug: print(f"  Linear move robot to {P} with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
     def MovLIO(self, P, IO):
@@ -1828,7 +1838,7 @@ class Dobot:
             MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
         if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}")
-        return self.Send_command(f"MovL({P},{IO})")
+        return self.SendCommand(f"MovL({P},{IO})")
 
     @dispatch(str, str, int, int, int, int, int, int, int)
     def MovLIO(self, P, IO, user, tool, a, v, speed, cp, r):
@@ -1853,7 +1863,7 @@ class Dobot:
             MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50, 0, 0)
         """
         if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
     def MovJIO(self, P, IO):
@@ -1871,7 +1881,7 @@ class Dobot:
             MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
         if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}")
-        return self.Send_command(f"MovJ({P},{IO})")
+        return self.SendCommand(f"MovJ({P},{IO})")
     
     @dispatch(str, str, int, int, int, int, int, int)
     def MovJIO(self, P, IO, user, tool, a, v, cp):
@@ -1894,7 +1904,7 @@ class Dobot:
             MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50)
         """
         if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str, str)
     def Arc(self, P1, P2):
@@ -1912,7 +1922,7 @@ class Dobot:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}")
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion")
-        return self.Send_command(f"Arc({P1},{P2})")
+        return self.SendCommand(f"Arc({P1},{P2})")
 
     @dispatch(str, str, str)
     def Arc(self, P1, P2, parameters):
@@ -1931,7 +1941,7 @@ class Dobot:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}","user=0,tool=0,a=50,v=100,speed=100,cp=50",1)
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
-        return self.Send_command(f"Arc({P1},{P2},{parameters})")
+        return self.SendCommand(f"Arc({P1},{P2},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
     def Arc(self, P1, P2, user, tool, a, v, speed, cp, r, ori_mode):
@@ -1957,7 +1967,7 @@ class Dobot:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}", 0, 0, 50, 100, 100, 50, 0)
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}, orientation mode {ori_mode}")
-        return self.Send_command(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r},{ori_mode})")
+        return self.SendCommand(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r},{ori_mode})")
 
     @dispatch(str, str, int)
     def Circle(self, P1, P2, count):
@@ -1976,7 +1986,7 @@ class Dobot:
             Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1)
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion for {count} times")
-        return self.Send_command(f"Circle({P1},{P2},{count})")
+        return self.SendCommand(f"Circle({P1},{P2},{count})")
     
     @dispatch(str, str, int, str)
     def Circle(self, P1, P2, count, parameters):
@@ -1996,7 +2006,7 @@ class Dobot:
             Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1,"user=0,tool=0,a=50,v=100,speed=100,cp=50")
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters} for {count} times")
-        return self.Send_command(f"Circle({P1},{P2},{count},{parameters})")
+        return self.SendCommand(f"Circle({P1},{P2},{count},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
     def Circle(self, P1, P2, count, user, tool, a, v, speed, cp, r):
@@ -2019,7 +2029,7 @@ class Dobot:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
         if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
-        return self.Send_command(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     def ServoJ(self, J1, J2, J3, J4, J5, J6, t=0.1, aheadtime=50, gain=500):
         """
@@ -2043,7 +2053,7 @@ class Dobot:
             ServoJ(0,0,0,0,0,0, 0.1, 50, 500)
         """
         if self.isDebug: print(f"  Moving robot to joint {J1},{J2},{J3},{J4},{J5},{J6} with time {t}, ahead time {aheadtime}, gain {gain}")
-        return self.Send_command(f"ServoJ({J1},{J2},{J3},{J4},{J5},{J6},{t},{aheadtime},{gain})")
+        return self.SendCommand(f"ServoJ({J1},{J2},{J3},{J4},{J5},{J6},{t},{aheadtime},{gain})")
 
     def ServoP(self, X, Y, Z, Rx, Ry, Rz, t=0.1, aheadtime=50, gain=500):
         """
@@ -2064,7 +2074,7 @@ class Dobot:
             ServoP(200,200,200,0,0,0, 0.1, 50, 500)
         """
         if self.isDebug: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
-        return self.Send_command(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
+        return self.SendCommand(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
 
     def MoveJog(self, axisID, coordType=0, user=0, tool=0):
         """
@@ -2083,7 +2093,7 @@ class Dobot:
             MoveJog("X+",coordType=1,user=1,tool=1)
         """
         if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
-        return self.Send_command(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
+        return self.SendCommand(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
 
     @dispatch(str, int, int, int, int, int)
     def RunTo(self, P, moveType, user, tool, a, v):
@@ -2105,7 +2115,7 @@ class Dobot:
             RunTo("pose={200,200,200,0,0,0}", 0, 0, 0, 50, 100)
         """
         if self.isDebug: print(f"  Moving robot to {P} with move type {moveType}, user {user}, tool {tool}, acceleration {a}, speed {v}")
-        return self.Send_command(f"RunTo({P},{moveType},user={user},tool={tool},a={a},v={v})")
+        return self.SendCommand(f"RunTo({P},{moveType},user={user},tool={tool},a={a},v={v})")
 
     def GetStartPose(self, traceName):
         """
@@ -2121,7 +2131,7 @@ class Dobot:
             GetStartPose("test1.csv")
         """
         if self.isDebug: print(f"  Getting start pose of trace {traceName}")
-        return self.Send_command(f"GetStartPose({traceName})")
+        return self.SendCommand(f"GetStartPose({traceName})")
 
     @dispatch(str)
     def StartPath(self, traceName):
@@ -2138,7 +2148,7 @@ class Dobot:
             StartPath("test1.csv")
         """
         if self.isDebug: print(f"  Starting path {traceName}")
-        return self.Send_command(f"StartPath({traceName})")
+        return self.SendCommand(f"StartPath({traceName})")
 
     @dispatch(str, int, float, int, float, int, int)
     def StartPath(self, traceName, isConst, multi, sample=50, freq=0.2, user=0, tool=0):
@@ -2161,7 +2171,7 @@ class Dobot:
             StartPath("test1.csv", 0, 1, 50, 0.2, 0, 0)
         """
         if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, multiplier {multi}, sample {sample}, freq {freq}, user {user}, tool {tool}")
-        return self.Send_command(f"StartPath({traceName},{isConst},{multi},sample={sample},freq={freq},user={user},tool={tool})")
+        return self.SendCommand(f"StartPath({traceName},{isConst},{multi},sample={sample},freq={freq},user={user},tool={tool})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2183,7 +2193,7 @@ class Dobot:
             RelMovJTool(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
     def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
@@ -2210,7 +2220,7 @@ class Dobot:
             RelMovJTool(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2232,7 +2242,7 @@ class Dobot:
             RelMovLTool(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
     def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
@@ -2261,7 +2271,7 @@ class Dobot:
             RelMovLTool(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2283,7 +2293,7 @@ class Dobot:
             RelMovJUser(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
     def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
@@ -2310,7 +2320,7 @@ class Dobot:
             RelMovJUser(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2332,7 +2342,7 @@ class Dobot:
             RelMovLUser(10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
     def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
@@ -2361,7 +2371,7 @@ class Dobot:
             RelMovLUser(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.Send_command(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
     def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6):
@@ -2383,7 +2393,7 @@ class Dobot:
             RelJointMovJ(10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
-        return self.Send_command(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
+        return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
 
     @dispatch(float, float, float, float, float, float, int, int, int)
     def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6, user, tool, a, v, cp):
@@ -2410,7 +2420,7 @@ class Dobot:
             RelJointMovJ(10,10,10,10,10,10,0,0,50,100,50)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.Send_command(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     def RelPointTool(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
         """
@@ -2432,7 +2442,7 @@ class Dobot:
             RelPointTool("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
-        return self.Send_command(f"RelPointTool({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        return self.SendCommand(f"RelPointTool({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
     def RelPointUser(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
         """
@@ -2454,7 +2464,7 @@ class Dobot:
             RelPointUser("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
         """
         if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
-        return self.Send_command(f"RelPointUser({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        return self.SendCommand(f"RelPointUser({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
     def RelJoint(self, J1, J2, J3, J4, J5, J6, offset1, offset2, offset3, offset4, offset5, offset6):
         """
@@ -2481,7 +2491,7 @@ class Dobot:
             RelJoint(0,0,0,0,0,0,10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Joint move robot to offset ({J1},{J2},{J3},{J4},{J5},{J6} with offset:{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
-        return self.Send_command(f"RelJoint({J1},{J2},{J3},{J4},{J5},{J6},{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
+        return self.SendCommand(f"RelJoint({J1},{J2},{J3},{J4},{J5},{J6},{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
 
     def GetCurrentCommandID(self):
         """
@@ -2494,7 +2504,7 @@ class Dobot:
             GetCurrentCommandID()
         """
         if self.isDebug: print("  Getting current command ID")
-        return self.Send_command("GetCurrentCommandID()")
+        return self.SendCommand("GetCurrentCommandID()")
 
 
     # Trajectory recovery commands:
@@ -2513,7 +2523,7 @@ class Dobot:
             SetResumeOffset(10)
         """
         if self.isDebug: print(f"  Setting resume offset to {distance}")
-        return self.Send_command(f"SetResumeOffset({distance})")
+        return self.SendCommand(f"SetResumeOffset({distance})")
 
     def PathRecovery(self) -> str:
         """
@@ -2529,7 +2539,7 @@ class Dobot:
             PathRecovery()
         """
         if self.isDebug: print("  Resuming path recovery")
-        return self.Send_command("PathRecovery()")
+        return self.SendCommand("PathRecovery()")
 
     def PathRecoveryStop(self) -> str:
         """
@@ -2545,7 +2555,7 @@ class Dobot:
             PathRecoveryStop()
         """
         if self.isDebug: print("  Stopping path recovery")
-        return self.Send_command("PathRecoveryStop()")
+        return self.SendCommand("PathRecoveryStop()")
     
     def PathRecoveryStatus(self) -> str:
         """
@@ -2561,7 +2571,7 @@ class Dobot:
             PathRecoveryStatus()
         """
         if self.isDebug: print("  Getting path recovery status")
-        return self.Send_command("PathRecoveryStatus()")
+        return self.SendCommand("PathRecoveryStatus()")
 
 
 
@@ -2581,7 +2591,7 @@ class Dobot:
             LogExportUSB(0)
         """
         if self.isDebug: print(f"  Exporting logs to USB with range {range}")
-        return self.Send_command(f"LogExportUSB({range})")
+        return self.SendCommand(f"LogExportUSB({range})")
 
     def GetExportStatus(self) -> str:
         """
@@ -2597,7 +2607,7 @@ class Dobot:
             GetExportStatus()
         """
         if self.isDebug: print("  Getting export status")
-        return self.Send_command("GetExportStatus()")
+        return self.SendCommand("GetExportStatus()")
 
 
 
@@ -2617,7 +2627,7 @@ class Dobot:
             EnableFTSensor(1)
         """
         if self.isDebug: print(f"  Enabling force sensor with status {status}")
-        return self.Send_command(f"EnableFTSensor({status})")
+        return self.SendCommand(f"EnableFTSensor({status})")
     
     def SixForceHome(self) -> str:
         """
@@ -2633,7 +2643,7 @@ class Dobot:
             SixForceHome()
         """
         if self.isDebug: print("  Setting force sensor home")
-        return self.Send_command("SixForceHome()")
+        return self.SendCommand("SixForceHome()")
     
     def GetForce(self, tool:int=0) -> str:
         """
@@ -2649,7 +2659,7 @@ class Dobot:
             GetForce(0)
         """
         if self.isDebug: print(f"  Getting force sensor value with tool {tool}")
-        return self.Send_command(f"GetForce({tool})")
+        return self.SendCommand(f"GetForce({tool})")
 
     def ForceDriveMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, user:int=0) -> str:
         """
@@ -2671,7 +2681,7 @@ class Dobot:
             ForceDriveMode(10,10,10,0,0,0,0)
         """
         if self.isDebug: print(f"  Setting force sensor to drive mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and user {user}")
-        return self.Send_command(f"ForceDriveMode({{{x},{y},{z},{rx},{ry},{rz}}},user={user})")
+        return self.SendCommand(f"ForceDriveMode({{{x},{y},{z},{rx},{ry},{rz}}},user={user})")
     
     def ForceDriveSpped(self, speed:int) -> str:
         """
@@ -2687,7 +2697,7 @@ class Dobot:
             ForceDriveSpped(10)
         """
         if self.isDebug: print(f"  Setting force sensor drive speed to {speed}")
-        return self.Send_command(f"ForceDriveSpped({speed})")
+        return self.SendCommand(f"ForceDriveSpped({speed})")
     
     def StopDrag(self) -> str:
         """
@@ -2703,7 +2713,7 @@ class Dobot:
             StopDrag()
         """
         if self.isDebug: print("  Stopping force sensor drag")
-        return self.Send_command("StopDrag()")
+        return self.SendCommand("StopDrag()")
 
     def FCForceMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, fx:int, fy:int, fz:int, frx:int, fry:int, frz:int, reference:int=0, user:int=0, tool:int=0) -> str:
         """
@@ -2733,7 +2743,7 @@ class Dobot:
             FCForceMode(10,10,10,0,0,0,10,10,10,0,0,0,0,0,0)
         """
         if self.isDebug: print(f"  Setting force control mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and forces ({fx},{fy},{fz},{frx},{fry},{frz}) with reference {reference}, user {user}, tool {tool}")
-        return self.Send_command(f"FCForceMode({{{x},{y},{z},{rx},{ry},{rz}}},{{{fx},{fy},{fz},{frx},{fry},{frz}}},reference={reference},user={user},tool={tool})")
+        return self.SendCommand(f"FCForceMode({{{x},{y},{z},{rx},{ry},{rz}}},{{{fx},{fy},{fz},{frx},{fry},{frz}}},reference={reference},user={user},tool={tool})")
 
     def FCSetDeviation(self, x:int=100, y:int=100, z:int=100, rx:int=36, ry:int=36, rz:int=36, controltype:int=0) -> str:
         """
@@ -2755,7 +2765,7 @@ class Dobot:
             FCSetDeviation(10,10,10,0,0,0,0)
         """
         if self.isDebug: print(f"  Setting force control deviation with coordinates ({x},{y},{z},{rx},{ry},{rz}) and control type {controltype}")
-        return self.Send_command(f"FCSetDeviation({{{x},{y},{z},{rx},{ry},{rz}}},{controltype})")
+        return self.SendCommand(f"FCSetDeviation({{{x},{y},{z},{rx},{ry},{rz}}},{controltype})")
 
     def FCSetForceLimit(self, x:float=500, y:float=500, z:float=500, rx:float=50, ry:float=50, rz:float=50) -> str:
         """
@@ -2776,7 +2786,7 @@ class Dobot:
             FCSetForceLimit(10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Setting force control force limit with forces ({x},{y},{z},{rx},{ry},{rz})")
-        return self.Send_command(f"FCSetForceLimit({x},{y},{z},{rx},{ry},{rz})")
+        return self.SendCommand(f"FCSetForceLimit({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetMass(self, x:float=20, y:float=20, z:float=20, rx:float=0.5, ry:float=0.5, rz:float=0.5) -> str:
         """
@@ -2797,7 +2807,7 @@ class Dobot:
             FCSetMass(10,10,10,0.5,0.5,0.5)
         """
         if self.isDebug: print(f"  Setting force control mass with mass ({x},{y},{z},{rx},{ry},{rz})")
-        return self.Send_command(f"FCSetMass({x},{y},{z},{rx},{ry},{rz})")
+        return self.SendCommand(f"FCSetMass({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetDamping(self, x:float=50, y:float=50, z:float=50, rx:float=20, ry:float=20, rz:float=20) -> str:
         """
@@ -2818,7 +2828,7 @@ class Dobot:
             FCSetDamping(10,10,10,5,5,5)
         """
         if self.isDebug: print(f"  Setting force control damping with damping ({x},{y},{z},{rx},{ry},{rz})")
-        return self.Send_command(f"FCSetDamping({x},{y},{z},{rx},{ry},{rz})")
+        return self.SendCommand(f"FCSetDamping({x},{y},{z},{rx},{ry},{rz})")
 
     def FCOff(self) -> str:
         """
@@ -2834,7 +2844,7 @@ class Dobot:
             FCOff()
         """
         if self.isDebug: print("  Exiting force control mode")
-        return self.Send_command("FCOff()")
+        return self.SendCommand("FCOff()")
     
     def FCSetForceSpeedLimit(self, x:float=20, y:float=20, z:float=20, rx:float=20, ry:float=20, rz:float=20) -> str:
         """
@@ -2855,7 +2865,7 @@ class Dobot:
             FCSetForceSpeedLimit(10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Setting force control speed limit with speeds ({x},{y},{z},{rx},{ry},{rz})")
-        return self.Send_command(f"FCSetForceSpeedLimit({x},{y},{z},{rx},{ry},{rz})")
+        return self.SendCommand(f"FCSetForceSpeedLimit({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetForce(self, x:float, y:float, z:float, rx:float, ry:float, rz:float) -> str:
         """
@@ -2876,14 +2886,7 @@ class Dobot:
             FCSetForce(10,10,10,10,10,10)
         """
         if self.isDebug: print(f"  Setting force control force with forces ({x},{y},{z},{rx},{ry},{rz})")
-        return self.Send_command(f"FCSetForce({x},{y},{z},{rx},{ry},{rz})")
-
-
-
-
-
-
-
+        return self.SendCommand(f"FCSetForce({x},{y},{z},{rx},{ry},{rz})")
 
 
     # Added Commands (not standard command from TCP protocol):
@@ -2935,7 +2938,7 @@ class Dobot:
             self.connection = None
             if self.isDebug: print("  Disconnected from Dobot Magician E6")
 
-    def Send_command(self, command):
+    def SendCommand(self, command):
         """
         Send a command to the Dobot and receive a response.
 
@@ -2949,7 +2952,7 @@ class Dobot:
             Exception: If not connected to the Dobot Magician E6.
         
         Example:
-            Send_command("GetPose()")
+            SendCommand("GetPose()")
         """
         if self.connection:
             try:
@@ -2997,7 +3000,7 @@ class Dobot:
         """
         if self.isDebug: print(f"  Joint move robot to joint ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
-        return self.Send_command(move_command)
+        return self.SendCommand(move_command)
 
     def MoveJP(self,j1,j2,j3,j4,j5,j6):
         """
@@ -3019,7 +3022,7 @@ class Dobot:
         """
         if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
-        return self.Send_command(move_command)
+        return self.SendCommand(move_command)
 
     def MoveLJ(self,j1,j2,j3,j4,j5,j6):
         """
@@ -3041,7 +3044,7 @@ class Dobot:
         """
         if self.isDebug: print(f"  Joint move robot to joint({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
-        return self.Send_command(move_command)
+        return self.SendCommand(move_command)
 
     def MoveLP(self,j1,j2,j3,j4,j5,j6):
         """
@@ -3063,7 +3066,7 @@ class Dobot:
         """
         if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
-        return self.Send_command(move_command)
+        return self.SendCommand(move_command)
 
     def Home(self):
         """

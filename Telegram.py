@@ -463,7 +463,7 @@ async def sendcmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"Sending command: {command}")
 
         # Execute the command
-        reply = robot.Send_command(command)
+        reply = robot.SendCommand(command)
         await update.message.reply_text(f"Response: {reply}")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
