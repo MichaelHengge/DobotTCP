@@ -128,6 +128,8 @@ class Dobot:
             else:
                 self.isEnabled = True
                 return response
+        else:
+            return "Robot is already enabled."
 
     @dispatch(float)
     def EnableRobot(self, load):
@@ -155,6 +157,8 @@ class Dobot:
             else:
                 self.isEnabled = True
                 return response
+        else:
+            return "Robot is already enabled."
             
     @dispatch(float, float, float, float)
     def EnableRobot(self, load, centerX, centerY, centerZ):
@@ -3118,13 +3122,23 @@ class Dobot:
         Example:
             ParseResponse("-1,{},MovJ(pose={0,0,0,0,0,0})")
         """
+        # Hande response = None case
+        if response == None:
+            if self.debugLevel > 1: print(f"  None response")
+            return None, None, None
+
         # Split the string by commas
         if self.debugLevel > 1: print(f"  Parsing response {response}\n    ", end="")
         parts = response.split(",", maxsplit=2)
+
+        # Hnadle single response case
+        if len(parts) == 1:
+            if self.debugLevel > 1: print(f"  {response}")
+            return None, response, None
         
         # Ensure the parts are valid
         if len(parts) != 3:
-            if self.debugLevel > 1: print(f"Invalid response format")
+            if self.debugLevel > 1: print(f"  Invalid response format")
             return "Invalid response format", "Invalid response format", "Invalid response format"
         
         # Parse the error code as an integer
@@ -3132,7 +3146,7 @@ class Dobot:
         
         # Extract the response and command
         response = parts[1].strip()
-        command = parts[2].strip()
+        command = parts[2].strip().rstrip(";")
 
         # Print results
         if self.debugLevel > 1: print(f"Error: {error}\n    Response: {response}\n    Command: {command}")

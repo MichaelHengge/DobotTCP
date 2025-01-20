@@ -1,17 +1,16 @@
-import time
 from DobotTCP import Dobot, Feedback
 
 robot = Dobot()
 robot.Connect()
+robot.SetDebugLevel(1)
 
 (err, rsp, cmd) = robot.EnableRobot()
 print(f"  Error code: {err}")
 print(f"  Response: {rsp}")
 print(f"  Command: {cmd}")
 
+robot.Home()
 
-'''
-robot.Pack()
 feedback = Feedback(robot)
 feedback.Connect()
 feedback.Get()
@@ -21,4 +20,4 @@ print(robot.ParseRobotMode(mode))
 for key, value in feedback.data.items():
     print(f"{key}: {value}")
 
-'''
+robot.Disconnect()
