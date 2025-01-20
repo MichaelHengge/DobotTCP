@@ -38,10 +38,15 @@ from DobotTCP import Dobot
 ```python
 from DobotTCP import Dobot
 
-# Connect and enable the robot
+# Connect the robot
 robot = Dobot(ip="192.168.5.1", port=29999)
 robot.Connect()
-robot.EnableRobot()
+
+# Enable robot and parse response
+(err, rsp, cmd) = robot.EnableRobot()
+print(f"  Error code: {err}")
+print(f"  Response: {rsp}")
+print(f"  Command: {cmd}")
 
 # Move robot with joint motion to pose
 MovJ("pose={200,200,200,0,0,0}")
