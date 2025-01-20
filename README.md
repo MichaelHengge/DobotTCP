@@ -19,7 +19,7 @@ Install the library via pip:
 pip install DobotTCP
 ```
 
-Ensure Python 3.6+ is installed. Install dependencies if not automatically installed:
+Ensure Python 3.8+ is installed. Install dependencies if not automatically installed:
 
 ```bash
 pip install multipledispatch
