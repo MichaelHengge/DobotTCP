@@ -105,7 +105,7 @@ class Dobot:
 
     # Control Commands:
 
-    def RequestControl(self):
+    def RequestControl(self) -> tuple[str, str, str]:
         """
         Request  tochange the device control mode to TCP. TCP miode can only be entered when in non-powered or disabled state.
 
@@ -121,7 +121,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Requesting change to TCP control...")
         return self.SendCommand("RequestControl()")
 
-    def PowerON(self):
+    def PowerON(self) -> tuple[str, str, str]:
         """
         Power on the Dobot Magician E6 robot. This seems to do nothing for the Magician E6.
 
@@ -135,7 +135,7 @@ class Dobot:
         return self.SendCommand("PowerOn()")
 
     @dispatch()
-    def EnableRobot(self):
+    def EnableRobot(self) -> tuple[str, str, str]:
         """
         Enable the Dobot Magician E6 robot.
 
@@ -164,7 +164,7 @@ class Dobot:
             return "Robot is already enabled."
 
     @dispatch(float)
-    def EnableRobot(self, load):
+    def EnableRobot(self, load:float) -> tuple[str, str, str]:
         """
         Enable the Dobot Magician E6 robot.
 
@@ -193,7 +193,7 @@ class Dobot:
             return "Robot is already enabled."
             
     @dispatch(float, float, float, float)
-    def EnableRobot(self, load, centerX, centerY, centerZ):
+    def EnableRobot(self, load:float, centerX:float, centerY:float, centerZ:float) -> tuple[str, str, str]:
         """
         Enable the Dobot Magician E6 robot.
 
@@ -223,7 +223,7 @@ class Dobot:
                 return response
 
     @dispatch(float, float, float, float, int=0)
-    def EnableRobot(self, load, centerX, centerY, centerZ, isCheck):
+    def EnableRobot(self, load:float, centerX:float, centerY:float, centerZ:float, isCheck:int) -> tuple[str, str, str]:
         """
         Enable the Dobot Magician E6 robot.
 
@@ -253,7 +253,7 @@ class Dobot:
                 self.isEnabled = True
                 return response
 
-    def DisableRobot(self):
+    def DisableRobot(self) -> tuple[str, str, str]:
         """
         Disable the Dobot Magician E6 robot.
         
@@ -272,7 +272,7 @@ class Dobot:
             if self.debugLevel > 0: print("  Disable Dobot Magician E6...")
             return response 
 
-    def ClearError(self):
+    def ClearError(self) -> tuple[str, str, str]:
         """
         Clear any errors on the Dobot Magician E6 robot.
 
@@ -288,7 +288,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Clearing Dobot Magician E6 errors...")
         return self.SendCommand("ClearError()")
 
-    def RunScript(self, projectName):
+    def RunScript(self, projectName:str) -> tuple[str, str, str]:
         """
         Run a script on the Dobot Magician E6 robot.
 
@@ -304,7 +304,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Running script {projectName} on Dobot Magician E6...")
         return self.SendCommand(f"RunScript({projectName})")
 
-    def Stop(self):
+    def Stop(self) -> tuple[str, str, str]:
         """
         Stop the Dobot Magician E6 robot motion queue.
 
@@ -320,7 +320,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Stopping Dobot Magician E6...")
         return self.SendCommand("Stop()")
 
-    def Pause(self):
+    def Pause(self) -> tuple[str, str, str]:
         """
         Pause the Dobot Magician E6 robot motion queue.
 
@@ -336,7 +336,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Pausing Dobot Magician E6...")
         return self.SendCommand("Pause()")
 
-    def Continue(self):
+    def Continue(self) -> tuple[str, str, str]:
         """
         Continue the Dobot Magician E6 robot motion queue after it has been paused.
 
@@ -352,7 +352,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Continuing Dobot Magician E6...")
         return self.SendCommand("Continue()")
 
-    def EmergencyStop(self, mode):
+    def EmergencyStop(self, mode) -> tuple[str, str, str]:
         """
         Stop the Dobot Magician E6 robot immediately in an emergency. The robot will be disabled and report an error which needs to be cleared before re-anabling.
 
@@ -366,9 +366,9 @@ class Dobot:
             EmergencyStop(1)
         """
         if self.debugLevel > 0: print("  Emergency stopping Dobot Magician E6...")
-        return self.SendCommand("EmergencyStop()")
+        return self.SendCommand(f"EmergencyStop({mode})")
 
-    def BrakeControl(self, axisID, value):
+    def BrakeControl(self, axisID:int, value:int) -> tuple[str, str, str]:
         """
         Cotrol the brake of robot joints. Can only be used when the robot is disabled otherise it will return an error (-1).
 
@@ -385,7 +385,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting brake control of axis {axisID} to value {value}")
         return self.SendCommand(f"BrakeControl({axisID},{value})")
 
-    def StartDrag(self):
+    def StartDrag(self) -> tuple[str, str, str]:
         """
         Enter the drag mode of the robot. Can't be used when in error state.
 
@@ -401,7 +401,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Entering drag mode...")
         return self.SendCommand("StartDrag()")
 
-    def StopDrag(self):
+    def StopDrag(self) -> tuple[str, str, str]:
         """
         Exit the drag mode of the robot.
 
@@ -420,7 +420,7 @@ class Dobot:
 
     # Settings Commands
 
-    def SpeedFactor(self, ratio=0):
+    def SpeedFactor(self, ratio:int=0) -> tuple[str, str, str]:
         """
         Set the global speed factor of the robot.
 
@@ -436,7 +436,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting global speed factor to {ratio}")
         return self.SendCommand(f"SpeedFactor({ratio})")
 
-    def User(self,index):
+    def User(self,index:int) -> tuple[str, str, str]:
         """
         Set the global user coordinate system of the robot. Default is 0.
 
@@ -452,7 +452,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting user index to {index}")
         return self.SendCommand(f"User({index})")
 
-    def SetUser(self, index, value, type=0):
+    def SetUser(self, index:int, value:str, type:int=0) -> tuple[str, str, str]:
         """
         Modify the specified user coordinate system of the robot.
 
@@ -470,7 +470,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting user coordinate system {index} to {value}. Type: {type}")
         return self.SendCommand(f"SetUser({index},{value},{type})")
 
-    def CalcUser(self, index, matrix, offset):
+    def CalcUser(self, index:int, matrix:int, offset:int) -> tuple[str, str, str]:
         """
         Calculate the user coordinate system of the robot.
 
@@ -488,7 +488,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Calculating user coordinate system {index} to {offset}")
         return self.SendCommand(f"CalcUser({index},{matrix},{offset})")
 
-    def Tool(self, index=0):
+    def Tool(self, index:int=0) -> tuple[str, str, str]:
         """
         Set the global tool coordinate system of the robot. Default is 0.
 
@@ -504,7 +504,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting tool index to {index}")
         return self.SendCommand(f"Tool({index})")
     
-    def SetTool(self, index, value, type=0):
+    def SetTool(self, index:int, value:str, type:int=0) -> tuple[str, str, str]:
         """
         Modify the specified tool coordinate system of the robot.
 
@@ -522,7 +522,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting tool coordinate system {index} to {value}. Type: {type}")
         return self.SendCommand(f"SetTool({index},{value},{type})")
     
-    def CalcTool(self, index, matrix, offset):
+    def CalcTool(self, index:int, matrix:int, offset:str) -> tuple[str, str, str]:
         """
         Calculate the tool coordinate system of the robot.
 
@@ -541,7 +541,7 @@ class Dobot:
         return self.SendCommand(f"CalcTool({index},{matrix},{offset})")
 
     @dispatch(str)
-    def SetPayload(self, name):
+    def SetPayload(self, name:str) -> tuple[str, str, str]:
         """
         Set the robot payload.
 
@@ -558,7 +558,7 @@ class Dobot:
         return self.SendCommand(f"SetPayload({name})")
 
     @dispatch(float)
-    def SetPayload(self, load):
+    def SetPayload(self, load:float) -> tuple[str, str, str]:
         """
         Set the robot payload.
 
@@ -575,7 +575,7 @@ class Dobot:
         return self.SendCommand(f"SetPayload({load})")
 
     @dispatch(float, float, float, float)
-    def SetPayload(self, load, x, y, z):
+    def SetPayload(self, load:float, x:float, y:float, z:float) -> tuple[str, str, str]:
         """
         Set the robot payload.
 
@@ -594,7 +594,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
         return self.SendCommand(f"SetPayload({load},{x},{y},{z})")
 
-    def AccJ(self, R=100):
+    def AccJ(self, R:int=100) -> tuple[str, str, str]:
         """
         Set the robot acceleration rate for joint motions.
 
@@ -610,7 +610,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting joint acceleration to {R}")
         return self.SendCommand(f"AccJ({R})")
 
-    def AccL(self, R=100):
+    def AccL(self, R:int=100) -> tuple[str, str, str]:
         """
         Set the robot acceleration rate for linear motions.
 
@@ -626,7 +626,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting linear acceleration to {R}")
         return self.SendCommand(f"AccL({R})")
     
-    def VelJ(self, R=100):
+    def VelJ(self, R:int=100) -> tuple[str, str, str]:
         """
         Set the robot velocity rate for joint motions.
 
@@ -642,7 +642,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting joint velocity to {R}")
         return self.SendCommand(f"VelJ({R})")
 
-    def VelL(self, R=100):
+    def VelL(self, R:int=100) -> tuple[str, str, str]:
         """
         Set the robot velocity rate for linear motions.
 
@@ -658,7 +658,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting linear velocity to {R}")
         return self.SendCommand(f"VelL({R})")
 
-    def CP(self, R=0):
+    def CP(self, R:int=0) -> tuple[str, str, str]:
         """
         Set the robot continuous path (CP) rate.
 
@@ -674,7 +674,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting continuous path rate to {R}")
         return self.SendCommand(f"CP({R})")
 
-    def SetCollisionLevel(self, level):
+    def SetCollisionLevel(self, level:int) -> tuple[str, str, str]:
         """
         Set the robot collision sensitivity level.
 
@@ -690,7 +690,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting collision sensitivity level to {level}")
         return self.SendCommand(f"SetCollisionLevel({level})")
 
-    def SetBackDistance(self, distance):
+    def SetBackDistance(self, distance:float) -> tuple[str, str, str]:
         """
         Set the robot backoff distance after a collision is detected.
 
@@ -706,7 +706,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting back distance to {distance}")
         return self.SendCommand(f"SetBackDistance({distance})")
 
-    def SetPostCollisionMode(self, mode):
+    def SetPostCollisionMode(self, mode:int) -> tuple[str, str, str]:
         """
         Set the robot post-collision mode.
 
@@ -722,7 +722,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting post-collision mode to {mode}")
         return self.SendCommand(f"SetPostCollisionMode({mode})")
 
-    def DragSensitivity(self, index, value):
+    def DragSensitivity(self, index:int, value:int) -> tuple[str, str, str]:
         """
         Set the drag sensitivity of the robot. 
 
@@ -739,7 +739,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting drag sensitivity of axis {index} to {value}")
         return self.SendCommand(f"DragSensitivity({index},{value})")
 
-    def EnableSafeSkin(self, status):
+    def EnableSafeSkin(self, status:int) -> tuple[str, str, str]:
         """
         Enable or disable the robot safe skin feature. The magician E6 does not have a safe skin feature.
 
@@ -755,7 +755,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting safe skin to {status}")
         return self.SendCommand(f"EnableSafeSkin({status})")
 
-    def SetSafeSkin(self, part, status):
+    def SetSafeSkin(self, part:int, status:int) -> tuple[str, str, str]:
         """
         Set the safe skin sensitivity of the robot. The magician E6 does not have a safe skin feature.
 
@@ -772,7 +772,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting safe skin of part {part} to {status}")
         return self.SendCommand(f"SetSafeSkin({part},{status})")
 
-    def SetSafeWallEnable(self, index, value):
+    def SetSafeWallEnable(self, index:int, value:int) -> tuple[str, str, str]:
         """
         Enable or disable the specified robot safe wall feature. Safety wall needs to be set up in DobotStudio before it can be used here.
 
@@ -789,7 +789,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting safety wall {index} to {value}")
         return self.SendCommand(f"SetSafeWallEnable({index},{value})")
 
-    def SetWorkZoneEnable(self, index, value):
+    def SetWorkZoneEnable(self, index:int, value:int) -> tuple[str, str, str]:
         """
         Enable or disable the specified robot interference area. Work zone needs to be set up in DobotStudio before it can be used here.
 
@@ -809,7 +809,7 @@ class Dobot:
 
     # Calculating and obtaining commands:
 
-    def RobotMode(self):
+    def RobotMode(self) -> tuple[str, str, str]:
         """
         Get the current state of the robot.
 
@@ -825,7 +825,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Getting robot mode...")
         return self.SendCommand("RobotMode()")
     
-    def PositiveKin(self, J1, J2, J3, J4, J5, J6, user=0, tool=0):
+    def PositiveKin(self, J1:float, J2:float, J3:float, J4:float, J5:float, J6:float, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Calculate the coordinates of the end of the robot in the specified Cartesian coordinate system, based on the given angle of each joint. Positive solution.
 
