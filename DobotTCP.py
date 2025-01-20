@@ -3076,7 +3076,7 @@ class Dobot:
             Home()
         """
         if self.isDebug: print("  Moving robot to home position")
-        return self.MoveJ(0, 0, 0, 0, 0, 0)
+        return self.MoveJJ(0, 0, 0, 0, 0, 0)
 
     def Pack(self):
         """
@@ -3368,7 +3368,7 @@ class Feedback:
             Connect()
         """
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.Connect((self.robot.ip, self.port))
+        self.client.connect((self.robot.ip, self.port))
 
     def Get(self):
         """
@@ -3381,7 +3381,7 @@ class Feedback:
             Get()
         """
         rawdata = self.client.recv(1440)
-        self.data = self.parse_feedback(rawdata)
+        self.data = self.Parse_feedback(rawdata)
 
     def Parse_feedback(self, data):
         """
