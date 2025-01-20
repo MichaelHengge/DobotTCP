@@ -1,3 +1,25 @@
+'''
+DobotTCP.py
+
+DobotTCP is a Python library to control the Dobot robot range via its TCP interface.
+The library provides functions for managing motion, I/O, and configuration of the Dobot robot.
+It was specially developed with the Dobot MagicianE6 in mind.
+
+Author:
+    Dr. Michael Hengge
+
+Version:
+    1.1.0 (20.01.2025)
+
+Classes:
+    Dobot: A class for controlling the Dobot robot arms using TCP/IP communication.
+    FlexGripper: A class for controlling the FlexGripper attached to the Dobot robot arm.
+    ServoGripper: A class for controlling the ServoGripper attached to the Dobot robot arm.
+    Feedback: A class for getting feedback from the Dobot robot arm.
+
+
+'''
+
 import socket
 import struct
 import time
@@ -5,6 +27,18 @@ import time
 from multipledispatch import dispatch
 
 class Dobot:
+    '''
+    Dobot class for controlling the Dobot Magician E6 robot arm using TCP/IP communication.
+
+    Attributes:
+        ip (string): The IP address of the Dobot Magician E6 robot arm. Default is 192.168.5.1
+        port (int): The port number of the Dobot Magician E6 robot arm. Default is 29999.
+        connection (socket): The socket connection to the Dobot Magician E6 robot arm.
+        isEnabled (bool): The state of the robot arm. True if the robot is enabled, False otherwise.
+        debugLevel (int): The level of debug information to print. 0: No debug information, 1: Print basic information. 2: Print parse information as well.
+        response (tuple): The response from the robot arm.
+    
+    '''
     def __init__(self, ip='192.168.5.1', port=29999):
         self.ip = ip
         self.port = port
