@@ -5,22 +5,13 @@ import time
 from multipledispatch import dispatch
 
 class Dobot:
-
-    class Response:
-        def __init__(self, data):
-            if len(data) != 3: raise ValueError("Invalid response format.")
-            self.errorcode = int(data[0].strip())
-            self.response = int(data[1].strip())
-            self.command = int(data[2].strip())
-
-
     def __init__(self, ip='192.168.5.1', port=29999):
         self.ip = ip
         self.port = port
         self.connection = None
         self.isEnabled = False
         self.isDebug = True
-        self.response = None
+        self.response = ()
 
     # Error Codes:
     error_codes = {
@@ -3113,6 +3104,36 @@ class Dobot:
 
 
     # Parsing functions
+
+    def ParseResponse(self, response):
+        """
+        Parse the response from the robot.
+
+        Args:
+            response (string): The response from the robot.
+
+        Returns:
+            The parsed response tuple. (error code, response message, send command)
+
+        Example:
+            ParseResponse("-1,{},MovJ(pose={0,0,0,0,0,0})")
+        """
+        # Split the string by commas
+        parts = response.split(",", maxsplit=2)
+        
+        # Ensure the parts are valid
+        if len(parts) != 3:
+            return "Invalid response format", "Invalid response format", "Invalid response format"
+        
+        # Parse the error code as an integer
+        error = self.ParseError(int(parts[0].strip()))
+        
+        # Extract the response and command
+        response = parts[1].strip()
+        command = parts[2].strip()
+        
+        # Return as a tuple
+        return error, response, command
     
     def ParseError(self, errcode):
         """
