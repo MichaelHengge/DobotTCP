@@ -16,8 +16,6 @@ Classes:
     FlexGripper: A class for controlling the FlexGripper attached to the Dobot robot arm.
     ServoGripper: A class for controlling the ServoGripper attached to the Dobot robot arm.
     Feedback: A class for getting feedback from the Dobot robot arm.
-
-
 '''
 
 import socket
