@@ -10,7 +10,7 @@ class Dobot:
         self.port = port
         self.connection = None
         self.isEnabled = False
-        self.isDebug = True
+        self.debugLevel = 1
         self.response = ()
 
     # Error Codes:
@@ -86,7 +86,7 @@ class Dobot:
         Example:
             RequestControl()
         """
-        if self.isDebug: print("  Requesting change to TCP control...")
+        if self.debugLevel > 0: print("  Requesting change to TCP control...")
         return self.SendCommand("RequestControl()")
 
     def PowerON(self):
@@ -99,7 +99,7 @@ class Dobot:
         Example:
             PowerON()
         """
-        if self.isDebug: print("  Powering on Dobot Magician E6...")
+        if self.debugLevel > 0: print("  Powering on Dobot Magician E6...")
         return self.SendCommand("PowerOn()")
 
     @dispatch()
@@ -120,7 +120,7 @@ class Dobot:
             EnableRobot()
         """
         if self.isEnabled == False:
-            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
             response = self.SendCommand("EnableRobot()")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
@@ -147,7 +147,7 @@ class Dobot:
             EnableRobot(0.5)
         """
         if self.isEnabled == False:
-            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
             response = self.SendCommand(f"EnableRobot({load})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
@@ -177,7 +177,7 @@ class Dobot:
             EnableRobot(0.5, 0, 0, 0)
         """
         if self.isEnabled == False:
-            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
             response = self.SendCommand(f"EnableRobot({load},{centerX},{centerY},{centerZ})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
@@ -208,7 +208,7 @@ class Dobot:
             EnableRobot(0.5, 0, 0, 0, 1)
         """
         if self.isEnabled == False:
-            if self.isDebug: print("  Enabling Dobot Magician E6...")
+            if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
             response = self.SendCommand(f"EnableRobot({load},{centerX},{centerY},{centerZ},{isCheck})")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
@@ -233,7 +233,7 @@ class Dobot:
         if self.isEnabled:
             response = self.SendCommand("DisableRobot()")
             self.isEnabled = False
-            if self.isDebug: print("  Disable Dobot Magician E6...")
+            if self.debugLevel > 0: print("  Disable Dobot Magician E6...")
             return response 
 
     def ClearError(self):
@@ -249,7 +249,7 @@ class Dobot:
         Example:
             ClearError()
         """
-        if self.isDebug: print("  Clearing Dobot Magician E6 errors...")
+        if self.debugLevel > 0: print("  Clearing Dobot Magician E6 errors...")
         return self.SendCommand("ClearError()")
 
     def RunScript(self, projectName):
@@ -265,7 +265,7 @@ class Dobot:
         Example:
             RunScript("123")
         """
-        if self.isDebug: print(f"  Running script {projectName} on Dobot Magician E6...")
+        if self.debugLevel > 0: print(f"  Running script {projectName} on Dobot Magician E6...")
         return self.SendCommand(f"RunScript({projectName})")
 
     def Stop(self):
@@ -281,7 +281,7 @@ class Dobot:
         Example:
             Stop()
         """
-        if self.isDebug: print("  Stopping Dobot Magician E6...")
+        if self.debugLevel > 0: print("  Stopping Dobot Magician E6...")
         return self.SendCommand("Stop()")
 
     def Pause(self):
@@ -297,7 +297,7 @@ class Dobot:
         Example:
             Pause()
         """
-        if self.isDebug: print("  Pausing Dobot Magician E6...")
+        if self.debugLevel > 0: print("  Pausing Dobot Magician E6...")
         return self.SendCommand("Pause()")
 
     def Continue(self):
@@ -313,7 +313,7 @@ class Dobot:
         Example:
             Continue()
         """
-        if self.isDebug: print("  Continuing Dobot Magician E6...")
+        if self.debugLevel > 0: print("  Continuing Dobot Magician E6...")
         return self.SendCommand("Continue()")
 
     def EmergencyStop(self, mode):
@@ -329,7 +329,7 @@ class Dobot:
         Example:
             EmergencyStop(1)
         """
-        if self.isDebug: print("  Emergency stopping Dobot Magician E6...")
+        if self.debugLevel > 0: print("  Emergency stopping Dobot Magician E6...")
         return self.SendCommand("EmergencyStop()")
 
     def BrakeControl(self, axisID, value):
@@ -346,7 +346,7 @@ class Dobot:
         Example:
             BrakeControl(1, 1)
         """
-        if self.isDebug: print(f"  Setting brake control of axis {axisID} to value {value}")
+        if self.debugLevel > 0: print(f"  Setting brake control of axis {axisID} to value {value}")
         return self.SendCommand(f"BrakeControl({axisID},{value})")
 
     def StartDrag(self):
@@ -362,7 +362,7 @@ class Dobot:
         Example:
             StartDrag()
         """
-        if self.isDebug: print("  Entering drag mode...")
+        if self.debugLevel > 0: print("  Entering drag mode...")
         return self.SendCommand("StartDrag()")
 
     def StopDrag(self):
@@ -378,7 +378,7 @@ class Dobot:
         Example:
             StopDrag()
         """
-        if self.isDebug: print("  Exiting drag mode...")
+        if self.debugLevel > 0: print("  Exiting drag mode...")
         return self.SendCommand("StopDrag()")
 
 
@@ -397,7 +397,7 @@ class Dobot:
         Example:
             SpeedFactor(50)
         """
-        if self.isDebug: print(f"  Setting global speed factor to {ratio}")
+        if self.debugLevel > 0: print(f"  Setting global speed factor to {ratio}")
         return self.SendCommand(f"SpeedFactor({ratio})")
 
     def User(self,index):
@@ -413,7 +413,7 @@ class Dobot:
         Example:
             User(1)
         """
-        if self.isDebug: print(f"  Setting user index to {index}")
+        if self.debugLevel > 0: print(f"  Setting user index to {index}")
         return self.SendCommand(f"User({index})")
 
     def SetUser(self, index, value, type=0):
@@ -431,7 +431,7 @@ class Dobot:
         Example:
             SetUser(1, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Setting user coordinate system {index} to {value}. Type: {type}")
+        if self.debugLevel > 0: print(f"  Setting user coordinate system {index} to {value}. Type: {type}")
         return self.SendCommand(f"SetUser({index},{value},{type})")
 
     def CalcUser(self, index, matrix, offset):
@@ -449,7 +449,7 @@ class Dobot:
         Example:
             CalcUser(1, 0, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Calculating user coordinate system {index} to {offset}")
+        if self.debugLevel > 0: print(f"  Calculating user coordinate system {index} to {offset}")
         return self.SendCommand(f"CalcUser({index},{matrix},{offset})")
 
     def Tool(self, index=0):
@@ -465,7 +465,7 @@ class Dobot:
         Example:
             Tool(1)
         """
-        if self.isDebug: print(f"  Setting tool index to {index}")
+        if self.debugLevel > 0: print(f"  Setting tool index to {index}")
         return self.SendCommand(f"Tool({index})")
     
     def SetTool(self, index, value, type=0):
@@ -483,7 +483,7 @@ class Dobot:
         Example:
             SetTool(1, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Setting tool coordinate system {index} to {value}. Type: {type}")
+        if self.debugLevel > 0: print(f"  Setting tool coordinate system {index} to {value}. Type: {type}")
         return self.SendCommand(f"SetTool({index},{value},{type})")
     
     def CalcTool(self, index, matrix, offset):
@@ -501,7 +501,7 @@ class Dobot:
         Example:
             CalcTool(1, 0, "{10,10,10,0,0,0}")
         """
-        if self.isDebug: print(f"  Calculating tool coordinate system {index} to {offset}")
+        if self.debugLevel > 0: print(f"  Calculating tool coordinate system {index} to {offset}")
         return self.SendCommand(f"CalcTool({index},{matrix},{offset})")
 
     @dispatch(str)
@@ -518,7 +518,7 @@ class Dobot:
         Example:
             SetPayload("Load1")
         """
-        if self.isDebug: print(f"  Setting payload to preset {name})")
+        if self.debugLevel > 0: print(f"  Setting payload to preset {name})")
         return self.SendCommand(f"SetPayload({name})")
 
     @dispatch(float)
@@ -535,7 +535,7 @@ class Dobot:
         Example:
             SetPayload(0.5)
         """
-        if self.isDebug: print(f"  Setting payload to {load} kg)")
+        if self.debugLevel > 0: print(f"  Setting payload to {load} kg)")
         return self.SendCommand(f"SetPayload({load})")
 
     @dispatch(float, float, float, float)
@@ -555,7 +555,7 @@ class Dobot:
         Example:
             SetPayload(0.5, 0, 0, 0)
         """
-        if self.isDebug: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
+        if self.debugLevel > 0: print(f"  Setting payload to {load} kg at ({x},{y},{z})")
         return self.SendCommand(f"SetPayload({load},{x},{y},{z})")
 
     def AccJ(self, R=100):
@@ -571,7 +571,7 @@ class Dobot:
         Example:
             AccJ(50)
         """
-        if self.isDebug: print(f"  Setting joint acceleration to {R}")
+        if self.debugLevel > 0: print(f"  Setting joint acceleration to {R}")
         return self.SendCommand(f"AccJ({R})")
 
     def AccL(self, R=100):
@@ -587,7 +587,7 @@ class Dobot:
         Example:
             AccL(50)
         """
-        if self.isDebug: print(f"  Setting linear acceleration to {R}")
+        if self.debugLevel > 0: print(f"  Setting linear acceleration to {R}")
         return self.SendCommand(f"AccL({R})")
     
     def VelJ(self, R=100):
@@ -603,7 +603,7 @@ class Dobot:
         Example:
             VelJ(50)
         """
-        if self.isDebug: print(f"  Setting joint velocity to {R}")
+        if self.debugLevel > 0: print(f"  Setting joint velocity to {R}")
         return self.SendCommand(f"VelJ({R})")
 
     def VelL(self, R=100):
@@ -619,7 +619,7 @@ class Dobot:
         Example:
             VelL(50)
         """
-        if self.isDebug: print(f"  Setting linear velocity to {R}")
+        if self.debugLevel > 0: print(f"  Setting linear velocity to {R}")
         return self.SendCommand(f"VelL({R})")
 
     def CP(self, R=0):
@@ -635,7 +635,7 @@ class Dobot:
         Example:
             CP(50)
         """
-        if self.isDebug: print(f"  Setting continuous path rate to {R}")
+        if self.debugLevel > 0: print(f"  Setting continuous path rate to {R}")
         return self.SendCommand(f"CP({R})")
 
     def SetCollisionLevel(self, level):
@@ -651,7 +651,7 @@ class Dobot:
         Example:
             SetCollisionLevel(3)
         """
-        if self.isDebug: print(f"  Setting collision sensitivity level to {level}")
+        if self.debugLevel > 0: print(f"  Setting collision sensitivity level to {level}")
         return self.SendCommand(f"SetCollisionLevel({level})")
 
     def SetBackDistance(self, distance):
@@ -667,7 +667,7 @@ class Dobot:
         Example:
             SetBackDistance(10)
         """
-        if self.isDebug: print(f"  Setting back distance to {distance}")
+        if self.debugLevel > 0: print(f"  Setting back distance to {distance}")
         return self.SendCommand(f"SetBackDistance({distance})")
 
     def SetPostCollisionMode(self, mode):
@@ -683,7 +683,7 @@ class Dobot:
         Example:
             SetPostCollisionMode(1)
         """
-        if self.isDebug: print(f"  Setting post-collision mode to {mode}")
+        if self.debugLevel > 0: print(f"  Setting post-collision mode to {mode}")
         return self.SendCommand(f"SetPostCollisionMode({mode})")
 
     def DragSensitivity(self, index, value):
@@ -700,7 +700,7 @@ class Dobot:
         Example:
             DragSensitivity(1, 50)
         """
-        if self.isDebug: print(f"  Setting drag sensitivity of axis {index} to {value}")
+        if self.debugLevel > 0: print(f"  Setting drag sensitivity of axis {index} to {value}")
         return self.SendCommand(f"DragSensitivity({index},{value})")
 
     def EnableSafeSkin(self, status):
@@ -716,7 +716,7 @@ class Dobot:
         Example:
             EnableSafeSkin(1)
         """
-        if self.isDebug: print(f"  Setting safe skin to {status}")
+        if self.debugLevel > 0: print(f"  Setting safe skin to {status}")
         return self.SendCommand(f"EnableSafeSkin({status})")
 
     def SetSafeSkin(self, part, status):
@@ -733,7 +733,7 @@ class Dobot:
         Example:
             SetSafeSkin(3, 1)
         """
-        if self.isDebug: print(f"  Setting safe skin of part {part} to {status}")
+        if self.debugLevel > 0: print(f"  Setting safe skin of part {part} to {status}")
         return self.SendCommand(f"SetSafeSkin({part},{status})")
 
     def SetSafeWallEnable(self, index, value):
@@ -750,7 +750,7 @@ class Dobot:
         Example:
             SetSafeWallEnable(1, 1)
         """
-        if self.isDebug: print(f"  Setting safety wall {index} to {value}")
+        if self.debugLevel > 0: print(f"  Setting safety wall {index} to {value}")
         return self.SendCommand(f"SetSafeWallEnable({index},{value})")
 
     def SetWorkZoneEnable(self, index, value):
@@ -767,7 +767,7 @@ class Dobot:
         Example:
             SetWorkZoneEnable(1, 1)
         """
-        if self.isDebug: print(f"  Setting work zone {index} to {value}")
+        if self.debugLevel > 0: print(f"  Setting work zone {index} to {value}")
         return self.SendCommand(f"SetWorkZoneEnable({index},{value})")
 
 
@@ -786,7 +786,7 @@ class Dobot:
         Example:
             RobotMode()
         """
-        if self.isDebug: print("  Getting robot mode...")
+        if self.debugLevel > 0: print("  Getting robot mode...")
         return self.SendCommand("RobotMode()")
     
     def PositiveKin(self, J1, J2, J3, J4, J5, J6, user=0, tool=0):
@@ -809,7 +809,7 @@ class Dobot:
         Example:
             PositiveKin(0,0,-90,0,90,0,user=1,tool=1)
         """
-        if self.isDebug: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
+        if self.debugLevel > 0: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
         return self.SendCommand(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={user},tool={tool})")
 
     def InverseKin(self, X, Y, Z, Rx, Ry, Rz, useJointNear=0, JointNear={}, user=0, tool=0):
@@ -834,7 +834,7 @@ class Dobot:
         Example:
             InverseKin(473.000000,-141.000000,469.000000,-180.000000,0.000,-90.000)
         """
-        if self.isDebug: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
+        if self.debugLevel > 0: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
         return self.SendCommand(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={user},tool={tool},useJointNear={useJointNear},JointNear={JointNear})")
 
     def GetAngle(self):
@@ -850,7 +850,7 @@ class Dobot:
         Example:
             GetAngle()
         """
-        if self.isDebug: print("  Getting robot joint angles...")
+        if self.debugLevel > 0: print("  Getting robot joint angles...")
         return self.SendCommand("GetAngle()")
 
     def GetPose(self, user=0, tool=0):
@@ -867,7 +867,7 @@ class Dobot:
         Example:
             GetPose(user=1,tool=1)
         """
-        if self.isDebug: print("  Getting robot pose...")
+        if self.debugLevel > 0: print("  Getting robot pose...")
         return self.SendCommand("GetPose(user={user},tool={tool})")
 
     def GetErrorID(self):
@@ -883,7 +883,7 @@ class Dobot:
         Example:
             GetErrorID()
         """
-        if self.isDebug: print("  Getting robot error ID...")
+        if self.debugLevel > 0: print("  Getting robot error ID...")
         return self.SendCommand("GetErrorID()")
 
     def Create1DTray(self, Trayname, Count, Points):
@@ -901,7 +901,7 @@ class Dobot:
         Example:
             CreateTray(t1, {5}, {pose = {x1,y1,z1,rx1,ry1,rz1},pose = {x2,y2,z2,rx2,ry2,rz2}})
         """
-        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def Create2DTray(self, Trayname, Count, Points):
@@ -919,7 +919,7 @@ class Dobot:
         Example:
             CreateTray(t2, {4,5}, {P1,P2,P3,P4})
         """
-        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def Create3DTray(self, Trayname, Count, Points):
@@ -937,7 +937,7 @@ class Dobot:
         Example:
             CreateTray(t2, {4,5,6}, {P1,P2,P3,P4,P5,P6,P7,P8})
         """
-        if self.isDebug: print(f"  Creating tray {Trayname} with {Count} points")
+        if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
     def GetTrayPoint(self, Trayname, index):
@@ -954,7 +954,7 @@ class Dobot:
         Example:
             GetTrayPoint(t1, 1)
         """
-        if self.isDebug: print(f"  Getting point {index} of tray {Trayname}")
+        if self.debugLevel > 0: print(f"  Getting point {index} of tray {Trayname}")
         return self.SendCommand(f"GetTrayPoint({Trayname},{index})")
 
 
@@ -975,7 +975,7 @@ class Dobot:
         Example:
             DO(1, 1)
         """
-        if self.isDebug: print(f"  Setting digital output pin {index} to {status}")
+        if self.debugLevel > 0: print(f"  Setting digital output pin {index} to {status}")
         return self.SendCommand(f"DO({index},{status})")
 
     @dispatch(int, int, int)
@@ -994,7 +994,7 @@ class Dobot:
         Example:
             DO(1, 1, 1000)
         """
-        if self.isDebug: print(f"  Setting digital output pin {index} to {status} for {time} ms")
+        if self.debugLevel > 0: print(f"  Setting digital output pin {index} to {status} for {time} ms")
         return self.SendCommand(f"DO({index},{status},{time})")
 
     def DOInstant(self, index, status):
@@ -1011,7 +1011,7 @@ class Dobot:
         Example:
             DOInstant(1, 1)
         """
-        if self.isDebug: print(f"  Setting digital output pin {index} to {status} instantly")
+        if self.debugLevel > 0: print(f"  Setting digital output pin {index} to {status} instantly")
         return self.SendCommand(f"DOInstant({index},{status})")
 
     def GetDO(self, index):
@@ -1027,7 +1027,7 @@ class Dobot:
         Example:
             GetDO(1)
         """
-        if self.isDebug: print(f"  Getting digital output pin {index}")
+        if self.debugLevel > 0: print(f"  Getting digital output pin {index}")
         return self.SendCommand(f"GetDO({index})")
 
     def DOGroup(self, string):
@@ -1043,7 +1043,7 @@ class Dobot:
         Example:
             DOGroup("1,1,2,0,3,1")
         """
-        if self.isDebug: print(f"  Setting digital output group to {string}")
+        if self.debugLevel > 0: print(f"  Setting digital output group to {string}")
         return self.SendCommand(f"DOGroup({string})")
 
     def GetDOGroup(self, string):
@@ -1059,7 +1059,7 @@ class Dobot:
         Example:
             GetDOGroup("1,2,3")
         """
-        if self.isDebug: print(f"  Getting digital output group {string}")
+        if self.debugLevel > 0: print(f"  Getting digital output group {string}")
         return self.SendCommand(f"GetDOGroup({string})")
 
     def ToolDO(self, index, status):
@@ -1076,7 +1076,7 @@ class Dobot:
         Example:
             ToolDO(1, 1)
         """
-        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status}")
+        if self.debugLevel > 0: print(f"  Setting tool digital output pin {index} to {status}")
         return self.SendCommand(f"ToolDO({index},{status})")
 
     def ToolDOInstant(self, index, status):
@@ -1093,7 +1093,7 @@ class Dobot:
         Example:
             ToolDOInstant(1, 1)
         """
-        if self.isDebug: print(f"  Setting tool digital output pin {index} to {status} instantly")
+        if self.debugLevel > 0: print(f"  Setting tool digital output pin {index} to {status} instantly")
         return self.SendCommand(f"ToolDOInstant({index},{status})")
 
     def GetToolDO(self, index):
@@ -1109,7 +1109,7 @@ class Dobot:
         Example:
             GetToolDO(1)
         """
-        if self.isDebug: print(f"  Getting tool digital output pin {index}")
+        if self.debugLevel > 0: print(f"  Getting tool digital output pin {index}")
         return self.SendCommand(f"GetToolDO({index})")
 
     def AO(self, index, value):
@@ -1126,7 +1126,7 @@ class Dobot:
         Example:
             AO(1, 5)
         """
-        if self.isDebug: print(f"  Setting analog output pin {index} to {value}")
+        if self.debugLevel > 0: print(f"  Setting analog output pin {index} to {value}")
         return self.SendCommand(f"AO({index},{value})")
 
     def AOInstant(self, index, value):
@@ -1143,7 +1143,7 @@ class Dobot:
         Example:
             AOInstant(1, 5)
         """
-        if self.isDebug: print(f"  Setting analog output pin {index} to {value} instantly")
+        if self.debugLevel > 0: print(f"  Setting analog output pin {index} to {value} instantly")
         return self.SendCommand(f"AOInstant({index},{value})")
 
     def GetAO(self, index):
@@ -1159,7 +1159,7 @@ class Dobot:
         Example:
             GetAO(1)
         """
-        if self.isDebug: print(f"  Getting analog output pin {index}")
+        if self.debugLevel > 0: print(f"  Getting analog output pin {index}")
         return self.SendCommand(f"GetAO({index})")
 
     def DI(self, index):
@@ -1175,7 +1175,7 @@ class Dobot:
         Example:
             DI(1)
         """
-        if self.isDebug: print(f"  Getting digital input pin {index}")
+        if self.debugLevel > 0: print(f"  Getting digital input pin {index}")
         return self.SendCommand(f"DI({index})")
 
     def DIGroup(self, string):
@@ -1191,7 +1191,7 @@ class Dobot:
         Example:
             DIGroup("1,2,3")
         """
-        if self.isDebug: print(f"  Getting digital input group {string}")
+        if self.debugLevel > 0: print(f"  Getting digital input group {string}")
         return self.SendCommand(f"DIGroup({string})")
 
     def ToolDI(self, index):
@@ -1207,7 +1207,7 @@ class Dobot:
         Example:
             ToolDI(1)
         """
-        if self.isDebug: print(f"  Getting tool digital input pin {index}")
+        if self.debugLevel > 0: print(f"  Getting tool digital input pin {index}")
         return self.SendCommand(f"ToolDI({index})")
 
     def AI(self, index):
@@ -1223,7 +1223,7 @@ class Dobot:
         Example:
             AI(1)
         """
-        if self.isDebug: print(f"  Getting analog input pin {index}")
+        if self.debugLevel > 0: print(f"  Getting analog input pin {index}")
         return self.SendCommand(f"AI({index})")
 
     def ToolAI(self, index):
@@ -1239,7 +1239,7 @@ class Dobot:
         Example:
             ToolAI(1)
         """
-        if self.isDebug: print(f"  Getting tool analog input pin {index}")
+        if self.debugLevel > 0: print(f"  Getting tool analog input pin {index}")
         return self.SendCommand(f"ToolAI({index})")
 
     @dispatch(int, str, int)
@@ -1258,7 +1258,7 @@ class Dobot:
         Example:
             SetTool485(115200, "N", 1)
         """
-        if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit}")
+        if self.debugLevel > 0: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit}")
         return self.SendCommand(f"SetTool485({baud},{parity},{stopbit})")
 
     @dispatch(int, str, int, int)
@@ -1278,7 +1278,7 @@ class Dobot:
         Example:
             SetTool485(115200, "N", 1, 1)
         """
-        if self.isDebug: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit} for socket {identify}")
+        if self.debugLevel > 0: print(f"  Setting tool 485 communication to {baud},{parity},{stopbit} for socket {identify}")
         return self.SendCommand(f"SetTool485({baud},{parity},{stopbit},{identify})")
 
     @dispatch(int)
@@ -1295,7 +1295,7 @@ class Dobot:
         Example:
             SetToolPower(1)
         """
-        if self.isDebug: print(f"  Setting tool power to {status}")
+        if self.debugLevel > 0: print(f"  Setting tool power to {status}")
         return self.SendCommand(f"SetToolPower({status})")
 
     @dispatch(int, int)
@@ -1313,7 +1313,7 @@ class Dobot:
         Example:
             SetToolPower(1, 1)
         """
-        if self.isDebug: print(f"  Setting tool power to {status} for socket {identify}")
+        if self.debugLevel > 0: print(f"  Setting tool power to {status} for socket {identify}")
         return self.SendCommand(f"SetToolPower({status},{identify})")
 
     @dispatch(int, int)
@@ -1331,7 +1331,7 @@ class Dobot:
         Example:
             SetToolMode(1, 0)
         """
-        if self.isDebug: print(f"  Setting tool mode to {mode}")
+        if self.debugLevel > 0: print(f"  Setting tool mode to {mode}")
         return self.SendCommand(f"SetToolMode({mode},{type})")
 
     @dispatch(int, int, int)
@@ -1350,7 +1350,7 @@ class Dobot:
         Example:
             SetToolMode(1, 0, 1)
         """
-        if self.isDebug: print(f"  Setting tool mode to {mode} for socket {identify}")
+        if self.debugLevel > 0: print(f"  Setting tool mode to {mode} for socket {identify}")
         return self.SendCommand(f"SetToolMode({mode},{type},{identify})")
 
     
@@ -1372,7 +1372,7 @@ class Dobot:
         Example:
             ModbusCreate("127.0.0.1",60000,1)
         """
-        if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}")
+        if self.debugLevel > 0: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}")
         return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id})")
 
     @dispatch(str, int, int, int)
@@ -1392,7 +1392,7 @@ class Dobot:
         Example:
             ModbusCreate(127.0.0.1,60000,1,1)
         """
-        if self.isDebug: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
+        if self.debugLevel > 0: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
         return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
 
     def ModbusRTUCreate(self, slave_id, baud, parity="E", data_bit=8, stop_bit=1):
@@ -1412,7 +1412,7 @@ class Dobot:
         Example:
             ModbusRTUCreate(1, 115200)
         """
-        if self.isDebug: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
+        if self.debugLevel > 0: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
         return self.SendCommand(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
 
     def ModbusClose(self, index):
@@ -1428,7 +1428,7 @@ class Dobot:
         Example:
             ModbusClose(1)
         """
-        if self.isDebug: print(f"  Closing Modbus master station {index}")
+        if self.debugLevel > 0: print(f"  Closing Modbus master station {index}")
         return self.SendCommand(f"ModbusClose({index})")
 
     def GetInBits(self, index, address, count):
@@ -1446,7 +1446,7 @@ class Dobot:
         Example:
             GetInBits(0, 3000, 5)
         """
-        if self.isDebug: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
+        if self.debugLevel > 0: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
         return self.SendCommand(f"GetInBits({index},{address},{count})")
 
     def GetInRegs(self, index, address, count, valType="U16"):
@@ -1465,7 +1465,7 @@ class Dobot:
         Example:
             GetInRegs(0, 3000, 3, "U16")
         """
-        if self.isDebug: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
+        if self.debugLevel > 0: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.SendCommand(f"GetInRegs({index},{address},{count},{valType})")
 
     def GetCoils(self, index, address, count):
@@ -1483,7 +1483,7 @@ class Dobot:
         Example:
             GetCoils(0, 3000, 5)
         """
-        if self.isDebug: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
+        if self.debugLevel > 0: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
         return self.SendCommand(f"GetCoils({index},{address},{count})")
 
     def SetCoils(self, index, address, count, valTab):
@@ -1502,7 +1502,7 @@ class Dobot:
         Example:
             SetCoils(0, 3000, 5, {1,0,1,0,1})
         """
-        if self.isDebug: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
+        if self.debugLevel > 0: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
         return self.SendCommand(f"SetCoils({index},{address},{valTab})")
 
     def GetHoldRegs(self, index, address, count, valType="U16"):
@@ -1521,7 +1521,7 @@ class Dobot:
         Example:
             GetHoldRegs(0, 3095, 1, "U16")
         """
-        if self.isDebug: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
+        if self.debugLevel > 0: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.SendCommand(f"GetHoldRegs({index},{address},{count},{valType})")
 
     def setHoldRegs(self, index, address, count, valTab, valType="U16"):
@@ -1541,7 +1541,7 @@ class Dobot:
         Example:
             SetHoldRegs(0,3095,2,{6000,300}, "U16")
         """
-        if self.isDebug: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
+        if self.debugLevel > 0: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
         return self.SendCommand(f"SetHoldRegs({index},{address},{valTab},{valType})")
 
 
@@ -1560,7 +1560,7 @@ class Dobot:
         Example:
             GetInputBool(1)
         """
-        if self.isDebug: print(f"  Getting input boolean value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting input boolean value from bus register {adress}")
         return self.SendCommand(f"GetInputBool({adress})")
 
     def GetInputInt(self, adress):
@@ -1576,7 +1576,7 @@ class Dobot:
         Example:
             GetInputInt(1)
         """
-        if self.isDebug: print(f"  Getting input integer value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting input integer value from bus register {adress}")
         return self.SendCommand(f"GetInputInt({adress})")
 
     def GetInputFloat(self, adress):
@@ -1592,7 +1592,7 @@ class Dobot:
         Example:
             GetInputFloat(1)
         """
-        if self.isDebug: print(f"  Getting input float value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting input float value from bus register {adress}")
         return self.SendCommand(f"GetInputFloat({adress})")
 
     def GetOutputBool(self, adress):
@@ -1608,7 +1608,7 @@ class Dobot:
         Example:
             GetOutputBool(1)
         """
-        if self.isDebug: print(f"  Getting output boolean value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting output boolean value from bus register {adress}")
         return self.SendCommand(f"GetOutputBool({adress})")
 
     def GetOutputInt(self, adress):
@@ -1624,7 +1624,7 @@ class Dobot:
         Example:
             GetOutputInt(1)
         """
-        if self.isDebug: print(f"  Getting output integer value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting output integer value from bus register {adress}")
         return self.SendCommand(f"GetOutputInt({adress})")
 
     def GetOutputFloat(self, adress):
@@ -1640,7 +1640,7 @@ class Dobot:
         Example:
             GetOutputFloat(1)
         """
-        if self.isDebug: print(f"  Getting output float value from bus register {adress}")
+        if self.debugLevel > 0: print(f"  Getting output float value from bus register {adress}")
         return self.SendCommand(f"GetOutputFloat({adress})")
 
     def SetOutputBool(self, adress, value):
@@ -1657,7 +1657,7 @@ class Dobot:
         Example:
             SetOutputBool(1, 1)
         """
-        if self.isDebug: print(f"  Setting output boolean value of bus register {adress} to {value}")
+        if self.debugLevel > 0: print(f"  Setting output boolean value of bus register {adress} to {value}")
         return self.SendCommand(f"SetOutputBool({adress},{value})")
 
     def SetOutputInt(self, adress, value):
@@ -1674,7 +1674,7 @@ class Dobot:
         Example:
             SetOutputInt(1, 100)
         """
-        if self.isDebug: print(f"  Setting output integer value of bus register {adress} to {value}")
+        if self.debugLevel > 0: print(f"  Setting output integer value of bus register {adress} to {value}")
         return self.SendCommand(f"SetOutputInt({adress},{value})")
 
     def SetOutputFloat(self, adress, value):
@@ -1691,7 +1691,7 @@ class Dobot:
         Example:
             SetOutputFloat(1, 100.5)
         """
-        if self.isDebug: print(f"  Setting output float value of bus register {adress} to {value}")
+        if self.debugLevel > 0: print(f"  Setting output float value of bus register {adress} to {value}")
         return self.SendCommand(f"SetOutputFloat({adress},{value})")
 
 
@@ -1711,7 +1711,7 @@ class Dobot:
         Example:
             MovJ("pose={200,200,200,0,0,0}")
         """
-        if self.isDebug: print(f"  Joint move robot to {P}")
+        if self.debugLevel > 0: print(f"  Joint move robot to {P}")
         return self.SendCommand(f"MovJ({P})")
     
     @dispatch(str, str)
@@ -1729,7 +1729,7 @@ class Dobot:
         Example:
             MovJ("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
-        if self.isDebug: print(f"  Joint move robot to {P} with parameters {parameters}")
+        if self.debugLevel > 0: print(f"  Joint move robot to {P} with parameters {parameters}")
         return self.SendCommand(f"MovJ({P},{parameters})")
 
     @dispatch(str, int, int, int, int, int)
@@ -1751,7 +1751,7 @@ class Dobot:
         Example:
             MovJ("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50)
         """
-        if self.isDebug: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
+        if self.debugLevel > 0: print(f"  Joint move robot to {P} with user {user}, tool {tool}, acceleration {a}, speed {v}, continuos path {cp}")
         return self.SendCommand(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str)
@@ -1768,7 +1768,7 @@ class Dobot:
         Example:
             MovL("pose={200,200,200,0,0,0}")
         """
-        if self.isDebug: print(f"  Linear move robot to {P}")
+        if self.debugLevel > 0: print(f"  Linear move robot to {P}")
         return self.SendCommand(f"MovL({P})")
 
     @dispatch(str, str)
@@ -1786,7 +1786,7 @@ class Dobot:
         Example:
             MovL("pose={200,200,200,0,0,0}", "user=0,tool=0,a=50,v=100,cp=50")
         """
-        if self.isDebug: print(f"  Linear move robot to {P} with parameters {parameters}")
+        if self.debugLevel > 0: print(f"  Linear move robot to {P} with parameters {parameters}")
         return self.SendCommand(f"MovL({P},{parameters})")
     
     @dispatch(str, int, int, int, int, int, int, int)
@@ -1810,7 +1810,7 @@ class Dobot:
         Example:
             MovL("pose={200,200,200,0,0,0}", 0, 0, 50, 100, 50, 0, 0)
         """
-        if self.isDebug: print(f"  Linear move robot to {P} with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        if self.debugLevel > 0: print(f"  Linear move robot to {P} with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.SendCommand(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
@@ -1828,7 +1828,7 @@ class Dobot:
         Example:
             MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
-        if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}")
+        if self.debugLevel > 0: print(f"  Linear move robot to {P} with IO control {IO}")
         return self.SendCommand(f"MovL({P},{IO})")
 
     @dispatch(str, str, int, int, int, int, int, int, int)
@@ -1853,7 +1853,7 @@ class Dobot:
         Example:
             MovLIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50, 0, 0)
         """
-        if self.isDebug: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        if self.debugLevel > 0: print(f"  Linear move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.SendCommand(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
@@ -1871,7 +1871,7 @@ class Dobot:
         Example:
             MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}")
         """
-        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}")
+        if self.debugLevel > 0: print(f"  Joint move robot to {P} with IO control {IO}")
         return self.SendCommand(f"MovJ({P},{IO})")
     
     @dispatch(str, str, int, int, int, int, int, int)
@@ -1894,7 +1894,7 @@ class Dobot:
         Example:
             MovJIO("pose={-500,100,200,150,0,90}","{0, 30, 2, 1}", 0, 0, 50, 100, 50)
         """
-        if self.isDebug: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        if self.debugLevel > 0: print(f"  Joint move robot to {P} with IO control {IO}, user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.SendCommand(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str, str)
@@ -1912,7 +1912,7 @@ class Dobot:
         Example:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}")
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through arc motion")
         return self.SendCommand(f"Arc({P1},{P2})")
 
     @dispatch(str, str, str)
@@ -1931,7 +1931,7 @@ class Dobot:
         Example:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}","user=0,tool=0,a=50,v=100,speed=100,cp=50",1)
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through arc motion with parameters {parameters}")
         return self.SendCommand(f"Arc({P1},{P2},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
@@ -1957,7 +1957,7 @@ class Dobot:
         Example:
             Arc("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}", 0, 0, 50, 100, 100, 50, 0)
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}, orientation mode {ori_mode}")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through arc motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}, orientation mode {ori_mode}")
         return self.SendCommand(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r},{ori_mode})")
 
     @dispatch(str, str, int)
@@ -1976,7 +1976,7 @@ class Dobot:
         Example:
             Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1)
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion for {count} times")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through circular motion for {count} times")
         return self.SendCommand(f"Circle({P1},{P2},{count})")
     
     @dispatch(str, str, int, str)
@@ -1996,7 +1996,7 @@ class Dobot:
         Example:
             Circle("pose={200,200,200,0,0,0}","pose={300,300,300,0,0,0}",1,"user=0,tool=0,a=50,v=100,speed=100,cp=50")
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters} for {count} times")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through circular motion with parameters {parameters} for {count} times")
         return self.SendCommand(f"Circle({P1},{P2},{count},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
@@ -2019,7 +2019,7 @@ class Dobot:
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
         """
-        if self.isDebug: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
+        if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
         return self.SendCommand(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     def ServoJ(self, J1, J2, J3, J4, J5, J6, t=0.1, aheadtime=50, gain=500):
@@ -2043,7 +2043,7 @@ class Dobot:
         Example:
             ServoJ(0,0,0,0,0,0, 0.1, 50, 500)
         """
-        if self.isDebug: print(f"  Moving robot to joint {J1},{J2},{J3},{J4},{J5},{J6} with time {t}, ahead time {aheadtime}, gain {gain}")
+        if self.debugLevel > 0: print(f"  Moving robot to joint {J1},{J2},{J3},{J4},{J5},{J6} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.SendCommand(f"ServoJ({J1},{J2},{J3},{J4},{J5},{J6},{t},{aheadtime},{gain})")
 
     def ServoP(self, X, Y, Z, Rx, Ry, Rz, t=0.1, aheadtime=50, gain=500):
@@ -2064,7 +2064,7 @@ class Dobot:
         Example:
             ServoP(200,200,200,0,0,0, 0.1, 50, 500)
         """
-        if self.isDebug: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
+        if self.debugLevel > 0: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.SendCommand(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
 
     def MoveJog(self, axisID, coordType=0, user=0, tool=0):
@@ -2083,7 +2083,7 @@ class Dobot:
         Example:
             MoveJog("X+",coordType=1,user=1,tool=1)
         """
-        if self.isDebug: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
+        if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
         return self.SendCommand(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
 
     @dispatch(str, int, int, int, int, int)
@@ -2105,7 +2105,7 @@ class Dobot:
         Example:
             RunTo("pose={200,200,200,0,0,0}", 0, 0, 0, 50, 100)
         """
-        if self.isDebug: print(f"  Moving robot to {P} with move type {moveType}, user {user}, tool {tool}, acceleration {a}, speed {v}")
+        if self.debugLevel > 0: print(f"  Moving robot to {P} with move type {moveType}, user {user}, tool {tool}, acceleration {a}, speed {v}")
         return self.SendCommand(f"RunTo({P},{moveType},user={user},tool={tool},a={a},v={v})")
 
     def GetStartPose(self, traceName):
@@ -2121,7 +2121,7 @@ class Dobot:
         Example:
             GetStartPose("test1.csv")
         """
-        if self.isDebug: print(f"  Getting start pose of trace {traceName}")
+        if self.debugLevel > 0: print(f"  Getting start pose of trace {traceName}")
         return self.SendCommand(f"GetStartPose({traceName})")
 
     @dispatch(str)
@@ -2138,7 +2138,7 @@ class Dobot:
         Example:
             StartPath("test1.csv")
         """
-        if self.isDebug: print(f"  Starting path {traceName}")
+        if self.debugLevel > 0: print(f"  Starting path {traceName}")
         return self.SendCommand(f"StartPath({traceName})")
 
     @dispatch(str, int, float, int, float, int, int)
@@ -2161,7 +2161,7 @@ class Dobot:
         Example:
             StartPath("test1.csv", 0, 1, 50, 0.2, 0, 0)
         """
-        if self.isDebug: print(f"  Starting path {traceName} with constant speed {isConst}, multiplier {multi}, sample {sample}, freq {freq}, user {user}, tool {tool}")
+        if self.debugLevel > 0: print(f"  Starting path {traceName} with constant speed {isConst}, multiplier {multi}, sample {sample}, freq {freq}, user {user}, tool {tool}")
         return self.SendCommand(f"StartPath({traceName},{isConst},{multi},sample={sample},freq={freq},user={user},tool={tool})")
 
     @dispatch(float, float, float, float, float, float)
@@ -2183,7 +2183,7 @@ class Dobot:
         Example:
             RelMovJTool(10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
@@ -2210,7 +2210,7 @@ class Dobot:
         Example:
             RelMovJTool(10,10,10,0,0,0,0,0,50,100,50)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
@@ -2232,7 +2232,7 @@ class Dobot:
         Example:
             RelMovLTool(10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
@@ -2261,7 +2261,7 @@ class Dobot:
         Example:
             RelMovLTool(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
-        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
@@ -2283,7 +2283,7 @@ class Dobot:
         Example:
             RelMovJUser(10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
@@ -2310,7 +2310,7 @@ class Dobot:
         Example:
             RelMovJUser(10,10,10,0,0,0,0,0,50,100,50)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
@@ -2332,7 +2332,7 @@ class Dobot:
         Example:
             RelMovLUser(10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
         return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
@@ -2361,7 +2361,7 @@ class Dobot:
         Example:
             RelMovLUser(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
-        if self.isDebug: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
+        if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
         return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
@@ -2383,7 +2383,7 @@ class Dobot:
         Example:
             RelJointMovJ(10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
         return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
 
     @dispatch(float, float, float, float, float, float, int, int, int)
@@ -2410,7 +2410,7 @@ class Dobot:
         Example:
             RelJointMovJ(10,10,10,10,10,10,0,0,50,100,50)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     def RelPointTool(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2432,7 +2432,7 @@ class Dobot:
         Example:
             RelPointTool("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        if self.debugLevel > 0: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
         return self.SendCommand(f"RelPointTool({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
     def RelPointUser(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
@@ -2454,7 +2454,7 @@ class Dobot:
         Example:
             RelPointUser("pose={200,200,200,0,0,0}", 10,10,10,0,0,0)
         """
-        if self.isDebug: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
+        if self.debugLevel > 0: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
         return self.SendCommand(f"RelPointUser({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
     def RelJoint(self, J1, J2, J3, J4, J5, J6, offset1, offset2, offset3, offset4, offset5, offset6):
@@ -2481,7 +2481,7 @@ class Dobot:
         Example:
             RelJoint(0,0,0,0,0,0,10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Joint move robot to offset ({J1},{J2},{J3},{J4},{J5},{J6} with offset:{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
+        if self.debugLevel > 0: print(f"  Joint move robot to offset ({J1},{J2},{J3},{J4},{J5},{J6} with offset:{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
         return self.SendCommand(f"RelJoint({J1},{J2},{J3},{J4},{J5},{J6},{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
 
     def GetCurrentCommandID(self):
@@ -2494,7 +2494,7 @@ class Dobot:
         Example:
             GetCurrentCommandID()
         """
-        if self.isDebug: print("  Getting current command ID")
+        if self.debugLevel > 0: print("  Getting current command ID")
         return self.SendCommand("GetCurrentCommandID()")
 
 
@@ -2513,7 +2513,7 @@ class Dobot:
         Example:
             SetResumeOffset(10)
         """
-        if self.isDebug: print(f"  Setting resume offset to {distance}")
+        if self.debugLevel > 0: print(f"  Setting resume offset to {distance}")
         return self.SendCommand(f"SetResumeOffset({distance})")
 
     def PathRecovery(self) -> str:
@@ -2529,7 +2529,7 @@ class Dobot:
         Example:
             PathRecovery()
         """
-        if self.isDebug: print("  Resuming path recovery")
+        if self.debugLevel > 0: print("  Resuming path recovery")
         return self.SendCommand("PathRecovery()")
 
     def PathRecoveryStop(self) -> str:
@@ -2545,7 +2545,7 @@ class Dobot:
         Example:
             PathRecoveryStop()
         """
-        if self.isDebug: print("  Stopping path recovery")
+        if self.debugLevel > 0: print("  Stopping path recovery")
         return self.SendCommand("PathRecoveryStop()")
     
     def PathRecoveryStatus(self) -> str:
@@ -2561,7 +2561,7 @@ class Dobot:
         Example:
             PathRecoveryStatus()
         """
-        if self.isDebug: print("  Getting path recovery status")
+        if self.debugLevel > 0: print("  Getting path recovery status")
         return self.SendCommand("PathRecoveryStatus()")
 
 
@@ -2581,7 +2581,7 @@ class Dobot:
         Example:
             LogExportUSB(0)
         """
-        if self.isDebug: print(f"  Exporting logs to USB with range {range}")
+        if self.debugLevel > 0: print(f"  Exporting logs to USB with range {range}")
         return self.SendCommand(f"LogExportUSB({range})")
 
     def GetExportStatus(self) -> str:
@@ -2597,7 +2597,7 @@ class Dobot:
         Example:
             GetExportStatus()
         """
-        if self.isDebug: print("  Getting export status")
+        if self.debugLevel > 0: print("  Getting export status")
         return self.SendCommand("GetExportStatus()")
 
 
@@ -2617,7 +2617,7 @@ class Dobot:
         Example:
             EnableFTSensor(1)
         """
-        if self.isDebug: print(f"  Enabling force sensor with status {status}")
+        if self.debugLevel > 0: print(f"  Enabling force sensor with status {status}")
         return self.SendCommand(f"EnableFTSensor({status})")
     
     def SixForceHome(self) -> str:
@@ -2633,7 +2633,7 @@ class Dobot:
         Example:
             SixForceHome()
         """
-        if self.isDebug: print("  Setting force sensor home")
+        if self.debugLevel > 0: print("  Setting force sensor home")
         return self.SendCommand("SixForceHome()")
     
     def GetForce(self, tool:int=0) -> str:
@@ -2649,7 +2649,7 @@ class Dobot:
         Example:
             GetForce(0)
         """
-        if self.isDebug: print(f"  Getting force sensor value with tool {tool}")
+        if self.debugLevel > 0: print(f"  Getting force sensor value with tool {tool}")
         return self.SendCommand(f"GetForce({tool})")
 
     def ForceDriveMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, user:int=0) -> str:
@@ -2671,7 +2671,7 @@ class Dobot:
         Example:
             ForceDriveMode(10,10,10,0,0,0,0)
         """
-        if self.isDebug: print(f"  Setting force sensor to drive mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and user {user}")
+        if self.debugLevel > 0: print(f"  Setting force sensor to drive mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and user {user}")
         return self.SendCommand(f"ForceDriveMode({{{x},{y},{z},{rx},{ry},{rz}}},user={user})")
     
     def ForceDriveSpped(self, speed:int) -> str:
@@ -2687,7 +2687,7 @@ class Dobot:
         Example:
             ForceDriveSpped(10)
         """
-        if self.isDebug: print(f"  Setting force sensor drive speed to {speed}")
+        if self.debugLevel > 0: print(f"  Setting force sensor drive speed to {speed}")
         return self.SendCommand(f"ForceDriveSpped({speed})")
     
     def StopDrag(self) -> str:
@@ -2703,7 +2703,7 @@ class Dobot:
         Example:
             StopDrag()
         """
-        if self.isDebug: print("  Stopping force sensor drag")
+        if self.debugLevel > 0: print("  Stopping force sensor drag")
         return self.SendCommand("StopDrag()")
 
     def FCForceMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, fx:int, fy:int, fz:int, frx:int, fry:int, frz:int, reference:int=0, user:int=0, tool:int=0) -> str:
@@ -2733,7 +2733,7 @@ class Dobot:
         Example:
             FCForceMode(10,10,10,0,0,0,10,10,10,0,0,0,0,0,0)
         """
-        if self.isDebug: print(f"  Setting force control mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and forces ({fx},{fy},{fz},{frx},{fry},{frz}) with reference {reference}, user {user}, tool {tool}")
+        if self.debugLevel > 0: print(f"  Setting force control mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and forces ({fx},{fy},{fz},{frx},{fry},{frz}) with reference {reference}, user {user}, tool {tool}")
         return self.SendCommand(f"FCForceMode({{{x},{y},{z},{rx},{ry},{rz}}},{{{fx},{fy},{fz},{frx},{fry},{frz}}},reference={reference},user={user},tool={tool})")
 
     def FCSetDeviation(self, x:int=100, y:int=100, z:int=100, rx:int=36, ry:int=36, rz:int=36, controltype:int=0) -> str:
@@ -2755,7 +2755,7 @@ class Dobot:
         Example:
             FCSetDeviation(10,10,10,0,0,0,0)
         """
-        if self.isDebug: print(f"  Setting force control deviation with coordinates ({x},{y},{z},{rx},{ry},{rz}) and control type {controltype}")
+        if self.debugLevel > 0: print(f"  Setting force control deviation with coordinates ({x},{y},{z},{rx},{ry},{rz}) and control type {controltype}")
         return self.SendCommand(f"FCSetDeviation({{{x},{y},{z},{rx},{ry},{rz}}},{controltype})")
 
     def FCSetForceLimit(self, x:float=500, y:float=500, z:float=500, rx:float=50, ry:float=50, rz:float=50) -> str:
@@ -2776,7 +2776,7 @@ class Dobot:
         Example:
             FCSetForceLimit(10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Setting force control force limit with forces ({x},{y},{z},{rx},{ry},{rz})")
+        if self.debugLevel > 0: print(f"  Setting force control force limit with forces ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetForceLimit({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetMass(self, x:float=20, y:float=20, z:float=20, rx:float=0.5, ry:float=0.5, rz:float=0.5) -> str:
@@ -2797,7 +2797,7 @@ class Dobot:
         Example:
             FCSetMass(10,10,10,0.5,0.5,0.5)
         """
-        if self.isDebug: print(f"  Setting force control mass with mass ({x},{y},{z},{rx},{ry},{rz})")
+        if self.debugLevel > 0: print(f"  Setting force control mass with mass ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetMass({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetDamping(self, x:float=50, y:float=50, z:float=50, rx:float=20, ry:float=20, rz:float=20) -> str:
@@ -2818,7 +2818,7 @@ class Dobot:
         Example:
             FCSetDamping(10,10,10,5,5,5)
         """
-        if self.isDebug: print(f"  Setting force control damping with damping ({x},{y},{z},{rx},{ry},{rz})")
+        if self.debugLevel > 0: print(f"  Setting force control damping with damping ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetDamping({x},{y},{z},{rx},{ry},{rz})")
 
     def FCOff(self) -> str:
@@ -2834,7 +2834,7 @@ class Dobot:
         Example:
             FCOff()
         """
-        if self.isDebug: print("  Exiting force control mode")
+        if self.debugLevel > 0: print("  Exiting force control mode")
         return self.SendCommand("FCOff()")
     
     def FCSetForceSpeedLimit(self, x:float=20, y:float=20, z:float=20, rx:float=20, ry:float=20, rz:float=20) -> str:
@@ -2855,7 +2855,7 @@ class Dobot:
         Example:
             FCSetForceSpeedLimit(10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Setting force control speed limit with speeds ({x},{y},{z},{rx},{ry},{rz})")
+        if self.debugLevel > 0: print(f"  Setting force control speed limit with speeds ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetForceSpeedLimit({x},{y},{z},{rx},{ry},{rz})")
 
     def FCSetForce(self, x:float, y:float, z:float, rx:float, ry:float, rz:float) -> str:
@@ -2876,7 +2876,7 @@ class Dobot:
         Example:
             FCSetForce(10,10,10,10,10,10)
         """
-        if self.isDebug: print(f"  Setting force control force with forces ({x},{y},{z},{rx},{ry},{rz})")
+        if self.debugLevel > 0: print(f"  Setting force control force with forces ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetForce({x},{y},{z},{rx},{ry},{rz})")
 
 
@@ -2899,14 +2899,14 @@ class Dobot:
            Connect()
         """
         try :
-            if self.isDebug: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
+            if self.debugLevel > 0: print(f"Connecting to Dobot at {self.ip}:{self.port}...")
             self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.connection.connect((self.ip, self.port))
             time.sleep(2)  # Wait for the connection to establish
             if self.connection == None:
                 raise Exception("Connection error")
             else:
-                if self.isDebug: print("  Connected to Dobot Magician E6")
+                if self.debugLevel > 0: print("  Connected to Dobot Magician E6")
         except:
             print("  Connection error")
             self.connection = None
@@ -2927,7 +2927,7 @@ class Dobot:
         if self.connection:
             self.connection.close()
             self.connection = None
-            if self.isDebug: print("  Disconnected from Dobot Magician E6")
+            if self.debugLevel > 0: print("  Disconnected from Dobot Magician E6")
 
     def SendCommand(self, command):
         """
@@ -2949,19 +2949,19 @@ class Dobot:
             try:
                 self.connection.sendall(command.encode() + b'\n')
                 response = self.connection.recv(1024).decode()
-                return response.strip()
+                return self.ParseResponse(response.strip())
             except Exception as e:
                 print(f"  Python error sending command: {e}")
                 return None
         else:
             raise Exception("  ! Not connected to Dobot Magician E6")
 
-    def SetDebug(self, isDebug):
+    def SetDebugLevel(self, debugLevel:int):
         """
-        Set the debug mode for the Dobot Object
+        Set the debug level for the Dobot Object.
 
         Args
-        isDebug (bool): Print Debug messages yes (True) or no  (False).
+        debugLevel (int): Print Debug messages yes (>0) or no  (=0). Level 1 is minimal debug information. Level 2 is all debug information (including parsing).
 
         Returns:
             None
@@ -2969,7 +2969,7 @@ class Dobot:
         Example:
             SetDebug(True)
         """
-        self.isDebug = isDebug
+        self.debugLevel = debugLevel
 
     def MoveJJ(self,j1,j2,j3,j4,j5,j6):
         """
@@ -2989,7 +2989,7 @@ class Dobot:
         Example:
             MoveJJ(-90, 0, -140, -40, 0, 0)
         """
-        if self.isDebug: print(f"  Joint move robot to joint ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.debugLevel > 0: print(f"  Joint move robot to joint ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
@@ -3011,7 +3011,7 @@ class Dobot:
         Example:
             MoveJP(0, 0, 0, 0, 0, 0)
         """
-        if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.debugLevel > 0: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
@@ -3033,7 +3033,7 @@ class Dobot:
         Example:
             MoveLJ(-90, 0, -140, -40, 0, 0)
         """
-        if self.isDebug: print(f"  Joint move robot to joint({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.debugLevel > 0: print(f"  Joint move robot to joint({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
@@ -3055,7 +3055,7 @@ class Dobot:
         Example:
             MoveLP(0, 0, 0, 0, 0, 0)
         """
-        if self.isDebug: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
+        if self.debugLevel > 0: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
         move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
@@ -3069,7 +3069,7 @@ class Dobot:
         Example:
             Home()
         """
-        if self.isDebug: print("  Moving robot to home position")
+        if self.debugLevel > 0: print("  Moving robot to home position")
         return self.MoveJJ(0, 0, 0, 0, 0, 0)
 
     def Pack(self):
@@ -3082,7 +3082,7 @@ class Dobot:
         Example:
             Pack()
         """
-        if self.isDebug: print("  Moving robot to packing position")
+        if self.debugLevel > 0: print("  Moving robot to packing position")
         return self.MoveJJ(-90, 0, -140, -40, 0, 0)
        
     def SetSucker(self, status):
@@ -3098,7 +3098,7 @@ class Dobot:
         Example:
             SetSucker(1)
         """
-        if self.isDebug: print(f"  Setting sucker to {status}")
+        if self.debugLevel > 0: print(f"  Setting sucker to {status}")
         return self.ToolDO(1,status)
     
 
@@ -3119,10 +3119,12 @@ class Dobot:
             ParseResponse("-1,{},MovJ(pose={0,0,0,0,0,0})")
         """
         # Split the string by commas
+        if self.debugLevel > 1: print(f"  Parsing response {response}\n    ", end="")
         parts = response.split(",", maxsplit=2)
         
         # Ensure the parts are valid
         if len(parts) != 3:
+            if self.debugLevel > 1: print(f"Invalid response format")
             return "Invalid response format", "Invalid response format", "Invalid response format"
         
         # Parse the error code as an integer
@@ -3131,6 +3133,9 @@ class Dobot:
         # Extract the response and command
         response = parts[1].strip()
         command = parts[2].strip()
+
+        # Print results
+        if self.debugLevel > 1: print(f"Error: {error}\n    Response: {response}\n    Command: {command}")
         
         # Return as a tuple
         return error, response, command
@@ -3148,7 +3153,7 @@ class Dobot:
         Example:
             ParseError(1)
         """
-        if self.isDebug: print(f"  Parsing error code {errcode}\n    ", end="")
+        if self.debugLevel > 1: print(f"  Parsing error code {errcode}\n    ", end="")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
 
     def ParseRobotMode(self, mode):
@@ -3164,7 +3169,7 @@ class Dobot:
         Example:
             ParseRobotMode(1)
         """
-        if self.isDebug: print(f"  Parsing robot mode {mode}\n    ", end="")
+        if self.debugLevel > 1: print(f"  Parsing robot mode {mode}\n    ", end="")
         return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
 
     def ParseRobotType(self, type):
@@ -3180,7 +3185,7 @@ class Dobot:
         Example:
             ParseRobotType(1)
         """
-        if self.isDebug: print(f"  Parsing robot type {type}\n    ", end="")
+        if self.debugLevel > 1: print(f"  Parsing robot type {type}\n    ", end="")
         return self.robot_types.get(type, "Unknown robot type. Check the TCP protocol for further info.")
 
 

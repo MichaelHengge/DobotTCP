@@ -3,9 +3,11 @@ from DobotTCP import Dobot, Feedback
 
 robot = Dobot()
 robot.Connect()
-resp = robot.EnableRobot()
-print(f"Response: {resp}")
 
+(err, rsp, cmd) = robot.EnableRobot()
+print(f"  Error code: {err}")
+print(f"  Response: {rsp}")
+print(f"  Command: {cmd}")
 
 
 '''
