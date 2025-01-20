@@ -105,7 +105,7 @@ print(feedback.data.get("RobotType"))
 ## Version Changelog
 
 - v1.0.0 (17.01.2025): Initial release based on TCP protocol v4.5.0
-- v1.1.0 (20.01.2025): Updated library based on new TCP protocol v4.6.0
+- v1.1.0 (20.01.2025): Updated library based on new TCP protocol v4.6.0. Some commands require the robot controller version V4.6.0.
 
 ## Contributing
 

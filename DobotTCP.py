@@ -3124,7 +3124,7 @@ class Dobot:
         Example:
             ParseError(1)
         """
-        if self.isDebug: print(f"  Parsing error code {errcode}")
+        if self.isDebug: print(f"  Parsing error code {errcode}\n    ", end="")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
 
     def ParseRobotMode(self, mode):
@@ -3140,7 +3140,7 @@ class Dobot:
         Example:
             ParseRobotMode(1)
         """
-        if self.isDebug: print(f"  Parsing robot mode {mode}")
+        if self.isDebug: print(f"  Parsing robot mode {mode}\n    ", end="")
         return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
 
     def ParseRobotType(self, type):
@@ -3156,7 +3156,7 @@ class Dobot:
         Example:
             ParseRobotType(1)
         """
-        if self.isDebug: print(f"  Parsing robot type {type}")
+        if self.isDebug: print(f"  Parsing robot type {type}\n    ", end="")
         return self.robot_types.get(type, "Unknown robot type. Check the TCP protocol for further info.")
 
 
@@ -3398,10 +3398,20 @@ class Feedback:
         """
         feedback_dict = {}
 
+        # Remove brackets and convert to a list if comma-separated.
+        def parse_value(value):
+            if isinstance(value, tuple):
+                # Flatten single-value tuples and keep lists for multiple values
+                if len(value) == 1:
+                    return value[0]
+                return list(value)
+            return value
+
         # Helper function to unpack data and assign it a key
         def unpack(offset, fmt, key):
             size = struct.calcsize(fmt)
-            feedback_dict[key] = struct.unpack_from(fmt, data, offset)
+            value = struct.unpack_from(fmt, data, offset)
+            feedback_dict[key] = parse_value(value)  # Parse value into clean format
             return offset + size
 
         # Parse fields based on their "Meaning" in the TCP protocol

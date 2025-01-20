@@ -4,8 +4,13 @@ from DobotTCP import Dobot, Feedback
 robot = Dobot()
 robot.Connect()
 robot.EnableRobot()
-robot.Home()
+robot.Pack()
 feedback = Feedback(robot)
 feedback.Connect()
 feedback.Get()
-print(feedback.data.get("RobotType"))
+mode = feedback.data.get('RobotMode')
+print(robot.ParseRobotMode(mode))
+'''
+for key, value in feedback.data.items():
+    print(f"{key}: {value}")
+'''
