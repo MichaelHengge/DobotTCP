@@ -3162,7 +3162,7 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing response {response}\n    ", end="")
         parts = response.split(",", maxsplit=2)
 
-        # Hnadle single response case
+        # Handle single response case
         if len(parts) == 1:
             if self.debugLevel > 1: print(f"  {response}")
             return None, response, None
