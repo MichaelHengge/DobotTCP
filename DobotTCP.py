@@ -848,7 +848,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Calculating positive kinematics of robot at ({J1},{J2},{J3},{J4},{J5},{J6})")
         return self.SendCommand(f"PositiveKin({J1},{J2},{J3},{J4},{J5},{J6},user={user},tool={tool})")
 
-    def InverseKin(self, X, Y, Z, Rx, Ry, Rz, useJointNear=0, JointNear={}, user=0, tool=0):
+    def InverseKin(self, X:float, Y:float, Z:float, Rx:float, Ry:float, Rz:float, useJointNear:int=0, JointNear:str="", user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Calculate the joint angles of the robot based on the given Cartesian coordinates of the end of the robot. Positive solution.
 
@@ -873,7 +873,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Calculating inverse kinematics of robot at ({X},{Y},{Z},{Rx},{Ry},{Rz})")
         return self.SendCommand(f"InverseKin({X},{Y},{Z},{Rx},{Ry},{Rz},user={user},tool={tool},useJointNear={useJointNear},JointNear={JointNear})")
 
-    def GetAngle(self):
+    def GetAngle(self) -> tuple[str, str, str]:
         """
         Get the current joint angles of the robot posture.
 
@@ -889,13 +889,13 @@ class Dobot:
         if self.debugLevel > 0: print("  Getting robot joint angles...")
         return self.SendCommand("GetAngle()")
 
-    def GetPose(self, user=0, tool=0):
+    def GetPose(self, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Get the cartesian coordinates of the current pose of the robot.
 
         Args:
-            user (string): User coordinate system index. Default (0) is the global user coordinate system. Range: [0,50]
-            tool (string): Tool coordinate system index. Default (0) is the global tool coordinate system. Range: [0,50]
+            user (int): User coordinate system index. Default (0) is the global user coordinate system. Range: [0,50]
+            tool (int): Tool coordinate system index. Default (0) is the global tool coordinate system. Range: [0,50]
 
         Returns:
             The cartesian coordinate points of the current pose {X,Y,Z,Rx,Ry,Rz}.
@@ -906,7 +906,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Getting robot pose...")
         return self.SendCommand("GetPose(user={user},tool={tool})")
 
-    def GetErrorID(self):
+    def GetErrorID(self) -> tuple[str, str, str]:
         """
         Get the current error code of the robot.
 
@@ -922,7 +922,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Getting robot error ID...")
         return self.SendCommand("GetErrorID()")
 
-    def Create1DTray(self, Trayname, Count, Points):
+    def Create1DTray(self, Trayname:str, Count:str, Points:str) -> tuple[str, str, str]:
         """
         Create a 1D tray for the robot. A set of points equidistantly spaced on a straight line.
 
@@ -940,7 +940,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
-    def Create2DTray(self, Trayname, Count, Points):
+    def Create2DTray(self, Trayname:str, Count:str, Points:str) -> tuple[str, str, str]:
         """
         Create a 2D tray for the robot. A set of points distributed in an array on a plane.
 
@@ -958,7 +958,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
-    def Create3DTray(self, Trayname, Count, Points):
+    def Create3DTray(self, Trayname:str, Count:str, Points:str) -> tuple[str, str, str]:
         """
         Create a 3D tray for the robot. A set of points distributed three-dimensionally in space and can beconsidered as multiple 2D trays arranged vertically.
 
@@ -976,7 +976,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Creating tray {Trayname} with {Count} points")
         return self.SendCommand(f"CreateTray({Trayname},{Count},{Points})")
 
-    def GetTrayPoint(self, Trayname, index):
+    def GetTrayPoint(self, Trayname:str, index:int) -> tuple[str, str, str]:
         """
         Get the specified point coordinates of the specified tray. The point number is related to the order of points passed in when creating the tray (see TCP protocol for details).
 
@@ -997,7 +997,7 @@ class Dobot:
     # IO Commands:
 
     @dispatch(int, int)
-    def DO(self, index:int, status:int) -> str:
+    def DO(self, index:int, status:int) -> tuple[str, str, str]:
         """
         Set the digital output of the robot.
 
@@ -1015,7 +1015,7 @@ class Dobot:
         return self.SendCommand(f"DO({index},{status})")
 
     @dispatch(int, int, int)
-    def DO(self, index:int, status:int, time:int):
+    def DO(self, index:int, status:int, time:int) -> tuple[str, str, str]:
         """
         Set the digital output of the robot (queue command).
 
@@ -1033,7 +1033,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting digital output pin {index} to {status} for {time} ms")
         return self.SendCommand(f"DO({index},{status},{time})")
 
-    def DOInstant(self, index, status):
+    def DOInstant(self, index:int, status:int) -> tuple[str, str, str]:
         """
         Set the digital output of the robot instantly.
 
@@ -1050,7 +1050,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting digital output pin {index} to {status} instantly")
         return self.SendCommand(f"DOInstant({index},{status})")
 
-    def GetDO(self, index):
+    def GetDO(self, index:int) -> tuple[str, str, str]:
         """
         Get the digital output status of the robot.
 
@@ -1066,12 +1066,12 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting digital output pin {index}")
         return self.SendCommand(f"GetDO({index})")
 
-    def DOGroup(self, string):
+    def DOGroup(self, values:str) -> tuple[str, str, str]:
         """
         Set the digital output of a group of outputs of the robot.
 
         Args:
-            string (string): Digital output group status. Format: index1,status1,index2,status2,... Index: Digital output index, Status: Digital output status. 0: OFF, 1: ON.
+            values (string): Digital output group status. Format: index1,status1,index2,status2,... Index: Digital output index, Status: Digital output status. 0: OFF, 1: ON.
 
         Returns:
             The response from the robot.
@@ -1079,15 +1079,15 @@ class Dobot:
         Example:
             DOGroup("1,1,2,0,3,1")
         """
-        if self.debugLevel > 0: print(f"  Setting digital output group to {string}")
-        return self.SendCommand(f"DOGroup({string})")
+        if self.debugLevel > 0: print(f"  Setting digital output group to {values}")
+        return self.SendCommand(f"DOGroup({values})")
 
-    def GetDOGroup(self, string):
+    def GetDOGroup(self, values:str) -> tuple[str, str, str]:
         """
         Get the digital output status of a group of outputs of the robot.
 
         Args:
-            string (string): Digital output group status. Format: index1,index2,... Index: Digital output index.
+            values (string): Digital output group status. Format: index1,index2,... Index: Digital output index.
 
         Returns:
             The digital output status of the group. Format: {status1,status2,...}. Status: Digital output status. 0: OFF, 1: ON.
@@ -1095,10 +1095,10 @@ class Dobot:
         Example:
             GetDOGroup("1,2,3")
         """
-        if self.debugLevel > 0: print(f"  Getting digital output group {string}")
-        return self.SendCommand(f"GetDOGroup({string})")
+        if self.debugLevel > 0: print(f"  Getting digital output group {values}")
+        return self.SendCommand(f"GetDOGroup({values})")
 
-    def ToolDO(self, index, status):
+    def ToolDO(self, index:int, status:int) -> tuple[str, str, str]:
         """
         Set the digital output of the tool (queue command).
 
@@ -1115,7 +1115,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting tool digital output pin {index} to {status}")
         return self.SendCommand(f"ToolDO({index},{status})")
 
-    def ToolDOInstant(self, index, status):
+    def ToolDOInstant(self, index:int, status:int) -> tuple[str, str, str]:
         """
         Set the digital output of the tool instantly.
 
@@ -1132,7 +1132,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting tool digital output pin {index} to {status} instantly")
         return self.SendCommand(f"ToolDOInstant({index},{status})")
 
-    def GetToolDO(self, index):
+    def GetToolDO(self, index:int) -> tuple[str, str, str]:
         """
         Get the digital output status of the tool.
 
@@ -1148,7 +1148,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting tool digital output pin {index}")
         return self.SendCommand(f"GetToolDO({index})")
 
-    def AO(self, index, value):
+    def AO(self, index:int, value:int) -> tuple[str, str, str]:
         """
         Set the analog output of the robot (queue command).
 
@@ -1165,7 +1165,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting analog output pin {index} to {value}")
         return self.SendCommand(f"AO({index},{value})")
 
-    def AOInstant(self, index, value):
+    def AOInstant(self, index:int, value:int) -> tuple[str, str, str]:
         """
         Set the analog output of the robot instantly.
 
@@ -1182,7 +1182,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting analog output pin {index} to {value} instantly")
         return self.SendCommand(f"AOInstant({index},{value})")
 
-    def GetAO(self, index):
+    def GetAO(self, index:int) -> tuple[str, str, str]:
         """
         Get the analog output status of the robot.
 
@@ -1198,7 +1198,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting analog output pin {index}")
         return self.SendCommand(f"GetAO({index})")
 
-    def DI(self, index):
+    def DI(self, index:int) -> tuple[str, str, str]:
         """
         Get the digital input status of the robot.
 
@@ -1214,12 +1214,12 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting digital input pin {index}")
         return self.SendCommand(f"DI({index})")
 
-    def DIGroup(self, string):
+    def DIGroup(self, values:str) -> tuple[str, str, str]:
         """
         Get the digital input status of a group of inputs of the robot.
 
         Args:
-            string (string): Digital input group status. Format: index1,index2,... . Index: Digital input index.
+            values (string): Digital input group status. Format: index1,index2,... . Index: Digital input index.
 
         Returns:
             The digital input status of the group. Format: {status1,status2,...}. Status: Digital input status. 0: no signal, 1: signal.
@@ -1227,10 +1227,10 @@ class Dobot:
         Example:
             DIGroup("1,2,3")
         """
-        if self.debugLevel > 0: print(f"  Getting digital input group {string}")
-        return self.SendCommand(f"DIGroup({string})")
+        if self.debugLevel > 0: print(f"  Getting digital input group {values}")
+        return self.SendCommand(f"DIGroup({values})")
 
-    def ToolDI(self, index):
+    def ToolDI(self, index:int) -> tuple[str, str, str]:
         """
         Get the digital input status of the tool.
 
@@ -1246,7 +1246,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting tool digital input pin {index}")
         return self.SendCommand(f"ToolDI({index})")
 
-    def AI(self, index):
+    def AI(self, index:int) -> tuple[str, str, str]:
         """
         Get the analog input status of the robot.
 
@@ -1262,7 +1262,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting analog input pin {index}")
         return self.SendCommand(f"AI({index})")
 
-    def ToolAI(self, index):
+    def ToolAI(self, index:int) -> tuple[str, str, str]:
         """
         Get the analog input status of the tool.
 
@@ -1279,7 +1279,7 @@ class Dobot:
         return self.SendCommand(f"ToolAI({index})")
 
     @dispatch(int, str, int)
-    def SetTool485(self, baud, parity="N", stopbit=1):
+    def SetTool485(self, baud:int, parity:str="N", stopbit:int=1) -> tuple[str, str, str]:
         """
         Set the tool 485 communication parameters.
 
@@ -1298,7 +1298,7 @@ class Dobot:
         return self.SendCommand(f"SetTool485({baud},{parity},{stopbit})")
 
     @dispatch(int, str, int, int)
-    def SetTool485(self, baud, parity="N", stopbit=1, identify=1):
+    def SetTool485(self, baud:int, parity:str="N", stopbit:int=1, identify:int=1) -> tuple[str, str, str]:
         """
         Set the tool 485 communication parameters.
 
@@ -1318,7 +1318,7 @@ class Dobot:
         return self.SendCommand(f"SetTool485({baud},{parity},{stopbit},{identify})")
 
     @dispatch(int)
-    def SetToolPower(self, status):
+    def SetToolPower(self, status:int) -> tuple[str, str, str]:
         """
         Set the power status of the tool. The Magician E6 does not have a tool power feature.
 
@@ -1335,7 +1335,7 @@ class Dobot:
         return self.SendCommand(f"SetToolPower({status})")
 
     @dispatch(int, int)
-    def SetToolPower(self, status, identify):
+    def SetToolPower(self, status:int, identify:int) -> tuple[str, str, str]:
         """
         Set the power status of the tool. The Magician E6 does not have a tool power feature.
 
@@ -1353,7 +1353,7 @@ class Dobot:
         return self.SendCommand(f"SetToolPower({status},{identify})")
 
     @dispatch(int, int)
-    def SetToolMode(self, mode, type):
+    def SetToolMode(self, mode:int, type:int) -> tuple[str, str, str]:
         """
         Set the tool multiplexing mode of the robot. The Magician E6 does not have a tool mode feature.
 
@@ -1371,7 +1371,7 @@ class Dobot:
         return self.SendCommand(f"SetToolMode({mode},{type})")
 
     @dispatch(int, int, int)
-    def SetToolMode(self, mode, type, identify):
+    def SetToolMode(self, mode:int, type:int, identify:int) -> tuple[str, str, str]:
         """
         Set the tool multiplexing mode of the robot. The Magician E6 does not have a tool mode feature.
 
@@ -1393,7 +1393,7 @@ class Dobot:
     # Modbus Commands:
 
     @dispatch(str, int, int)
-    def ModbusCreate(self, ip, port, slave_id):
+    def ModbusCreate(self, ip:str, port:int, slave_id:int) -> tuple[str, str, str]:
         """
         Create a Modbus master station and establish slave connection (max 5 devices).
 
@@ -1412,7 +1412,7 @@ class Dobot:
         return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id})")
 
     @dispatch(str, int, int, int)
-    def ModbusCreate(self, ip, port, slave_id, isRTU):
+    def ModbusCreate(self, ip:str, port:int, slave_id:int, isRTU:int) -> tuple[str, str, str]:
         """
         Create a Modbus master station and establish slave connection (max 5 devices).
 
@@ -1431,7 +1431,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Creating Modbus slave device at {ip}:{port} with ID {slave_id}. Mode: {isRTU}")
         return self.SendCommand(f"ModbusCreate({ip},{port},{slave_id},{isRTU})")
 
-    def ModbusRTUCreate(self, slave_id, baud, parity="E", data_bit=8, stop_bit=1):
+    def ModbusRTUCreate(self, slave_id:int, baud:int, parity:str="E", data_bit:int=8, stop_bit:int=1) -> tuple[str, str, str]:
         """
         Create a Modbus master station based on RS485 and establish slave connection (max 5 devices).
 
@@ -1451,7 +1451,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Creating Modbus slave device with ID {slave_id}. Mode: RTU, {baud},{parity},{data_bit},{stop_bit}")
         return self.SendCommand(f"ModbusRTUCreate({slave_id},{baud},{parity},{data_bit},{stop_bit})")
 
-    def ModbusClose(self, index):
+    def ModbusClose(self, index:int) -> tuple[str, str, str]:
         """
         Close the Modbus master station.
 
@@ -1467,7 +1467,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Closing Modbus master station {index}")
         return self.SendCommand(f"ModbusClose({index})")
 
-    def GetInBits(self, index, address, count):
+    def GetInBits(self, index:int, address:int, count:int) -> tuple[str, str, str]:
         """
         Read the contact register from the modbus slave device.
 
@@ -1485,7 +1485,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting input bits from Modbus slave device {index} at address {address} for {count} bits")
         return self.SendCommand(f"GetInBits({index},{address},{count})")
 
-    def GetInRegs(self, index, address, count, valType="U16"):
+    def GetInRegs(self, index:int, address:int, count:int, valType:str="U16") -> tuple[str, str, str]:
         """
         Read the input register from the modbus slave device with a specified data type.
 
@@ -1504,7 +1504,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting input registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.SendCommand(f"GetInRegs({index},{address},{count},{valType})")
 
-    def GetCoils(self, index, address, count):
+    def GetCoils(self, index:int, address:int, count:int) -> tuple[str, str, str]:
         """
         Read the coil register from the modbus slave device.
 
@@ -1522,7 +1522,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting coils from Modbus slave device {index} at address {address} for {count} coils")
         return self.SendCommand(f"GetCoils({index},{address},{count})")
 
-    def SetCoils(self, index, address, count, valTab):
+    def SetCoils(self, index:int, address:int, count:int, valTab:str) -> tuple[str, str, str]:
         """
         Write the coil register of the modbus slave device.
 
@@ -1541,7 +1541,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting coils of Modbus slave device {index} at address {address} to {valTab}")
         return self.SendCommand(f"SetCoils({index},{address},{valTab})")
 
-    def GetHoldRegs(self, index, address, count, valType="U16"):
+    def GetHoldRegs(self, index:int, address:int, count:int, valType:str="U16") -> tuple[str, str, str]:
         """
         Read the holding register from the modbus slave device with a specified data type.
 
@@ -1560,7 +1560,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting holding registers from Modbus slave device {index} at address {address} for {count} registers")
         return self.SendCommand(f"GetHoldRegs({index},{address},{count},{valType})")
 
-    def setHoldRegs(self, index, address, count, valTab, valType="U16"):
+    def setHoldRegs(self, index:int, address:int, count:int, valTab:str, valType:str="U16"):
         """
         Write the holding register of the modbus slave device with a specified data type.
 
@@ -1575,15 +1575,15 @@ class Dobot:
             The response from the robot.
 
         Example:
-            SetHoldRegs(0,3095,2,{6000,300}, "U16")
+            SetHoldRegs(0,3095,2,{6000,300},"U16")
         """
-        if self.debugLevel > 0: print(f"  Setting holding registers of Modbus slave device {index} at address {address} to {valTab}")
-        return self.SendCommand(f"SetHoldRegs({index},{address},{valTab},{valType})")
+        if self.debugLevel > 0: print(f"  Setting holding registers of Modbus slave device {index} at address {address} for {count} values to {valTab} (Type: {valType})")
+        return self.SendCommand(f"SetHoldRegs({index},{address},{count},{valTab},{valType})")
 
 
     # Bus register Commands:
 
-    def GetInputBool(self, adress):
+    def GetInputBool(self, adress:int) -> tuple[str, str, str]:
         """
         Get the input boolean value of the bus register.
 
@@ -1599,7 +1599,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting input boolean value from bus register {adress}")
         return self.SendCommand(f"GetInputBool({adress})")
 
-    def GetInputInt(self, adress):
+    def GetInputInt(self, adress:int) -> tuple[str, str, str]:
         """
         Get the input integer value of the bus register.
 
@@ -1615,7 +1615,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting input integer value from bus register {adress}")
         return self.SendCommand(f"GetInputInt({adress})")
 
-    def GetInputFloat(self, adress):
+    def GetInputFloat(self, adress:int) -> tuple[str, str, str]:
         """
         Get the input float value of the bus register.
 
@@ -1631,7 +1631,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting input float value from bus register {adress}")
         return self.SendCommand(f"GetInputFloat({adress})")
 
-    def GetOutputBool(self, adress):
+    def GetOutputBool(self, adress:int) -> tuple[str, str, str]:
         """
         Get the output boolean value of the bus register.
 
@@ -1647,7 +1647,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting output boolean value from bus register {adress}")
         return self.SendCommand(f"GetOutputBool({adress})")
 
-    def GetOutputInt(self, adress):
+    def GetOutputInt(self, adress:int) -> tuple[str, str, str]:
         """
         Get the output integer value of the bus register.
 
@@ -1663,7 +1663,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting output integer value from bus register {adress}")
         return self.SendCommand(f"GetOutputInt({adress})")
 
-    def GetOutputFloat(self, adress):
+    def GetOutputFloat(self, adress:int) -> tuple[str, str, str]:
         """
         Get the output float value of the bus register.
 
@@ -1679,7 +1679,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting output float value from bus register {adress}")
         return self.SendCommand(f"GetOutputFloat({adress})")
 
-    def SetOutputBool(self, adress, value):
+    def SetOutputBool(self, adress:int, value:int) -> tuple[str, str, str]:
         """
         Set the output boolean value of the bus register.
 
@@ -1696,7 +1696,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting output boolean value of bus register {adress} to {value}")
         return self.SendCommand(f"SetOutputBool({adress},{value})")
 
-    def SetOutputInt(self, adress, value):
+    def SetOutputInt(self, adress:int, value:int) -> tuple[str, str, str]:
         """
         Set the output integer value of the bus register.
 
@@ -1713,7 +1713,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting output integer value of bus register {adress} to {value}")
         return self.SendCommand(f"SetOutputInt({adress},{value})")
 
-    def SetOutputFloat(self, adress, value):
+    def SetOutputFloat(self, adress:int, value:float) -> tuple[str, str, str]:
         """
         Set the output float value of the bus register.
 
@@ -1734,7 +1734,7 @@ class Dobot:
     # Movement Commands:
 
     @dispatch(str)
-    def MovJ(self, P):
+    def MovJ(self, P:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion.
 
@@ -1751,7 +1751,7 @@ class Dobot:
         return self.SendCommand(f"MovJ({P})")
     
     @dispatch(str, str)
-    def MovJ(self, P, parameters):
+    def MovJ(self, P:str, parameters:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion.
 
@@ -1769,7 +1769,7 @@ class Dobot:
         return self.SendCommand(f"MovJ({P},{parameters})")
 
     @dispatch(str, int, int, int, int, int)
-    def MovJ(self, P, user, tool, a, v, cp):
+    def MovJ(self, P:str, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion.
 
@@ -1791,7 +1791,7 @@ class Dobot:
         return self.SendCommand(f"MovJ({P},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str)
-    def MovL(self, P):
+    def MovL(self, P:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through linear motion.
 
@@ -1808,7 +1808,7 @@ class Dobot:
         return self.SendCommand(f"MovL({P})")
 
     @dispatch(str, str)
-    def MovL(self, P, parameters):
+    def MovL(self, P:str, parameters:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through linear motion.
 
@@ -1826,7 +1826,7 @@ class Dobot:
         return self.SendCommand(f"MovL({P},{parameters})")
     
     @dispatch(str, int, int, int, int, int, int, int)
-    def MovL(self, P, user, tool, a, v, speed, cp, r):
+    def MovL(self, P:str, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through linear motion.
 
@@ -1850,7 +1850,7 @@ class Dobot:
         return self.SendCommand(f"MovL({P},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
-    def MovLIO(self, P, IO):
+    def MovLIO(self, P:str, IO:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through linear motion setting status of the digital output.
 
@@ -1868,7 +1868,7 @@ class Dobot:
         return self.SendCommand(f"MovL({P},{IO})")
 
     @dispatch(str, str, int, int, int, int, int, int, int)
-    def MovLIO(self, P, IO, user, tool, a, v, speed, cp, r):
+    def MovLIO(self, P:str, IO:str, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through linear motion setting status of the digital output.
 
@@ -1893,7 +1893,7 @@ class Dobot:
         return self.SendCommand(f"MovL({P},{IO},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(str, str)
-    def MovJIO(self, P, IO):
+    def MovJIO(self, P:str, IO:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion setting status of the digital output.
 
@@ -1911,7 +1911,7 @@ class Dobot:
         return self.SendCommand(f"MovJ({P},{IO})")
     
     @dispatch(str, str, int, int, int, int, int, int)
-    def MovJIO(self, P, IO, user, tool, a, v, cp):
+    def MovJIO(self, P:str, IO:str, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion setting status of the digital output.
 
@@ -1934,7 +1934,7 @@ class Dobot:
         return self.SendCommand(f"MovJ({P},{IO},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(str, str)
-    def Arc(self, P1, P2):
+    def Arc(self, P1:str, P2:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through arc motion.
 
@@ -1952,7 +1952,7 @@ class Dobot:
         return self.SendCommand(f"Arc({P1},{P2})")
 
     @dispatch(str, str, str)
-    def Arc(self, P1, P2, parameters):
+    def Arc(self, P1:str, P2:str, parameters:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through arc motion.
 
@@ -1971,7 +1971,7 @@ class Dobot:
         return self.SendCommand(f"Arc({P1},{P2},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
-    def Arc(self, P1, P2, user, tool, a, v, speed, cp, r, ori_mode):
+    def Arc(self, P1:str, P2:str, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int, ori_mode:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through arc motion.
 
@@ -1997,7 +1997,7 @@ class Dobot:
         return self.SendCommand(f"Arc({P1},{P2},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r},{ori_mode})")
 
     @dispatch(str, str, int)
-    def Circle(self, P1, P2, count):
+    def Circle(self, P1:str, P2:str, count:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through circular motion.
 
@@ -2016,7 +2016,7 @@ class Dobot:
         return self.SendCommand(f"Circle({P1},{P2},{count})")
     
     @dispatch(str, str, int, str)
-    def Circle(self, P1, P2, count, parameters):
+    def Circle(self, P1:str, P2:str, count:int, parameters:str) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through circular motion.
 
@@ -2036,7 +2036,7 @@ class Dobot:
         return self.SendCommand(f"Circle({P1},{P2},{count},{parameters})")
 
     @dispatch(str, str, int, int, int, int, int, int, int, int)
-    def Circle(self, P1, P2, count, user, tool, a, v, speed, cp, r):
+    def Circle(self, P1:str, P2:str, count:int, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through circular motion.
 
@@ -2058,17 +2058,17 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Moving robot from {P1} to {P2} through circular motion with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r} for {count} times")
         return self.SendCommand(f"Circle({P1},{P2},{count},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
-    def ServoJ(self, J1, J2, J3, J4, J5, J6, t=0.1, aheadtime=50, gain=500):
+    def ServoJ(self, J1:float, J2:float, J3:float, J4:float, J5:float, J6:float, t:float=0.1, aheadtime:float=50, gain:float=500) -> tuple[str, str, str]:
         """
         The dynamic following command based on joint space.
 
         Args:
-            J1 (double): Target position of joint 1. Unit: degree.
-            J2 (double): Target position of joint 2. Unit: degree.
-            J3 (double): Target position of joint 3. Unit: degree.
-            J4 (double): Target position of joint 4. Unit: degree.
-            J5 (double): Target position of joint 5. Unit: degree.
-            J6 (double): Target position of joint 6. Unit: degree.
+            J1 (float): Target position of joint 1. Unit: degree.
+            J2 (float): Target position of joint 2. Unit: degree.
+            J3 (float): Target position of joint 3. Unit: degree.
+            J4 (float): Target position of joint 4. Unit: degree.
+            J5 (float): Target position of joint 5. Unit: degree.
+            J6 (float): Target position of joint 6. Unit: degree.
             t (float): Running time of the point. Unit: s. Range: [0.4,3600.0]. Default is 0.1.
             aheadtime (float): Advanced time, similar to the D in PID control. Range: [20.0,100.0]. default is 50.
             gain (float): Proportional gain of the target position, similar to the P in PID control. Range: [200.0,1000.0]. Default is 500.
@@ -2082,14 +2082,14 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Moving robot to joint {J1},{J2},{J3},{J4},{J5},{J6} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.SendCommand(f"ServoJ({J1},{J2},{J3},{J4},{J5},{J6},{t},{aheadtime},{gain})")
 
-    def ServoP(self, X, Y, Z, Rx, Ry, Rz, t=0.1, aheadtime=50, gain=500):
+    def ServoP(self, X:float, Y:float, Z:float, Rx:float, Ry:float, Rz:float, t:float=0.1, aheadtime:float=50, gain:float=500) -> tuple[str, str, str]:
         """
         The dynamic following command based on pose space.
 
         Args:
-            X (double): Target position of X. Unit (XYZ): mm. Unit (RxRyRz): degree.
-            Y (double): Target position of Y. Unit (XYZ): mm. Unit (RxRyRz): degree.
-            Z (double): Target position of Z. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            X (float): Target position of X. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            Y (float): Target position of Y. Unit (XYZ): mm. Unit (RxRyRz): degree.
+            Z (float): Target position of Z. Unit (XYZ): mm. Unit (RxRyRz): degree.
             t (float): Running time of the point. Unit: s. Range: [0.4,3600.0]. Default is 0.1.
             aheadtime (float): Advanced time, similar to the D in PID control. Range: [20.0,100.0]. default is 50.
             gain (float): Proportional gain of the target position, similar to the P in PID control. Range: [200.0,1000.0]. Default is 500.
@@ -2103,7 +2103,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.SendCommand(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
 
-    def MoveJog(self, axisID, coordType=0, user=0, tool=0):
+    def MoveJog(self, axisID:str, coordType:int=0, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm. (Immediate command)
 
@@ -2123,7 +2123,7 @@ class Dobot:
         return self.SendCommand(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
 
     @dispatch(str, int, int, int, int, int)
-    def RunTo(self, P, moveType, user, tool, a, v):
+    def RunTo(self, P:str, moveType:int, user:int, tool:int, a:int, v:int) -> tuple[str, str, str]:
         """
         Move the robot to a specified point through joint motion or linear motion. (Immediate command)
 
@@ -2144,7 +2144,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Moving robot to {P} with move type {moveType}, user {user}, tool {tool}, acceleration {a}, speed {v}")
         return self.SendCommand(f"RunTo({P},{moveType},user={user},tool={tool},a={a},v={v})")
 
-    def GetStartPose(self, traceName):
+    def GetStartPose(self, traceName:str) -> tuple[str, str, str]:
         """
         Get the start point of the trajectory.
 
@@ -2161,7 +2161,7 @@ class Dobot:
         return self.SendCommand(f"GetStartPose({traceName})")
 
     @dispatch(str)
-    def StartPath(self, traceName):
+    def StartPath(self, traceName:str) -> tuple[str, str, str]:
         """
         Move according to the recorded points (including at least 4 points) in the specified trajectory file to play back the recorded trajectory.
 
@@ -2178,7 +2178,7 @@ class Dobot:
         return self.SendCommand(f"StartPath({traceName})")
 
     @dispatch(str, int, float, int, float, int, int)
-    def StartPath(self, traceName, isConst, multi, sample=50, freq=0.2, user=0, tool=0):
+    def StartPath(self, traceName:str, isConst:int, multi:float, sample:int=50, freq:float=0.2, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Move according to the recorded points (including at least 4 points) in the specified trajectory file to play back the recorded trajectory.
 
@@ -2201,7 +2201,7 @@ class Dobot:
         return self.SendCommand(f"StartPath({traceName},{isConst},{multi},sample={sample},freq={freq},user={user},tool={tool})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelMovJTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform relative motion along the tool coordinate system, and the end motion is joint motion.
 
@@ -2223,7 +2223,7 @@ class Dobot:
         return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
-    def RelMovJTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
+    def RelMovJTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
         """
         Perform relative motion along the tool coordinate system, and the end motion is joint motion.
 
@@ -2250,7 +2250,7 @@ class Dobot:
         return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelMovLTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform relative motion along the tool coordinate system, and the end motion is linear motion.
 
@@ -2272,7 +2272,7 @@ class Dobot:
         return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
-    def RelMovLTool(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
+    def RelMovLTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
         """
         Perform relative motion along the tool coordinate system, and the end motion is linear motion.
 
@@ -2301,7 +2301,7 @@ class Dobot:
         return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelMovJUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform relative motion along the user coordinate system, and the end motion is joint motion.
 
@@ -2323,7 +2323,7 @@ class Dobot:
         return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
-    def RelMovJUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, cp):
+    def RelMovJUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
         """
         Perform relative motion along the user coordinate system, and the end motion is joint motion.
 
@@ -2350,7 +2350,7 @@ class Dobot:
         return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelMovLUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform relative motion along the user coordinate system, and the end motion is linear motion.
 
@@ -2372,7 +2372,7 @@ class Dobot:
         return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
-    def RelMovLUser(self, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz, user, tool, a, v, speed, cp, r):
+    def RelMovLUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
         """
         Perform relative motion along the user coordinate system, and the end motion is linear motion.
 
@@ -2401,7 +2401,7 @@ class Dobot:
         return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
-    def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6):
+    def RelJointMovJ(self, offset1:float, offset2:float, offset3:float, offset4:float, offset5:float, offset6:float) -> tuple[str, str, str]:
         """
         Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
 
@@ -2423,7 +2423,7 @@ class Dobot:
         return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
 
     @dispatch(float, float, float, float, float, float, int, int, int)
-    def RelJointMovJ(self, offset1, offset2, offset3, offset4, offset5, offset6, user, tool, a, v, cp):
+    def RelJointMovJ(self, offset1:float, offset2:float, offset3:float, offset4:float, offset5:float, offset6:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
         """
         Perform relative motion along the joint coordinate system of each axis, and the end motion mode is joint motion.
 
@@ -2449,7 +2449,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
         return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
 
-    def RelPointTool(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelPointTool(self, P:str, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform Cartesian point offset along the tool coordinate system.
 
@@ -2471,7 +2471,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
         return self.SendCommand(f"RelPointTool({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
-    def RelPointUser(self, P, offsetX, offsetY, offsetZ, offsetRx, offsetRy, offsetRz):
+    def RelPointUser(self, P:str, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
         Perform Cartesian point offset along the user coordinate system.
 
@@ -2493,7 +2493,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Point move robot to offset ({P} with offset:{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
         return self.SendCommand(f"RelPointUser({P},{{{offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}}})")
 
-    def RelJoint(self, J1, J2, J3, J4, J5, J6, offset1, offset2, offset3, offset4, offset5, offset6):
+    def RelJoint(self, J1:float, J2:float, J3:float, J4:float, J5:float, J6:float, offset1:float, offset2:float, offset3:float, offset4:float, offset5:float, offset6:float) -> tuple[str, str, str]:
         """
         Perform relative position offset.
 
@@ -2520,7 +2520,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({J1},{J2},{J3},{J4},{J5},{J6} with offset:{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
         return self.SendCommand(f"RelJoint({J1},{J2},{J3},{J4},{J5},{J6},{{{offset1},{offset2},{offset3},{offset4},{offset5},{offset6}}})")
 
-    def GetCurrentCommandID(self):
+    def GetCurrentCommandID(self) -> tuple[str, str, str]:
         """
         Get the current command ID. It can be used to determine which command the robot is executing.
 
@@ -2536,7 +2536,7 @@ class Dobot:
 
     # Trajectory recovery commands:
 
-    def SetResumeOffset(self, distance:float) -> str:
+    def SetResumeOffset(self, distance:float) -> tuple[str, str, str]:
         """
         Set the backoff distance for trajectory recovery along the weld seam from the point where the project was paused.
 
@@ -2552,7 +2552,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting resume offset to {distance}")
         return self.SendCommand(f"SetResumeOffset({distance})")
 
-    def PathRecovery(self) -> str:
+    def PathRecovery(self) -> tuple[str, str, str]:
         """
         Resume the trajectory from the point where the project was paused.
 
@@ -2568,7 +2568,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Resuming path recovery")
         return self.SendCommand("PathRecovery()")
 
-    def PathRecoveryStop(self) -> str:
+    def PathRecoveryStop(self) -> tuple[str, str, str]:
         """
         Stop the trajectory recovery.
 
@@ -2584,7 +2584,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Stopping path recovery")
         return self.SendCommand("PathRecoveryStop()")
     
-    def PathRecoveryStatus(self) -> str:
+    def PathRecoveryStatus(self) -> tuple[str, str, str]:
         """
         Get the status of the trajectory recovery.
 
@@ -2604,7 +2604,7 @@ class Dobot:
 
     # Log Export Commands:
 
-    def LogExportUSB(self, range:int) -> str:
+    def LogExportUSB(self, range:int) -> tuple[str, str, str]:
         """
         Export the robot log file to a USB flash drive inserted into the robot.
 
@@ -2620,7 +2620,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Exporting logs to USB with range {range}")
         return self.SendCommand(f"LogExportUSB({range})")
 
-    def GetExportStatus(self) -> str:
+    def GetExportStatus(self) -> tuple[str, str, str]:
         """
         Get the status of the log export.
 
@@ -2640,7 +2640,7 @@ class Dobot:
 
     # Force control commands:
 
-    def EnableFTSensor(self, status:int) -> str:
+    def EnableFTSensor(self, status:int) -> tuple[str, str, str]:
         """
         Enable or disable the force sensor.
 
@@ -2656,7 +2656,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Enabling force sensor with status {status}")
         return self.SendCommand(f"EnableFTSensor({status})")
     
-    def SixForceHome(self) -> str:
+    def SixForceHome(self) -> tuple[str, str, str]:
         """
         Set the current force as the zero point of the force sensor.
 
@@ -2672,7 +2672,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Setting force sensor home")
         return self.SendCommand("SixForceHome()")
     
-    def GetForce(self, tool:int=0) -> str:
+    def GetForce(self, tool:int=0) -> tuple[str, str, str]:
         """
         Get the force value of the force sensor.
 
@@ -2688,7 +2688,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Getting force sensor value with tool {tool}")
         return self.SendCommand(f"GetForce({tool})")
 
-    def ForceDriveMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, user:int=0) -> str:
+    def ForceDriveMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, user:int=0) -> tuple[str, str, str]:
         """
         Specify the directions for dragging and enter force-control drag mode. See the TCP protocol for details.
 
@@ -2710,7 +2710,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force sensor to drive mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and user {user}")
         return self.SendCommand(f"ForceDriveMode({{{x},{y},{z},{rx},{ry},{rz}}},user={user})")
     
-    def ForceDriveSpped(self, speed:int) -> str:
+    def ForceDriveSpped(self, speed:int) -> tuple[str, str, str]:
         """
         Set the speed of the force control drag.
 
@@ -2726,7 +2726,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force sensor drive speed to {speed}")
         return self.SendCommand(f"ForceDriveSpped({speed})")
     
-    def StopDrag(self) -> str:
+    def StopDrag(self) -> tuple[str, str, str]:
         """
         Robot exits drag mode.
 
@@ -2742,7 +2742,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Stopping force sensor drag")
         return self.SendCommand("StopDrag()")
 
-    def FCForceMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, fx:int, fy:int, fz:int, frx:int, fry:int, frz:int, reference:int=0, user:int=0, tool:int=0) -> str:
+    def FCForceMode(self, x:int, y:int, z:int, rx:int, ry:int, rz:int, fx:int, fy:int, fz:int, frx:int, fry:int, frz:int, reference:int=0, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Enter force control mode with user parameters. See the TCP protocol for details.
 
@@ -2772,7 +2772,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control mode with coordinates ({x},{y},{z},{rx},{ry},{rz}) and forces ({fx},{fy},{fz},{frx},{fry},{frz}) with reference {reference}, user {user}, tool {tool}")
         return self.SendCommand(f"FCForceMode({{{x},{y},{z},{rx},{ry},{rz}}},{{{fx},{fy},{fz},{frx},{fry},{frz}}},reference={reference},user={user},tool={tool})")
 
-    def FCSetDeviation(self, x:int=100, y:int=100, z:int=100, rx:int=36, ry:int=36, rz:int=36, controltype:int=0) -> str:
+    def FCSetDeviation(self, x:int=100, y:int=100, z:int=100, rx:int=36, ry:int=36, rz:int=36, controltype:int=0) -> tuple[str, str, str]:
         """
         Set displacement and posture deviation in force control mode, which will trigger a response if a large deviation occurs.
 
@@ -2794,7 +2794,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control deviation with coordinates ({x},{y},{z},{rx},{ry},{rz}) and control type {controltype}")
         return self.SendCommand(f"FCSetDeviation({{{x},{y},{z},{rx},{ry},{rz}}},{controltype})")
 
-    def FCSetForceLimit(self, x:float=500, y:float=500, z:float=500, rx:float=50, ry:float=50, rz:float=50) -> str:
+    def FCSetForceLimit(self, x:float=500, y:float=500, z:float=500, rx:float=50, ry:float=50, rz:float=50) -> tuple[str, str, str]:
         """
         Set the force limit for each direction.
 
@@ -2815,7 +2815,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control force limit with forces ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetForceLimit({x},{y},{z},{rx},{ry},{rz})")
 
-    def FCSetMass(self, x:float=20, y:float=20, z:float=20, rx:float=0.5, ry:float=0.5, rz:float=0.5) -> str:
+    def FCSetMass(self, x:float=20, y:float=20, z:float=20, rx:float=0.5, ry:float=0.5, rz:float=0.5) -> tuple[str, str, str]:
         """
         Set the inertia coefficients for each direction in force control mode.
 
@@ -2836,7 +2836,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control mass with mass ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetMass({x},{y},{z},{rx},{ry},{rz})")
 
-    def FCSetDamping(self, x:float=50, y:float=50, z:float=50, rx:float=20, ry:float=20, rz:float=20) -> str:
+    def FCSetDamping(self, x:float=50, y:float=50, z:float=50, rx:float=20, ry:float=20, rz:float=20) -> tuple[str, str, str]:
         """
         Set the damping coefficients for each direction in force control mode.
 
@@ -2857,7 +2857,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control damping with damping ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetDamping({x},{y},{z},{rx},{ry},{rz})")
 
-    def FCOff(self) -> str:
+    def FCOff(self) -> tuple[str, str, str]:
         """
         Exit force control mode.
 
@@ -2873,7 +2873,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Exiting force control mode")
         return self.SendCommand("FCOff()")
     
-    def FCSetForceSpeedLimit(self, x:float=20, y:float=20, z:float=20, rx:float=20, ry:float=20, rz:float=20) -> str:
+    def FCSetForceSpeedLimit(self, x:float=20, y:float=20, z:float=20, rx:float=20, ry:float=20, rz:float=20) -> tuple[str, str, str]:
         """
         Set the speed limit for each direction in force control mode.
 
@@ -2894,7 +2894,7 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Setting force control speed limit with speeds ({x},{y},{z},{rx},{ry},{rz})")
         return self.SendCommand(f"FCSetForceSpeedLimit({x},{y},{z},{rx},{ry},{rz})")
 
-    def FCSetForce(self, x:float, y:float, z:float, rx:float, ry:float, rz:float) -> str:
+    def FCSetForce(self, x:float, y:float, z:float, rx:float, ry:float, rz:float) -> tuple[str, str, str]:
         """
         Set the force value for each direction in force control mode.
 
@@ -2918,7 +2918,7 @@ class Dobot:
 
     # Added Commands (not standard command from TCP protocol):
 
-    def Connect(self):
+    def Connect(self) -> tuple[str, str, str]:
         """
         Connect to the Dobot Magician E6 robot.
 
@@ -2947,7 +2947,7 @@ class Dobot:
             print("  Connection error")
             self.connection = None
 
-    def Disconnect(self):
+    def Disconnect(self) -> tuple[str, str, str]:
         """
         Disconnect from the Dobot Magician E6 robot.
 
@@ -2965,7 +2965,7 @@ class Dobot:
             self.connection = None
             if self.debugLevel > 0: print("  Disconnected from Dobot Magician E6")
 
-    def SendCommand(self, command):
+    def SendCommand(self, command:str) -> tuple[str, str, str]:
         """
         Send a command to the Dobot and receive a response.
 
@@ -2992,7 +2992,7 @@ class Dobot:
         else:
             raise Exception("  ! Not connected to Dobot Magician E6")
 
-    def SetDebugLevel(self, debugLevel:int):
+    def SetDebugLevel(self, debugLevel:int) -> tuple[str, str, str]:
         """
         Set the debug level for the Dobot Object.
 
@@ -3007,17 +3007,17 @@ class Dobot:
         """
         self.debugLevel = debugLevel
 
-    def MoveJJ(self,j1,j2,j3,j4,j5,j6):
+    def MoveJJ(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified joint position using joint motion.
 
         Args:
-            j1 (int): Joint 1 angle.
-            j2 (int): Joint 2 angle.
-            j3 (int): Joint 3 angle.
-            j4 (int): Joint 4 angle.
-            j5 (int): Joint 5 angle.
-            j6 (int): Joint 6 angle.
+            j1 (float): Joint 1 angle.
+            j2 (float): Joint 2 angle.
+            j3 (float): Joint 3 angle.
+            j4 (float): Joint 4 angle.
+            j5 (float): Joint 5 angle.
+            j6 (float): Joint 6 angle.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3029,17 +3029,17 @@ class Dobot:
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def MoveJP(self,j1,j2,j3,j4,j5,j6):
+    def MoveJP(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified pose using joint motion.
 
         Args:
-            j1 (int): Joint 1 angle.
-            j2 (int): Joint 2 angle.
-            j3 (int): Joint 3 angle.
-            j4 (int): Joint 4 angle.
-            j5 (int): Joint 5 angle.
-            j6 (int): Joint 6 angle.
+            j1 (float): Joint 1 angle.
+            j2 (float): Joint 2 angle.
+            j3 (float): Joint 3 angle.
+            j4 (float): Joint 4 angle.
+            j5 (float): Joint 5 angle.
+            j6 (float): Joint 6 angle.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3051,17 +3051,17 @@ class Dobot:
         move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def MoveLJ(self,j1,j2,j3,j4,j5,j6):
+    def MoveLJ(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified joint position using linear motion.
 
         Args:
-            j1 (int): Joint 1 angle.
-            j2 (int): Joint 2 angle.
-            j3 (int): Joint 3 angle.
-            j4 (int): Joint 4 angle.
-            j5 (int): Joint 5 angle.
-            j6 (int): Joint 6 angle.
+            j1 (float): Joint 1 angle.
+            j2 (float): Joint 2 angle.
+            j3 (float): Joint 3 angle.
+            j4 (float): Joint 4 angle.
+            j5 (float): Joint 5 angle.
+            j6 (float): Joint 6 angle.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3073,17 +3073,17 @@ class Dobot:
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def MoveLP(self,j1,j2,j3,j4,j5,j6):
+    def MoveLP(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified pose using linear motion.
 
         Args:
-            j1 (int): Joint 1 angle.
-            j2 (int): Joint 2 angle.
-            j3 (int): Joint 3 angle.
-            j4 (int): Joint 4 angle.
-            j5 (int): Joint 5 angle.
-            j6 (int): Joint 6 angle.
+            j1 (float): Joint 1 angle.
+            j2 (float): Joint 2 angle.
+            j3 (float): Joint 3 angle.
+            j4 (float): Joint 4 angle.
+            j5 (float): Joint 5 angle.
+            j6 (float): Joint 6 angle.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3095,7 +3095,7 @@ class Dobot:
         move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def Home(self):
+    def Home(self) -> tuple[str, str, str]:
         """
         Move the robot to the home position through joint motion.
 
@@ -3108,7 +3108,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Moving robot to home position")
         return self.MoveJJ(0, 0, 0, 0, 0, 0)
 
-    def Pack(self):
+    def Pack(self) -> tuple[str, str, str]:
         """
         Move the robot to the packing position through joint motion.
 
@@ -3121,7 +3121,7 @@ class Dobot:
         if self.debugLevel > 0: print("  Moving robot to packing position")
         return self.MoveJJ(-90, 0, -140, -40, 0, 0)
        
-    def SetSucker(self, status):
+    def SetSucker(self, status) -> tuple[str, str, str]:
         """
         Set the sucker status.
 
@@ -3138,10 +3138,9 @@ class Dobot:
         return self.ToolDO(1,status)
     
 
-
     # Parsing functions
 
-    def ParseResponse(self, response):
+    def ParseResponse(self, response:str) -> tuple[str, str, str]:
         """
         Parse the response from the robot.
 
@@ -3186,7 +3185,7 @@ class Dobot:
         # Return as a tuple
         return error, response, command
     
-    def ParseError(self, errcode):
+    def ParseError(self, errcode:int) -> tuple[str, str, str]:
         """
         Parse the error code to a human readable error message.
 
@@ -3202,7 +3201,7 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing error code {errcode}\n    ", end="")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
 
-    def ParseRobotMode(self, mode):
+    def ParseRobotMode(self, mode:int) -> tuple[str, str, str]:
         """
         Parse the robot mode to a human readable message.
 
@@ -3218,7 +3217,7 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing robot mode {mode}\n    ", end="")
         return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
 
-    def ParseRobotType(self, type):
+    def ParseRobotType(self, type:int) -> tuple[str, str, str]:
         """
         Parse the robot type to a human readable message.
 
@@ -3255,7 +3254,7 @@ class FlexGripper:
         self.DOvacuum = DOvacuum
         self.DOpressure = DOpressure
 
-    def Open(self) -> str:
+    def Open(self) -> tuple[str, str, str]:
         """
         Open the flexible gripper
 
@@ -3269,7 +3268,7 @@ class FlexGripper:
         self.robot.DO(self.DOvacuum,0)
         return self.robot.DO(self.DOpressure,1)  
 
-    def Close(self) -> str:
+    def Close(self) -> tuple[str, str, str]:
         """
         Closes the flexible gripper
 
@@ -3283,7 +3282,7 @@ class FlexGripper:
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,1) 
     
-    def Neutral(self) -> str:
+    def Neutral(self) -> tuple[str, str, str]:
         """
         Puts the flexible gripper in the neutral state.
 
@@ -3297,7 +3296,7 @@ class FlexGripper:
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,0)
     
-    def SetState(self, state:int, vacuum:int=1, pressure:int=2) -> str:
+    def SetState(self, state:int, vacuum:int=1, pressure:int=2) -> tuple[str, str, str]:
         """
         Set the status of the flexible gripper
 
@@ -3350,7 +3349,7 @@ class ServoGripper:
         self.DIout1 = DIout1
         self.DIout2 = DIout2
     
-    def SetState(self, state) -> str:
+    def SetState(self, state) -> tuple[str, str, str]:
         """
         Set the state of the servo gripper.
 
@@ -3384,7 +3383,7 @@ class ServoGripper:
             case _:
                 return "    Invalid state group. Please choose a value between 1 and 4."
             
-    def GetState(self) -> str:
+    def GetState(self) -> tuple[str, str, str]:
         """
         Get the state of the servo gripper.
 
@@ -3432,7 +3431,7 @@ class Feedback:
         self.client = None
         self.data = {}
 
-    def Connect(self):
+    def Connect(self) -> None:
         """
         Connect to the robot's feedback port.
 
@@ -3445,9 +3444,9 @@ class Feedback:
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((self.robot.ip, self.port))
 
-    def Get(self):
+    def Get(self) -> None:
         """
-        Get feedback from the robot.
+        Get feedback from the robot. Data is stored in the data attribute.
 
         Returns:
             None
@@ -3458,7 +3457,7 @@ class Feedback:
         rawdata = self.client.recv(1440)
         self.data = self.Parse_feedback(rawdata)
 
-    def Parse_feedback(self, data):
+    def Parse_feedback(self, data) -> dict:
         """
         Parse the feedback data from the robot.
         
