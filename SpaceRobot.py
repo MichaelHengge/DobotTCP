@@ -10,12 +10,20 @@ class SpaceMouseGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("SpaceMouse Control GUI")
-        self.root.geometry("500x630")
+
+        window_width = 500
+        window_height = 725
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width // 2) - (window_width // 2)
+        y = (screen_height // 2) - (window_height // 2)
+
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
         self.toolState = 0
         self.initialized = False
         self.isEnabled = False
-        self.robotMode = -1
-        self.motionMode = ""
+        self.robotState = -1
+        self.robotMode = 0
         self.mode = tk.StringVar(value="Simulation")
         self.axis_states = {  # Track axis activity states
             "X": "inactive",
@@ -144,7 +152,7 @@ class SpaceMouseGUI:
 
         button_options = ["None", "Toggle Tool", "Home", "Pack", "Pickup", "Toggle Mode"]
         button_actions = ["Button L", "Button R"]
-        preselected_buttons = ["Toggle Tool", "Pickup"]
+        preselected_buttons = ["Toggle Tool", "Toggle Mode"]
         self.button_indicators = []
 
         for i, button in enumerate(button_actions):
@@ -194,6 +202,16 @@ class SpaceMouseGUI:
         white_canvas.pack(side=tk.LEFT, padx=5)
         tk.Label(sample_frame, text="Neutral").pack(side=tk.LEFT, padx=10)
 
+        # Add status label at the bottom
+        self.status_label = tk.Label(
+            self.root,
+            text="",
+            fg="red",
+            anchor="center",
+            font=("Helvetica", 14, "bold")  # Bold, larger font
+        )
+        self.status_label.pack(fill="x", pady=10)
+
         # Running flag for thread
         self.running = True
 
@@ -204,6 +222,10 @@ class SpaceMouseGUI:
 
         # Start GUI update loop
         self.update_gui()
+
+    def set_status(self, message=""):
+        """Set the status label text."""
+        self.status_label.config(text=message)
 
     def update_threshold_display(self, *args):
         """Limit the threshold display to two decimal places."""
@@ -253,12 +275,18 @@ class SpaceMouseGUI:
                 robot.MoveJog("J1+")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("X+", mID)
+                robot.MoveJog("X+", 2)
             elif direction == "negative":
-                robot.MoveJog("X-", mID)
+                robot.MoveJog("X-", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User":  # User
+            if direction == "positive":
+                robot.MoveJog("Y+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Y-", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -271,12 +299,18 @@ class SpaceMouseGUI:
                 robot.MoveJog("J2-")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("Y-", mID)
+                robot.MoveJog("Y-", 2)
             elif direction == "negative":
-                robot.MoveJog("Y+", mID)
+                robot.MoveJog("Y+", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User":
+            if direction == "positive":
+                robot.MoveJog("X-", 1)
+            elif direction == "negative":
+                robot.MoveJog("X+", 1)
             elif direction == "zero":
                 robot.MoveJog()
  
@@ -289,12 +323,18 @@ class SpaceMouseGUI:
                 robot.MoveJog("J3+")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("Z-", mID)
+                robot.MoveJog("Z-", 2)
             elif direction == "negative":
-                robot.MoveJog("Z+", mID)
+                robot.MoveJog("Z+", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User": # User
+            if direction == "positive":
+                robot.MoveJog("Z-", 1)
+            elif direction == "negative":
+                robot.MoveJog("Z+", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -307,12 +347,18 @@ class SpaceMouseGUI:
                 robot.MoveJog("J4-")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("Rx+", mID)
+                robot.MoveJog("Rx+", 2)
             elif direction == "negative":
-                robot.MoveJog("Rx-", mID)
+                robot.MoveJog("Rx-", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User":  # User
+            if direction == "positive":
+                robot.MoveJog("Rx+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Rx-", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -325,12 +371,18 @@ class SpaceMouseGUI:
                 robot.MoveJog("J5-")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("Ry+", mID)
+                robot.MoveJog("Ry+", 2)
             elif direction == "negative":
-                robot.MoveJog("Ry-", mID)
+                robot.MoveJog("Ry-", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User":  # User
+            if direction == "positive":
+                robot.MoveJog("Ry+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Ry-", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -343,39 +395,32 @@ class SpaceMouseGUI:
                 robot.MoveJog("J6-")
             elif direction == "zero":
                 robot.MoveJog()
-        elif mode == "Tool" or mode == 'User':  # Tool or User mode
-            mID = 1 if mode == "User" else 2
+        elif mode == "Tool":  # Tool
             if direction == "positive":
-                robot.MoveJog("Rz+", mID)
+                robot.MoveJog("Rz+", 2)
             elif direction == "negative":
-                robot.MoveJog("Rz-", mID)
+                robot.MoveJog("Rz-", 2)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "User":  # User
+            if direction == "positive":
+                robot.MoveJog("Rz+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Rz-", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
     def on_button_0_pressed(self):
         selected_value = self.comboboxes[6].get()
         print(f"Button 0 pressed. Selected action: {selected_value}")
-        match selected_value:
-            case "Toggle Tool":
-                if self.toolState == 0:
-                    robot.SetSucker(1)
-                    self.toolState = 1
-                else:
-                    robot.SetSucker(0)
-                    self.toolState = 0
-            case "Home":
-                robot.Home()
-            case "Pack":
-                robot.Pack()
-            case "Pickup":
-                robot.MoveJJ(48,34,83,-26,-90,0)
-            case "Toggle Mode":
-                self.motionMode = self.mode.get()
-                pass
+        self.button_action(selected_value)
 
     def on_button_1_pressed(self):
         selected_value = self.comboboxes[7].get()
         print(f"Button 0 pressed. Selected action: {selected_value}")
+        self.button_action(selected_value)
+
+    def button_action(self, selected_value):
         match selected_value:
             case "Toggle Tool":
                 if self.toolState == 0:
@@ -391,8 +436,17 @@ class SpaceMouseGUI:
             case "Pickup":
                 robot.MoveJJ(48,34,83,-26,-90,0)
             case "Toggle Mode":
-                self.motionMode = self.mode.get()
-                pass
+                self.robotMode += 1
+                if self.robotMode == 4: self.robotMode = 1
+                match self.robotMode:
+                    case 0:
+                        self.mode.set("Simulation")
+                    case 1:
+                        self.mode.set("Joints")
+                    case 2:
+                        self.mode.set("User")
+                    case 3:
+                        self.mode.set("Tool")        
 
     def update_gui(self):
         """Update the GUI with the latest SpaceMouse data."""
@@ -483,12 +537,14 @@ class SpaceMouseGUI:
 
     def on_clear_error(self):
         robot.ClearError()
+        self.set_status()
 
     def on_home(self):
         robot.Home()
 
     def on_stop(self):
         print("STOP button pressed.")
+        self.set_status("EMERGENCY STOP")
         robot.EmergencyStop(1)
 
 if __name__ == "__main__":
@@ -512,6 +568,9 @@ if __name__ == "__main__":
     elif robotMode == "{5}": # Enabled
         app.enable_button.config(text="Disable")
         app.isEnabled = True
+    elif robotMode == "Control Mode Is Not Tcp":
+        print("Control mode is not TCP.")
+        app.set_status("Control mode is not TCP.")
     else:
         print(f"Unknown robot mode ({robotMode}).")
 
