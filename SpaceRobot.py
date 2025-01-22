@@ -12,6 +12,7 @@ class SpaceMouseGUI:
         self.root.title("SpaceMouse Control GUI")
         self.root.geometry("500x620")
         self.toolState = 0
+        self.moveState = 0
 
         # Variables to store SpaceMouse data
         self.axis_data = [0, 0, 0]
@@ -182,8 +183,16 @@ class SpaceMouseGUI:
         color = "green" if value > threshold else "red" if value < -threshold else "white"
         canvas.itemconfig(circle, fill=color)
 
-    def on_translation_x_active(self, direction):
-        pass
+    def on_translation_x_active(self, posDir):
+        if self.moveState == 0:
+            self.moveState = 1
+            if posDir:
+                robot.MoveJog("J1+")
+            else:
+                robot.MoveJog("J1-")
+        else:
+            robot.MoveJog("stop")
+            self.moveState = 0
 
     def on_translation_y_active(self, direction):
         pass
@@ -232,17 +241,17 @@ class SpaceMouseGUI:
         for i, (canvas, circle) in enumerate(self.indicators):
             self.update_indicator(canvas, circle, values[i])
             if i == 0 and abs(values[i]) > self.threshold.get():
-                self.on_translation_x_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_translation_x_active(True if values[i] > self.threshold.get() else False)
             elif i == 1 and abs(values[i]) > self.threshold.get():
-                self.on_translation_y_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_translation_y_active(True if values[i] > self.threshold.get() else False)
             elif i == 2 and abs(values[i]) > self.threshold.get():
-                self.on_translation_z_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_translation_z_active(True if values[i] > self.threshold.get() else False)
             elif i == 3 and abs(values[i]) > self.threshold.get():
-                self.on_rotation_pitch_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_rotation_pitch_active(True if values[i] > self.threshold.get() else False)
             elif i == 4 and abs(values[i]) > self.threshold.get():
-                self.on_rotation_roll_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_rotation_roll_active(True if values[i] > self.threshold.get() else False)
             elif i == 5 and abs(values[i]) > self.threshold.get():
-                self.on_rotation_yaw_active("positive" if values[i] > self.threshold.get() else "negative")
+                self.on_rotation_yaw_active(True if values[i] > self.threshold.get() else False)
 
         button_states = self.button_data.split(", ")
         for i, (canvas, circle) in enumerate(self.button_indicators):

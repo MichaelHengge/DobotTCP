@@ -153,7 +153,7 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
-            response = self.SendCommand("EnableRobot()")
+            (_,response,_) = self.SendCommand("EnableRobot()")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
@@ -2103,6 +2103,41 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Moving robot to pose {X},{Y},{Z},{Rx},{Ry},{Rz} with time {t}, ahead time {aheadtime}, gain {gain}")
         return self.SendCommand(f"ServoP({X},{Y},{Z},{Rx},{Ry},{Rz},{t},{aheadtime},{gain})")
 
+    @dispatch()
+    def MoveJog(self) -> tuple[str, str, str]:
+        """
+        Stop the robot arm from jogging. (Immediate command)
+
+        Args:
+            None
+
+        Returns:
+            Response from the robot.
+
+        Example:
+            MoveJog()
+        """
+        if self.debugLevel > 0: print(f"  Stopping Jog.")
+        return self.SendCommand(f"MoveJog()")
+    
+    @dispatch(str)
+    def MoveJog(self, axisID:str) -> tuple[str, str, str]:
+        """
+        Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm. (Immediate command)
+
+        Args:
+            axisID (string): Axis ID (case sensitive). (J1-6/X/Y/Z/Rx/Ry/Rz)+: positive direction. (J1-6/X/Y/Z/Rx/Ry/Rz)-: negative direction.         
+
+        Returns:
+            Response from the robot.
+
+        Example:
+            MoveJog("X+")
+        """
+        if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID}")
+        return self.SendCommand(f"MoveJog({axisID})")
+
+    @dispatch(str, int, int, int)
     def MoveJog(self, axisID:str, coordType:int=0, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
         Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm. (Immediate command)
@@ -2120,7 +2155,7 @@ class Dobot:
             MoveJog("X+",coordType=1,user=1,tool=1)
         """
         if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
-        return self.SendCommand(f"MoveJog({axisID},{coordType},user={user},tool={tool})")
+        return self.SendCommand(f"MoveJog({axisID},coordtype={coordType},user={user},tool={tool})")
 
     @dispatch(str, int, int, int, int, int)
     def RunTo(self, P:str, moveType:int, user:int, tool:int, a:int, v:int) -> tuple[str, str, str]:
@@ -2918,7 +2953,7 @@ class Dobot:
 
     # Added Commands (not standard command from TCP protocol):
 
-    def Connect(self) -> tuple[str, str, str]:
+    def Connect(self) -> None:
         """
         Connect to the Dobot Magician E6 robot.
 
