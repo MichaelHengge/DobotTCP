@@ -2137,6 +2137,24 @@ class Dobot:
         if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID}")
         return self.SendCommand(f"MoveJog({axisID})")
 
+    @dispatch(str, int)
+    def MoveJog(self, axisID:str, coordType:int=0) -> tuple[str, str, str]:
+        """
+        Jog the robot arm or stop it. After the command is delivered, the robot arm will continuously jog along the specified axis, and it will stop once MoveJog () is delivered. In addition, when the robot arm is jogging, the delivery of MoveJog (string) with any non-specified string will also stop the motion of the robot arm. (Immediate command)
+
+        Args:
+            axisID (string): Axis ID (case sensitive). (J1-6/X/Y/Z/Rx/Ry/Rz)+: positive direction. (J1-6/X/Y/Z/Rx/Ry/Rz)-: negative direction.
+            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0. Has to be 1 or 2 when axisID is cartesian.
+
+        Returns:
+            Response from the robot.
+
+        Example:
+            MoveJog("X+",2)
+        """
+        if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}")
+        return self.SendCommand(f"MoveJog({axisID},coordtype={coordType})")
+
     @dispatch(str, int, int, int)
     def MoveJog(self, axisID:str, coordType:int=0, user:int=0, tool:int=0) -> tuple[str, str, str]:
         """
@@ -2144,7 +2162,7 @@ class Dobot:
 
         Args:
             axisID (string): Axis ID (case sensitive). (J1-6/X/Y/Z/Rx/Ry/Rz)+: positive direction. (J1-6/X/Y/Z/Rx/Ry/Rz)-: negative direction.
-            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0. Has to be 1 or when axisID is cartesian
+            coordType (int): Specify the coordinate system of axis (effective only when axisID specifies the axis in Cartesian coordinate system). 0: joint, 1: user coordinate system, 2: tool coordinate system. Default is 0. Has to be 1 or 2 when axisID is cartesian
             user (int): User coordinate system index. (0) is the global user coordinate system. Default is 0. Range: [0,50]
             tool (int): Tool coordinate system index. (0) is the global tool coordinate system. Default is 0. Range: [0,50]
 
@@ -2152,7 +2170,7 @@ class Dobot:
             Response from the robot.
 
         Example:
-            MoveJog("X+",coordType=1,user=1,tool=1)
+            MoveJog("X+",1,1,1)
         """
         if self.debugLevel > 0: print(f"  Jogging robot on axis {axisID} with coordinate type {coordType}, user {user}, tool {tool}")
         return self.SendCommand(f"MoveJog({axisID},coordtype={coordType},user={user},tool={tool})")
