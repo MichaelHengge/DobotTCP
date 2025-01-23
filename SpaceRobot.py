@@ -661,12 +661,12 @@ class SpaceMouseGUI:
 
     def fetch_robot_feedback(self):
         """Function to fetch feedback from the robot."""
-        feedback.Get()
-        mode = feedback.data.get('RobotMode')
-        self.set_status(robot.ParseRobotMode(mode)(":")[1])
-
-        # Schedule the function to run again after 500 ms
-        self.root.after(500, self.fetch_robot_feedback)
+        while (1):
+            feedback.Get()
+            mode = feedback.data.get('RobotMode')
+            print("Fetching robot feedback: ", mode)
+            self.set_status("Status: " + robot.ParseRobotMode(mode).split(":")[1].strip())
+            time.sleep(0.5)
 
 if __name__ == "__main__":
     global robotMode
@@ -677,6 +677,7 @@ if __name__ == "__main__":
 
     # Ensure clean exit
     def on_closing():
+        app.running = False
         app.stop()
         root.destroy()
 
@@ -701,7 +702,8 @@ if __name__ == "__main__":
         print(f"Unknown robot mode ({robotMode}).")
         app.set_status("Unknown State", isError=True)
 
-    app.fetch_robot_feedback()  # Start fetching robot feedback
+    app.feedback_thread = threading.Thread(target=app.fetch_robot_feedback, daemon=True)
+    app.feedback_thread.start()
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()

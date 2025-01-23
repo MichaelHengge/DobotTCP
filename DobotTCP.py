@@ -3507,6 +3507,18 @@ class Feedback:
         Example:
             Get()
         """
+        # Clear the buffer
+        self.client.setblocking(False)
+        while True:
+            try:
+                data = self.client.recv(1440)
+                if not data:
+                    break
+            except:
+                break
+        self.client.setblocking(True)
+        # wait 10 ms for the data to be ready
+        time.sleep(0.01)
         rawdata = self.client.recv(1440)
         self.data = self.ParseFeedback(rawdata)
 
