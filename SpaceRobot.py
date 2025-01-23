@@ -4,7 +4,7 @@ from tkinter import StringVar, ttk, Canvas
 import pyspacemouse
 import time
 
-from DobotTCP import Dobot
+from DobotTCP import Dobot, Feedback
 
 class SpaceMouseGUI:
     def __init__(self, root):
@@ -12,7 +12,7 @@ class SpaceMouseGUI:
         self.root.title("SpaceMouse Control GUI")
 
         window_width = 500
-        window_height = 750
+        window_height = 700
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width // 2) - (window_width // 2)
@@ -117,7 +117,7 @@ class SpaceMouseGUI:
         self.indicators = []
 
         mapping_frame = tk.Frame(self.root)
-        mapping_frame.pack(pady=20)
+        mapping_frame.pack()
 
         tk.Label(mapping_frame, text="Map SpaceMouse inputs to robot joints:").pack(pady=(0, 10))
 
@@ -184,11 +184,15 @@ class SpaceMouseGUI:
 
         # Add text entry below Button R combobox
         self.user_command = tk.Entry(button_mapping_frame, width=23, state="disabled")
-        self.user_command.pack(padx=(40, 5), pady=5)  # Add the text entry
+        self.user_command.pack(padx=(40, 5))  # Add the text entry
+
+        # Add horizontal separator
+        separator = ttk.Separator(self.root, orient="horizontal")
+        separator.pack(fill="x", pady=5)
 
         # Add a legend for the indicators
         legend_frame = tk.Frame(self.root)
-        legend_frame.pack(pady=20)
+        legend_frame.pack()
 
         tk.Label(legend_frame, text="Indicator Legend:").pack(pady=(0, 10))
 
@@ -213,15 +217,21 @@ class SpaceMouseGUI:
         white_canvas.pack(side=tk.LEFT, padx=5)
         tk.Label(sample_frame, text="Neutral").pack(side=tk.LEFT, padx=10)
 
-        # Add status label at the bottom
-        self.status_label = tk.Label(
+        # Add horizontal separator
+        separator = ttk.Separator(self.root, orient="horizontal")
+        separator.pack(fill="x", pady=5)
+
+        # Add status labels at the bottom
+        self.error_label = tk.Label(
             self.root,
             text="",
             fg="red",
             anchor="center",
             font=("Helvetica", 14, "bold")  # Bold, larger font
         )
-        self.status_label.pack(fill="x", pady=10)
+        self.error_label.pack(fill="x", pady=5)
+        self.status_label = tk.Label(self.root, text="")
+        self.status_label.pack(pady=5, anchor="w")
 
         # Running flag for thread
         self.running = True
@@ -243,9 +253,12 @@ class SpaceMouseGUI:
         else:
             self.user_command.config(state="disabled")  # Disable textbox
 
-    def set_status(self, message=""):
+    def set_status(self, message="", isError=False):
         """Set the status label text."""
-        self.status_label.config(text=message)
+        if isError:
+            self.error_label.config(text=message)
+        else:
+            self.status_label.config(text=message)
 
     def update_threshold_display(self, *args):
         """Limit the threshold display to two decimal places."""
@@ -611,7 +624,7 @@ class SpaceMouseGUI:
                 (_,rsp,_) = robot.DisableRobot()
                 if rsp == "Control Mode Is Not Tcp":
                     print("Control mode is not TCP.")
-                    self.set_status("Control mode is not Tcp.")
+                    self.set_status("Control mode is not Tcp.", isError=True)
                 else:
                     print("Disabling robot.")
                     self.enable_button.config(text="Enable")
@@ -620,7 +633,7 @@ class SpaceMouseGUI:
                 (_,rsp,_) = robot.EnableRobot()
                 if rsp == "Control Mode Is Not Tcp":
                     print("Control mode is not TCP.")
-                    self.set_status("Control mode is not Tcp.")
+                    self.set_status("Control mode is not Tcp.", isError=True)
                 else:
                     print("Enabling robot.")
                     self.enable_button.config(text="Disable")
@@ -629,14 +642,14 @@ class SpaceMouseGUI:
         except Exception as e:
             if str(e) == "Control Mode Is Not Tcp":
                 print("Control mode is not Tcp")
-                self.set_status("Control mode is not Tcp")
+                self.set_status("Control mode is not Tcp", isError=True)
             else:
                 print(f"Error: {e}")
                 self.set_status(f"Error: {e}")
 
     def on_clear_error(self):
         robot.ClearError()
-        self.set_status()
+        self.set_status("", isError=True)
 
     def on_home(self):
         robot.Home()
@@ -646,33 +659,49 @@ class SpaceMouseGUI:
         self.set_status("EMERGENCY STOP")
         robot.EmergencyStop(1)
 
+    def fetch_robot_feedback(self):
+        """Function to fetch feedback from the robot."""
+        feedback.Get()
+        mode = feedback.data.get('RobotMode')
+        self.set_status(robot.ParseRobotMode(mode)(":")[1])
+
+        # Schedule the function to run again after 500 ms
+        self.root.after(500, self.fetch_robot_feedback)
+
 if __name__ == "__main__":
     global robotMode
     root = tk.Tk()
     app = SpaceMouseGUI(root)
     robot = Dobot()
+    feedback = Feedback(robot)
 
     # Ensure clean exit
     def on_closing():
         app.stop()
         root.destroy()
 
+    app.set_status("Connecting to robot...")
     robot.Connect()
+    feedback.Connect()
     robot.SetDebugLevel(0)
     (_,robotMode,_) = robot.RobotMode()
 
     if robotMode == "{4}": # Disabled
+        app.set_status("Robot Status: Disabled")
         app.enable_button.config(text="Enable")
         app.isEnabled = False
     elif robotMode == "{5}": # Enabled
+        app.set_status("Robot Status: Enabled")
         app.enable_button.config(text="Disable")
         app.isEnabled = True
     elif robotMode == "Control Mode Is Not Tcp":
         print("Control mode is not TCP.")
-        app.set_status("Control mode is not Tcp.")
+        app.set_status("Control mode is not Tcp.", isError=True)
     else:
         print(f"Unknown robot mode ({robotMode}).")
+        app.set_status("Unknown State", isError=True)
 
+    app.fetch_robot_feedback()  # Start fetching robot feedback
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
