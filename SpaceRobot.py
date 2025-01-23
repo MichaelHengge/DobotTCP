@@ -229,9 +229,9 @@ class SpaceMouseGUI:
             anchor="center",
             font=("Helvetica", 14, "bold")  # Bold, larger font
         )
-        self.error_label.pack(fill="x", pady=5)
+        self.error_label.pack(fill="x")
         self.status_label = tk.Label(self.root, text="")
-        self.status_label.pack(pady=5, anchor="w")
+        self.status_label.pack(anchor="w")
 
         # Running flag for thread
         self.running = True
@@ -662,11 +662,14 @@ class SpaceMouseGUI:
     def fetch_robot_feedback(self):
         """Function to fetch feedback from the robot."""
         while (1):
-            feedback.Get()
-            mode = feedback.data.get('RobotMode')
-            print("Fetching robot feedback: ", mode)
-            self.set_status("Status: " + robot.ParseRobotMode(mode).split(":")[1].strip())
-            time.sleep(0.5)
+            try:
+                feedback.Get()
+                mode = feedback.data.get('RobotMode')
+                self.set_status("Status: " + robot.ParseRobotMode(mode).split(":")[1].strip())
+                time.sleep(0.5)
+            except Exception as e:
+                self.set_status(f"Error: {e}" , isError=True)
+                time.sleep(0.5)
 
 if __name__ == "__main__":
     global robotMode
