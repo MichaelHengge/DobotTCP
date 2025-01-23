@@ -153,13 +153,13 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
-            (_,response,_) = self.SendCommand("EnableRobot()")
+            (error,response,cmd) = self.SendCommand("EnableRobot()")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
             else:
                 self.isEnabled = True
-                return response
+                return (error,response,cmd)
         else:
             return "Robot is already enabled."
 

@@ -12,7 +12,7 @@ class SpaceMouseGUI:
         self.root.title("SpaceMouse Control GUI")
 
         window_width = 500
-        window_height = 725
+        window_height = 750
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width // 2) - (window_width // 2)
@@ -72,6 +72,7 @@ class SpaceMouseGUI:
         self.threshold.trace("w", self.update_threshold_display)
         self.mode.trace("w", self.update_combobox_options)
 
+
         # Mode switch radio buttons
         mode_frame = tk.Frame(self.root)
         mode_frame.pack(pady=10)
@@ -90,6 +91,9 @@ class SpaceMouseGUI:
         tool_radio = tk.Radiobutton(mode_frame, text="Tool", variable=self.mode, value="Tool")
         tool_radio.pack(side=tk.LEFT, padx=5)
 
+        tool_radio = tk.Radiobutton(mode_frame, text="Custom", variable=self.mode, value="Custom")
+        tool_radio.pack(side=tk.LEFT, padx=5)
+
         # Lock controls checkboxes
         self.lock_translation = tk.BooleanVar(value=False)  # Default: unlocked
         self.lock_rotation = tk.BooleanVar(value=False)  # Default: unlocked
@@ -102,7 +106,6 @@ class SpaceMouseGUI:
 
         rotation_checkbox = tk.Checkbutton(lock_controls_frame, text="Lock Rotation", variable=self.lock_rotation)
         rotation_checkbox.pack(side=tk.LEFT, padx=5)
-
 
         # Add horizontal separator
         separator = ttk.Separator(self.root, orient="horizontal")
@@ -150,7 +153,7 @@ class SpaceMouseGUI:
 
         tk.Label(button_mapping_frame, text="Map SpaceMouse buttons to robot actions:").pack(pady=(0, 10))
 
-        button_options = ["None", "Toggle Tool", "Home", "Pack", "Pickup", "Toggle Mode"]
+        button_options = ["None", "Toggle Tool", "Home", "Pack", "Pickup", "Toggle Mode", "User Command"]
         button_actions = ["Button L", "Button R"]
         preselected_buttons = ["Toggle Tool", "Toggle Mode"]
         self.button_indicators = []
@@ -174,6 +177,14 @@ class SpaceMouseGUI:
 
         # Track button press states
         self.button_states = {"Button 0": False, "Button 1": False}
+
+        # Bind the callback to update the textbox state
+        self.comboboxes[6].bind("<<ComboboxSelected>>", lambda event: self.update_textbox_state())
+        self.comboboxes[7].bind("<<ComboboxSelected>>", lambda event: self.update_textbox_state())
+
+        # Add text entry below Button R combobox
+        self.user_command = tk.Entry(button_mapping_frame, width=23, state="disabled")
+        self.user_command.pack(padx=(40, 5), pady=5)  # Add the text entry
 
         # Add a legend for the indicators
         legend_frame = tk.Frame(self.root)
@@ -223,6 +234,15 @@ class SpaceMouseGUI:
         # Start GUI update loop
         self.update_gui()
 
+    def update_textbox_state(self):
+        """Enable or disable the textbox based on the Button combobox selection."""
+        selected_value1 = self.comboboxes[6].get()  # Get Button 1 combobox value
+        selected_value2 = self.comboboxes[7].get()  # Get Button 2 combobox value
+        if selected_value1 == "User Command" or selected_value2 == "User Command":
+            self.user_command.config(state="normal")  # Enable textbox
+        else:
+            self.user_command.config(state="disabled")  # Disable textbox
+
     def set_status(self, message=""):
         """Set the status label text."""
         self.status_label.config(text=message)
@@ -231,14 +251,32 @@ class SpaceMouseGUI:
         """Limit the threshold display to two decimal places."""
         self.threshold.set(round(self.threshold.get(), 2))
 
+    def update_combobox_state(self, *args):
+        """Enable or disable axis comboboxes based on the selected mode."""
+        if self.mode.get() == "Custom":
+            state = "readonly"  # Enable comboboxes in Custom mode
+        else:
+            state = "disabled"  # Disable comboboxes in other modes
+
+        for combobox in self.comboboxes:
+            combobox.config(state=state)  # Update the state of each combobox
+
+
     def update_combobox_options(self, *args):
         """Update combobox options and preselect values based on the selected mode."""
-        if self.mode.get() == "Joints":
-            options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
-            preselected_values = options
-        else:  # Tool mode
-            options = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
-            preselected_values = options
+        mode = self.mode.get()
+        match mode:
+            case "Simulation":
+                pass
+            case "Joints":
+                options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
+                preselected_values = options
+            case "User" | "Tool":
+                options = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
+                preselected_values = options
+            case "Custom":
+                options = ["X", "Y", "Z", "Joint4", "Joint5", "Joint 1"]
+                preselected_values = options
 
         for i, combobox in enumerate(self.comboboxes[:6]):
             combobox["values"] = options  # Update the options
@@ -289,6 +327,13 @@ class SpaceMouseGUI:
                 robot.MoveJog("Y-", 1)
             elif direction == "zero":
                 robot.MoveJog()
+        elif mode == "Custom":
+            if direction == "positive":
+                robot.MoveJog("Y+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Y-", 1)
+            elif direction == "zero":
+                robot.MoveJog()
 
     def on_translation_y_active(self, direction):
         mode = self.mode.get()
@@ -307,6 +352,13 @@ class SpaceMouseGUI:
             elif direction == "zero":
                 robot.MoveJog()
         elif mode == "User":
+            if direction == "positive":
+                robot.MoveJog("X-", 1)
+            elif direction == "negative":
+                robot.MoveJog("X+", 1)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "Custom":
             if direction == "positive":
                 robot.MoveJog("X-", 1)
             elif direction == "negative":
@@ -332,9 +384,16 @@ class SpaceMouseGUI:
                 robot.MoveJog()
         elif mode == "User": # User
             if direction == "positive":
-                robot.MoveJog("Z-", 1)
-            elif direction == "negative":
                 robot.MoveJog("Z+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Z-", 1)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "Custom":
+            if direction == "positive":
+                robot.MoveJog("Z+", 1)
+            elif direction == "negative":
+                robot.MoveJog("Z-", 1)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -361,6 +420,13 @@ class SpaceMouseGUI:
                 robot.MoveJog("Rx-", 1)
             elif direction == "zero":
                 robot.MoveJog()
+        elif mode == "Custom":
+            if direction == "positive":
+                robot.MoveJog("J4+", 0)
+            elif direction == "negative":
+                robot.MoveJog("J4-", 0)
+            elif direction == "zero":
+                robot.MoveJog()
 
     def on_rotation_roll_active(self, direction):
         mode = self.mode.get()
@@ -385,6 +451,13 @@ class SpaceMouseGUI:
                 robot.MoveJog("Ry-", 1)
             elif direction == "zero":
                 robot.MoveJog()
+        elif mode == "Custom":
+            if direction == "positive":
+                robot.MoveJog("J5+", 0)
+            elif direction == "negative":
+                robot.MoveJog("J5-", 0)
+            elif direction == "zero":
+                robot.MoveJog()
 
     def on_rotation_yaw_active(self, direction):
         mode = self.mode.get()
@@ -407,6 +480,13 @@ class SpaceMouseGUI:
                 robot.MoveJog("Rz+", 1)
             elif direction == "negative":
                 robot.MoveJog("Rz-", 1)
+            elif direction == "zero":
+                robot.MoveJog()
+        elif mode == "Custom":
+            if direction == "positive":
+                robot.MoveJog("J1-", 0)
+            elif direction == "negative":
+                robot.MoveJog("J1+", 0)
             elif direction == "zero":
                 robot.MoveJog()
 
@@ -446,7 +526,10 @@ class SpaceMouseGUI:
                     case 2:
                         self.mode.set("User")
                     case 3:
-                        self.mode.set("Tool")        
+                        self.mode.set("Tool")
+            case "User Command":
+                command = self.user_command.get()
+                robot.SendCommand(command)
 
     def update_gui(self):
         """Update the GUI with the latest SpaceMouse data."""
@@ -523,17 +606,33 @@ class SpaceMouseGUI:
         self.running = False
 
     def on_enable(self):
-        print(f"State: {self.isEnabled}")
-        if self.isEnabled:
-            print("Disabling robot.")
-            self.enable_button.config(text="Enable")
-            self.isEnabled = False
-            robot.DisableRobot()
-        else:
-            print("Enabling robot.")
-            self.enable_button.config(text="Disable")
-            self.isEnabled = True
-            robot.EnableRobot()
+        try:
+            if self.isEnabled:
+                (_,rsp,_) = robot.DisableRobot()
+                if rsp == "Control Mode Is Not Tcp":
+                    print("Control mode is not TCP.")
+                    self.set_status("Control mode is not Tcp.")
+                else:
+                    print("Disabling robot.")
+                    self.enable_button.config(text="Enable")
+                    self.isEnabled = False
+            else:
+                (_,rsp,_) = robot.EnableRobot()
+                if rsp == "Control Mode Is Not Tcp":
+                    print("Control mode is not TCP.")
+                    self.set_status("Control mode is not Tcp.")
+                else:
+                    print("Enabling robot.")
+                    self.enable_button.config(text="Disable")
+                    self.isEnabled = True
+            
+        except Exception as e:
+            if str(e) == "Control Mode Is Not Tcp":
+                print("Control mode is not Tcp")
+                self.set_status("Control mode is not Tcp")
+            else:
+                print(f"Error: {e}")
+                self.set_status(f"Error: {e}")
 
     def on_clear_error(self):
         robot.ClearError()
@@ -570,7 +669,7 @@ if __name__ == "__main__":
         app.isEnabled = True
     elif robotMode == "Control Mode Is Not Tcp":
         print("Control mode is not TCP.")
-        app.set_status("Control mode is not TCP.")
+        app.set_status("Control mode is not Tcp.")
     else:
         print(f"Unknown robot mode ({robotMode}).")
 
