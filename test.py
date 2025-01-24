@@ -4,8 +4,16 @@ from DobotTCP import Dobot, Feedback
 robot = Dobot()
 robot.Connect()
 robot.SetDebugLevel(1)
-print(robot.EnableRobot())
+feedback = Feedback(robot)
+feedback.Connect()
 
-robot.MoveJog("J2+")
-time.sleep(6)
-robot.MoveJog()
+feedback.Get()
+mode = feedback.data.get('RobotMode')
+print("Fetching robot feedback: ", mode)
+
+time.sleep(1)
+
+robot.EnableRobot()
+feedback.Get()
+mode = feedback.data.get('RobotMode')
+print("Fetching robot feedback: ", mode)

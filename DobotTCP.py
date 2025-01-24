@@ -153,13 +153,13 @@ class Dobot:
         """
         if self.isEnabled == False:
             if self.debugLevel > 0: print("  Enabling Dobot Magician E6...")
-            (_,response,_) = self.SendCommand("EnableRobot()")
+            (error,response,cmd) = self.SendCommand("EnableRobot()")
             if response == "Control Mode Is Not Tcp":
                 self.isEnabled = False
                 raise Exception("Control Mode Is Not Tcp")
             else:
                 self.isEnabled = True
-                return response
+                return (error,response,cmd)
         else:
             return "Robot is already enabled."
 
@@ -3238,7 +3238,7 @@ class Dobot:
         # Return as a tuple
         return error, response, command
     
-    def ParseError(self, errcode:int) -> tuple[str, str, str]:
+    def ParseError(self, errcode:int) -> str:
         """
         Parse the error code to a human readable error message.
 
@@ -3254,7 +3254,7 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing error code {errcode}\n    ", end="")
         return self.error_codes.get(errcode, "Unknown error code. Check the TCP protocol for further info.")
 
-    def ParseRobotMode(self, mode:int) -> tuple[str, str, str]:
+    def ParseRobotMode(self, mode:int) -> str:
         """
         Parse the robot mode to a human readable message.
 
@@ -3270,7 +3270,7 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing robot mode {mode}\n    ", end="")
         return self.robot_modes.get(mode, "Unknown robot mode. Check the TCP protocol for further info.")
 
-    def ParseRobotType(self, type:int) -> tuple[str, str, str]:
+    def ParseRobotType(self, type:int) -> str:
         """
         Parse the robot type to a human readable message.
 
@@ -3507,10 +3507,22 @@ class Feedback:
         Example:
             Get()
         """
+        # Clear the buffer
+        self.client.setblocking(False)
+        while True:
+            try:
+                data = self.client.recv(1440)
+                if not data:
+                    break
+            except:
+                break
+        self.client.setblocking(True)
+        # wait 10 ms for the data to be ready
+        time.sleep(0.01)
         rawdata = self.client.recv(1440)
-        self.data = self.Parse_feedback(rawdata)
+        self.data = self.ParseFeedback(rawdata)
 
-    def Parse_feedback(self, data) -> dict:
+    def ParseFeedback(self, data) -> dict:
         """
         Parse the feedback data from the robot.
         
@@ -3521,7 +3533,7 @@ class Feedback:
             A dictionary with the feedback data.
         
         Example:
-            Parse_feedback(data)
+            ParseFeedback(data)
         """
         feedback_dict = {}
 
