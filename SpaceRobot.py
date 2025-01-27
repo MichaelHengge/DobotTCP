@@ -34,6 +34,37 @@ class SpaceMouseGUI:
             "Yaw": "inactive",
         }
 
+        self.axisDict = {
+            "Joint 1": "J1+",
+            "Joint 1 inverse": "J1",
+            "Joint 2": "J2",
+            "Joint 2 inverse": "J2",
+            "Joint 3": "J3",
+            "Joint 3 inverse": "J3",
+            "Joint 4": "J4",
+            "Joint 4 inverse": "J4",
+            "Joint 5": "J5",
+            "Joint 5 inverse": "J5",
+            "Joint 6": "J6",
+            "Joint 6 inverse": "J6",
+            "X": "X",
+            "X inverse": "X",
+            "Y": "Y",
+            "Y inverse": "Y",
+            "Z": "Z",
+            "Z inverse": "Z",
+            "Rx": "Rx",
+            "Rx inverse": "Rx",
+            "Ry": "Ry",
+            "Ry inverse": "Ry",
+            "Rz": "Rz",
+            "Rz inverse": "Rz"
+        }
+
+        self.jointDir = ["J1-", "J1+", "J2+", "J2-", "J3-", "J3+", "J4+", "J4-", "J5+", "J5-", "J6+", "J6-"]
+        self.toolDir = ["X+", "X-", "Y-", "Y+", "Z-", "Z+", "Rx+", "Rx-", "Ry+", "Ry-", "Rz+", "Rz-"]
+        self.userDir = ["Y+", "Y-", "X-", "X+", "Z+", "Z-", "Rx+", "Rx-", "Ry+", "Ry-", "Rz+", "Rz-"]
+
         # Variables to store SpaceMouse data
         self.axis_data = [0, 0, 0]
         self.rotation_data = [0, 0, 0]  # Pitch, Roll, Yaw
@@ -274,13 +305,12 @@ class SpaceMouseGUI:
         for combobox in self.comboboxes:
             combobox.config(state=state)  # Update the state of each combobox
 
-
     def update_combobox_options(self, *args):
         """Update combobox options and preselect values based on the selected mode."""
         mode = self.mode.get()
         match mode:
             case "Simulation":
-                pass
+                options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
             case "Joints":
                 options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
                 preselected_values = options
@@ -288,12 +318,16 @@ class SpaceMouseGUI:
                 options = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
                 preselected_values = options
             case "Custom":
-                options = ["X", "Y", "Z", "Joint4", "Joint5", "Joint 1"]
-                preselected_values = options
+                options = ["X", "X inverse", "Y", "Y inverse", "Z", "Z inverse", "Rx", "Rx inverse", "Ry", "Ry inverse", "Rz", "Rz inverse", "Joint 1", "Joint 1 inverse", "Joint 2", "Joint 2 inverse", "Joint 3", "Joint 3 inverse", "Joint 4", "Joint 4 inverse", "Joint 5", "Joint 5 inverse", "Joint 6", "Joint 6 inverse"]
+                preselected_values = ["Y", "X inverse", "Z", "Joint 4", "Joint 5", "Joint 1 inverse"]
 
         for i, combobox in enumerate(self.comboboxes[:6]):
             combobox["values"] = options  # Update the options
             combobox.set(preselected_values[i])  # Reset the preselected value
+            if mode != "Custom":
+                combobox.config(state="disabled")  # Disable comboboxes in non-Custom modes
+            else:
+                combobox.config(state="readonly")
 
     def read_spacemouse(self):
         """Read data from the SpaceMouse."""
@@ -316,192 +350,162 @@ class SpaceMouseGUI:
         threshold = self.threshold.get()
         color = "green" if value > threshold else "red" if value < -threshold else "white"
         canvas.itemconfig(circle, fill=color)
-
+    
     def on_translation_x_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J1-")
-            elif direction == "negative":
-                robot.MoveJog("J1+")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("X+", 2)
-            elif direction == "negative":
-                robot.MoveJog("X-", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User":  # User
-            if direction == "positive":
-                robot.MoveJog("Y+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Y-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("Y+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Y-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-
+        axName = self.comboboxes[0].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 0 if direction == "positive" else 1
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
+    
     def on_translation_y_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J2+")
-            elif direction == "negative":
-                robot.MoveJog("J2-")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("Y-", 2)
-            elif direction == "negative":
-                robot.MoveJog("Y+", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User":
-            if direction == "positive":
-                robot.MoveJog("X-", 1)
-            elif direction == "negative":
-                robot.MoveJog("X+", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("X-", 1)
-            elif direction == "negative":
-                robot.MoveJog("X+", 1)
-            elif direction == "zero":
-                robot.MoveJog()
- 
+        axName = self.comboboxes[1].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 2 if direction == "positive" else 3
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
+    
     def on_translation_z_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J3-")
-            elif direction == "negative":
-                robot.MoveJog("J3+")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("Z-", 2)
-            elif direction == "negative":
-                robot.MoveJog("Z+", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User": # User
-            if direction == "positive":
-                robot.MoveJog("Z+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Z-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("Z+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Z-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-
+        axName = self.comboboxes[2].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 4 if direction == "positive" else 5
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
+    
     def on_rotation_pitch_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J4+")
-            elif direction == "negative":
-                robot.MoveJog("J4-")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("Rx+", 2)
-            elif direction == "negative":
-                robot.MoveJog("Rx-", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User":  # User
-            if direction == "positive":
-                robot.MoveJog("Rx+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Rx-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("J4+", 0)
-            elif direction == "negative":
-                robot.MoveJog("J4-", 0)
-            elif direction == "zero":
-                robot.MoveJog()
+        axName = self.comboboxes[3].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 6 if direction == "positive" else 7
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
 
     def on_rotation_roll_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J5+")
-            elif direction == "negative":
-                robot.MoveJog("J5-")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("Ry+", 2)
-            elif direction == "negative":
-                robot.MoveJog("Ry-", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User":  # User
-            if direction == "positive":
-                robot.MoveJog("Ry+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Ry-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("J5+", 0)
-            elif direction == "negative":
-                robot.MoveJog("J5-", 0)
-            elif direction == "zero":
-                robot.MoveJog()
+        axName = self.comboboxes[4].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 8 if direction == "positive" else 9
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
 
     def on_rotation_yaw_active(self, direction):
-        mode = self.mode.get()
-        if mode == "Joints":
-            if direction == "positive":
-                robot.MoveJog("J6+")
-            elif direction == "negative":
-                robot.MoveJog("J6-")
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Tool":  # Tool
-            if direction == "positive":
-                robot.MoveJog("Rz+", 2)
-            elif direction == "negative":
-                robot.MoveJog("Rz-", 2)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "User":  # User
-            if direction == "positive":
-                robot.MoveJog("Rz+", 1)
-            elif direction == "negative":
-                robot.MoveJog("Rz-", 1)
-            elif direction == "zero":
-                robot.MoveJog()
-        elif mode == "Custom":
-            if direction == "positive":
-                robot.MoveJog("J1-", 0)
-            elif direction == "negative":
-                robot.MoveJog("J1+", 0)
-            elif direction == "zero":
-                robot.MoveJog()
+        axName = self.comboboxes[5].get()
+        axis = self.axisDict[axName]
+        direc = "+" if direction == "positive" else "-"
+        cmd = ""
+        coord = 0
+        idx = 10 if direction == "positive" else 11
+        if direction == "zero":
+            robot.MoveJog()
+            return
+        match self.mode.get():
+            case "Joints":
+                cmd = self.jointDir[idx]
+                coord = 0
+            case "Tool":
+                cmd = self.toolDir[idx]
+                coord = 2
+            case "User":
+                cmd = self.userDir[idx]
+                coord = 1
+            case "Custom":
+                if "inverse" in axName: direc = "-" if direction == "positive" else "+"
+                cmd = axis + direc
+                coord = 0 if axis.startswith("J") else 1
+        robot.MoveJog(cmd, coord)
 
     def on_button_0_pressed(self):
         selected_value = self.comboboxes[6].get()
