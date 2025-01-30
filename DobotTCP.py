@@ -3212,12 +3212,12 @@ class Dobot:
             return None, None, None
 
         # Split the string by commas
-        if self.debugLevel > 1: print(f"  Parsing response {response}\n    ", end="")
-        parts = response.split(",", maxsplit=2)
+        if self.debugLevel > 1: print(f"  Parsing response ({response})\n    ", end="")
+        parts = response.replace("{", "").replace("}", "").split(",", maxsplit=2)
 
         # Handle single response case
         if len(parts) == 1:
-            if self.debugLevel > 1: print(f"  {response}")
+            if self.debugLevel > 1: print(f"  Single response: {response}")
             return None, response, None
         
         # Ensure the parts are valid

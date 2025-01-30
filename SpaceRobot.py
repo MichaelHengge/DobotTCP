@@ -12,7 +12,7 @@ class SpaceMouseGUI:
         self.root.title("SpaceRobot GUI")
 
         window_width = 500
-        window_height = 700
+        window_height = 810
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width // 2) - (window_width // 2)
@@ -65,6 +65,9 @@ class SpaceMouseGUI:
         self.toolDir = ["X+", "X-", "Y-", "Y+", "Z-", "Z+", "Rx+", "Rx-", "Ry+", "Ry-", "Rz+", "Rz-"]
         self.userDir = ["Y+", "Y-", "X-", "X+", "Z+", "Z-", "Rx+", "Rx-", "Ry+", "Ry-", "Rz+", "Rz-"]
 
+        self.jointRange = [360, 135, 154, 160, 173, 360]
+        self.jointPositions = [0, 0, 0, 0, 0, 0]
+
         # Variables to store SpaceMouse data
         self.axis_data = [0, 0, 0]
         self.rotation_data = [0, 0, 0]  # Pitch, Roll, Yaw
@@ -101,9 +104,15 @@ class SpaceMouseGUI:
         threshold_value_label.pack(side=tk.LEFT, padx=5)
 
         self.threshold.trace("w", self.update_threshold_display)
-        self.mode.trace("w", self.update_combobox_options)
 
-
+        # Global Speed slider
+        self.global_speed = tk.IntVar(value=100)
+        tk.Label(slider_frame, text="Speed rate (%):").pack(side=tk.LEFT, padx=15)
+        global_speed_slider = ttk.Scale(slider_frame, from_=1, to=100, orient="horizontal", variable=self.global_speed)
+        global_speed_slider.pack(side=tk.LEFT, padx=5)
+        global_speed_value_label = tk.Label(slider_frame, textvariable=self.global_speed, width=4)
+        global_speed_value_label.pack(side=tk.LEFT, padx=5)
+        
         # Mode switch radio buttons
         mode_frame = tk.Frame(self.root)
         mode_frame.pack(pady=10)
@@ -125,6 +134,8 @@ class SpaceMouseGUI:
         tool_radio = tk.Radiobutton(mode_frame, text="Custom", variable=self.mode, value="Custom")
         tool_radio.pack(side=tk.LEFT, padx=5)
 
+        self.mode.trace("w", self.update_combobox_options)
+
         # Lock controls checkboxes
         self.lock_translation = tk.BooleanVar(value=False)  # Default: unlocked
         self.lock_rotation = tk.BooleanVar(value=False)  # Default: unlocked
@@ -137,6 +148,43 @@ class SpaceMouseGUI:
 
         rotation_checkbox = tk.Checkbutton(lock_controls_frame, text="Lock Rotation", variable=self.lock_rotation)
         rotation_checkbox.pack(side=tk.LEFT, padx=5)
+
+        # Add horizontal separator
+        separator = ttk.Separator(self.root, orient="horizontal")
+        separator.pack(fill="x", pady=5)
+
+        # Frame for Joint Values
+        joint_values_frame = tk.Frame(self.root)
+        joint_values_frame.pack(pady=10)
+
+        # Joint labels and textboxes
+        joint_labels = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
+        self.joint_textboxes = []
+        self.joint_labels = []
+
+        tk.Label(joint_values_frame, text="Run robot to joint position:").pack(pady=(0, 5))
+
+        # Add labels and textboxes in a row for joint goto
+        for joint in joint_labels:
+            frame = tk.Frame(joint_values_frame)
+            frame.pack(side=tk.LEFT, padx=5)
+
+            label = tk.Label(frame, text=joint, width=7, anchor="center")
+            label.pack()
+
+            textbox = tk.Entry(frame, width=7)
+            textbox.pack(anchor="s")
+            textbox.insert(0, "0.00")  # Pre-fill with 0.00
+            textbox.bind("<FocusOut>", lambda event, tb=self.joint_textboxes: self.validate_joint_input(tb))
+            self.joint_textboxes.append(textbox)  # Store reference to access later
+
+            label = tk.Label(frame, text="--", width=7, anchor="center")
+            label.pack()
+            self.joint_labels.append(label)
+
+        # Add GoTo button to the right of Joint 6
+        goto_button = tk.Button(joint_values_frame, text=" GoTo ", command=self.on_goto_pressed)
+        goto_button.pack(side=tk.LEFT, padx=10, pady=5, anchor="s", ipady=5)  # Align at bottom
 
         # Add horizontal separator
         separator = ttk.Separator(self.root, orient="horizontal")
@@ -275,6 +323,32 @@ class SpaceMouseGUI:
         # Start GUI update loop
         self.update_gui()
 
+    def validate_joint_input(self, textboxes):
+        """Ensure the joint value stays within min/max limits."""
+        for i in range(len(self.joint_textboxes)):
+            try:
+                value = float(textboxes[i].get())  # Convert input to float
+                textboxes[i].config(bg="white")  # Reset text color
+            except ValueError:
+                textboxes[i].config(bg="red")  # Change text color to red
+                print("Invalid input. Please enter a valid number.")
+                self.set_status("Invalid input. Please enter a valid number.", isError=True)
+
+            # Clip the value between min and max
+            if value < self.jointRange[i] * -1:
+                value = self.jointRange[i] * -1
+            elif value > self.jointRange[i]:
+                value = self.jointRange[i]
+
+            textboxes[i].delete(0, tk.END)  # Clear textbox
+            textboxes[i].insert(0, f"{value:.2f}")  # Insert corrected value
+
+    def on_goto_pressed(self):
+        """Handle GoTo button click."""
+        joint_values = [textbox.get() for textbox in self.joint_textboxes]
+        print(f"Moving to Joint Positions: {joint_values}")
+        robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
+
     def update_textbox_state(self):
         """Enable or disable the textbox based on the Button combobox selection."""
         selected_value1 = self.comboboxes[6].get()  # Get Button 1 combobox value
@@ -294,7 +368,7 @@ class SpaceMouseGUI:
     def update_threshold_display(self, *args):
         """Limit the threshold display to two decimal places."""
         self.threshold.set(round(self.threshold.get(), 2))
-
+        
     def update_combobox_state(self, *args):
         """Enable or disable axis comboboxes based on the selected mode."""
         if self.mode.get() == "Custom":
@@ -667,11 +741,12 @@ class SpaceMouseGUI:
 
     def fetch_robot_feedback(self):
         """Function to fetch feedback from the robot."""
+        global robotMode
         while (1):
             try:
                 feedback.Get()
-                mode = feedback.data.get('RobotMode')
-                self.set_status("Status: " + robot.ParseRobotMode(mode).split(":")[1].strip())
+                robotMode = feedback.data.get('RobotMode')
+                self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
                 time.sleep(0.5)
             except Exception as e:
                 self.set_status(f"Error: {e}" , isError=True)
@@ -693,14 +768,14 @@ if __name__ == "__main__":
     app.set_status("Connecting to robot...")
     robot.Connect()
     feedback.Connect()
-    robot.SetDebugLevel(0)
+    robot.SetDebugLevel(2)
     (_,robotMode,_) = robot.RobotMode()
 
-    if robotMode == "{4}": # Disabled
+    if robotMode == "4": # Disabled
         app.set_status("Robot Status: Disabled")
         app.enable_button.config(text="Enable")
         app.isEnabled = False
-    elif robotMode == "{5}": # Enabled
+    elif robotMode == "5": # Enabled
         app.set_status("Robot Status: Enabled")
         app.enable_button.config(text="Disable")
         app.isEnabled = True
