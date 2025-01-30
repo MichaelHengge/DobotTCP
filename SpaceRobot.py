@@ -9,7 +9,7 @@ from DobotTCP import Dobot, Feedback
 class SpaceMouseGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("SpaceMouse Control GUI")
+        self.root.title("SpaceRobot GUI")
 
         window_width = 500
         window_height = 700
@@ -534,7 +534,7 @@ class SpaceMouseGUI:
                 robot.MoveJJ(48,34,83,-26,-90,0)
             case "Toggle Mode":
                 self.robotMode += 1
-                if self.robotMode == 4: self.robotMode = 1
+                if self.robotMode == 5: self.robotMode = 1
                 match self.robotMode:
                     case 0:
                         self.mode.set("Simulation")
@@ -544,6 +544,8 @@ class SpaceMouseGUI:
                         self.mode.set("User")
                     case 3:
                         self.mode.set("Tool")
+                    case 4:
+                        self.mode.set("Custom")
             case "User Command":
                 command = self.user_command.get()
                 robot.SendCommand(command)
