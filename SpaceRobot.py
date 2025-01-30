@@ -837,7 +837,14 @@ class SpaceMouseGUI:
             try:
                 feedback.Get()
                 robotMode = feedback.data.get('RobotMode')
-                self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
+                if robotMode == 9: # Uncleared Errors
+                    self.set_status("Uncleared Errors", isError=True)
+                elif robotMode == 11: # Collision Detected
+                    self.set_status("Collision Detected", isError=True)
+                else:
+                    print(f"Robot Mode: {robotMode}")
+                    self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
+
                 if self.mode.get() == "Joints" or self.mode.get() == "Simulation":
                     jointPositions = feedback.data.get('QActual')
                 else:
