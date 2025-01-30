@@ -161,7 +161,7 @@ class SpaceMouseGUI:
         joint_values_frame.pack(pady=10)
 
         # Joint labels and textboxes
-        joint_labels = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
+        joint_labels = ["Joint 1°", "Joint 2°", "Joint 3°", "Joint 4°", "Joint 5°", "Joint 6°"]
         self.joint_textboxes = []
         self.joint_labels = []
 
