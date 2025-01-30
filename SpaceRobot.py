@@ -93,7 +93,7 @@ class SpaceMouseGUI:
         stop_button.pack(side=tk.LEFT, padx=5)
 
         # Threshold slider
-        self.threshold = tk.DoubleVar(value=0.5)
+        self.threshold = tk.DoubleVar(value=0.25)
         slider_frame = tk.Frame(self.root)
         slider_frame.pack(pady=10)
 
@@ -137,19 +137,19 @@ class SpaceMouseGUI:
         tool_radio = tk.Radiobutton(mode_frame, text="Custom", variable=self.mode, value="Custom")
         tool_radio.pack(side=tk.LEFT, padx=5)
 
-        self.mode.trace("w", self.update_combobox_options)
+        self.mode.trace("w", self.update_mode)
 
         # Lock controls checkboxes
         self.lock_translation = tk.BooleanVar(value=False)  # Default: unlocked
         self.lock_rotation = tk.BooleanVar(value=False)  # Default: unlocked
 
-        lock_controls_frame = tk.Frame(self.root)
-        lock_controls_frame.pack(pady=10)
+        controls_frame = tk.Frame(self.root)
+        controls_frame.pack(pady=10)
 
-        translation_checkbox = tk.Checkbutton(lock_controls_frame, text="Lock Translation", variable=self.lock_translation)
+        translation_checkbox = tk.Checkbutton(controls_frame, text="Lock Translation", variable=self.lock_translation)
         translation_checkbox.pack(side=tk.LEFT, padx=5)
 
-        rotation_checkbox = tk.Checkbutton(lock_controls_frame, text="Lock Rotation", variable=self.lock_rotation)
+        rotation_checkbox = tk.Checkbutton(controls_frame, text="Lock Rotation", variable=self.lock_rotation)
         rotation_checkbox.pack(side=tk.LEFT, padx=5)
 
         # Add horizontal separator
@@ -360,9 +360,16 @@ class SpaceMouseGUI:
 
     def on_goto_pressed(self):
         """Handle GoTo button click."""
-        joint_values = [textbox.get() for textbox in self.joint_textboxes]
-        print(f"Moving to Joint Positions: {joint_values}")
-        robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
+        if self.mode == "Simulation":
+            pass
+        elif self.mode == "Joint":
+            joint_values = [textbox.get() for textbox in self.joint_textboxes]
+            print(f"Moving to Joint Positions: {joint_values}")
+            robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
+        else:
+            pose_values = [textbox.get() for textbox in self.joint_textboxes]
+            print(f"Moving to Pose: {pose_values}")
+            robot.MoveJP(pose_values[0], pose_values[1], pose_values[2], pose_values[3], pose_values[4], pose_values[5])
 
     def update_textbox_state(self):
         """Enable or disable the textbox based on the Button combobox selection."""
@@ -398,7 +405,7 @@ class SpaceMouseGUI:
         for combobox in self.comboboxes:
             combobox.config(state=state)  # Update the state of each combobox
 
-    def update_combobox_options(self, *args):
+    def update_mode(self, *args):
         """Update combobox options and preselect values based on the selected mode."""
         mode = self.mode.get()
         match mode:
@@ -661,6 +668,7 @@ class SpaceMouseGUI:
                 if self.axis_states[axis_name] != "active":
                     self.axis_states[axis_name] = "active"  # Mark as active
                     direction = "positive" if value > 0 else "negative"
+
                     if axis_name == "X":
                         self.on_translation_x_active(direction)
                     elif axis_name == "Y":
@@ -767,7 +775,11 @@ class SpaceMouseGUI:
                 feedback.Get()
                 robotMode = feedback.data.get('RobotMode')
                 self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
-                jointPositions = feedback.data.get('QActual')
+                if self.mode.get() == "Joints" or self.mode.get() == "Simulation":
+                    jointPositions = feedback.data.get('QActual')
+                else:
+                    jointPositions = feedback.data.get('ToolVectorActual')
+                print (f"Joint Positions (Mode {self.mode.get()}): {jointPositions}")
                 for i in range(6):
                     self.joint_labels[i].config(text=f"{jointPositions[i]:.2f}")
                 time.sleep(0.5)

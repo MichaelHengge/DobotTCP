@@ -3082,17 +3082,17 @@ class Dobot:
         move_command = f"MovJ(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def MoveJP(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
+    def MoveJP(self,x:float,y:float,z:float,rx:float,ry:float,rz:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified pose using joint motion.
 
         Args:
-            j1 (float): Joint 1 angle.
-            j2 (float): Joint 2 angle.
-            j3 (float): Joint 3 angle.
-            j4 (float): Joint 4 angle.
-            j5 (float): Joint 5 angle.
-            j6 (float): Joint 6 angle.
+            x (float): X-axis coordinates. Unit: mm.
+            y (float): Y-axis coordinates. Unit: mm.
+            z (float): Z-axis coordinates. Unit: mm.
+            rx (float): Rx-axis coordinates. Unit: degree.
+            ry (float): Ry-axis coordinates. Unit: degree.
+            rz (float): Rz-axis coordinates. Unit: degree.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3100,8 +3100,8 @@ class Dobot:
         Example:
             MoveJP(0, 0, 0, 0, 0, 0)
         """
-        if self.debugLevel > 0: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
-        move_command = f"MovJ(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
+        if self.debugLevel > 0: print(f"  Joint move robot to pose ({x},{y},{z},{rx},{ry},{rz})")
+        move_command = f"MovJ(pose={{{x},{y},{z},{rx},{ry},{rz}}})"
         return self.SendCommand(move_command)
 
     def MoveLJ(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
@@ -3126,17 +3126,17 @@ class Dobot:
         move_command = f"MovL(joint={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
         return self.SendCommand(move_command)
 
-    def MoveLP(self,j1:float,j2:float,j3:float,j4:float,j5:float,j6:float) -> tuple[str, str, str]:
+    def MoveLP(self,x:float,y:float,z:float,rx:float,ry:float,rz:float) -> tuple[str, str, str]:
         """
         Move the robot to a specified pose using linear motion.
 
         Args:
-            j1 (float): Joint 1 angle.
-            j2 (float): Joint 2 angle.
-            j3 (float): Joint 3 angle.
-            j4 (float): Joint 4 angle.
-            j5 (float): Joint 5 angle.
-            j6 (float): Joint 6 angle.
+            x (float): X-axis coordinates. Unit: mm.
+            y (float): Y-axis coordinates. Unit: mm.
+            z (float): Z-axis coordinates. Unit: mm.
+            rx (float): Rx-axis coordinates. Unit: degree.
+            ry (float): Ry-axis coordinates. Unit: degree.
+            rz (float): Rz-axis coordinates. Unit: degree.
 
         Returns:
             ResultID is the algorithm queue ID which can be used to judge the sequence of command execution.
@@ -3144,8 +3144,8 @@ class Dobot:
         Example:
             MoveLP(0, 0, 0, 0, 0, 0)
         """
-        if self.debugLevel > 0: print(f"  Joint move robot to pose ({j1},{j2},{j3},{j4},{j5},{j6})")
-        move_command = f"MovL(pose={{{j1},{j2},{j3},{j4},{j5},{j6}}})"
+        if self.debugLevel > 0: print(f"  Joint move robot to pose ({x},{y},{z},{rx},{ry},{rz})")
+        move_command = f"MovL(pose={{{x},{y},{z},{rx},{ry},{rz}}})"
         return self.SendCommand(move_command)
 
     def Home(self) -> tuple[str, str, str]:
