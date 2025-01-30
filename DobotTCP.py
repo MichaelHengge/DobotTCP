@@ -3213,12 +3213,12 @@ class Dobot:
 
         # Split the string by commas
         if self.debugLevel > 1: print(f"  Parsing response ({response})\n    ", end="")
-        parts = response.replace("{", "").replace("}", "").split(",", maxsplit=2)
+        parts = response.split(",", maxsplit=2)
 
         # Handle single response case
         if len(parts) == 1:
             if self.debugLevel > 1: print(f"  Single response: {response}")
-            return None, response, None
+            return None, response.replace("{", "").replace("}", ""), None
         
         # Ensure the parts are valid
         if len(parts) != 3:
@@ -3229,7 +3229,7 @@ class Dobot:
         error = self.ParseError(int(parts[0].strip()))
         
         # Extract the response and command
-        response = parts[1].strip()
+        response = parts[1].replace("{", "").replace("}", "").strip()
         command = parts[2].strip().rstrip(";")
 
         # Print results

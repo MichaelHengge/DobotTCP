@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import StringVar, ttk, Canvas
 import pyspacemouse
 import time
+import keyboard
 
 from DobotTCP import Dobot, Feedback
 
@@ -12,7 +13,7 @@ class SpaceMouseGUI:
         self.root.title("SpaceRobot GUI")
 
         window_width = 500
-        window_height = 810
+        window_height = 830
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width // 2) - (window_width // 2)
@@ -25,6 +26,7 @@ class SpaceMouseGUI:
         self.robotState = -1
         self.robotMode = 0
         self.mode = tk.StringVar(value="Simulation")
+        self.goto_JL = tk.StringVar(value="Joint")
         self.axis_states = {  # Track axis activity states
             "X": "inactive",
             "Y": "inactive",
@@ -66,6 +68,7 @@ class SpaceMouseGUI:
         self.userDir = ["Y+", "Y-", "X-", "X+", "Z+", "Z-", "Rx+", "Rx-", "Ry+", "Ry-", "Rz+", "Rz-"]
 
         self.jointRange = [360, 135, 154, 160, 173, 360]
+        self.carthesianRange = [450, 450, 450, 450, 450, 450]
         self.jointPositions = [0, 0, 0, 0, 0, 0]
 
         # Variables to store SpaceMouse data
@@ -161,8 +164,9 @@ class SpaceMouseGUI:
         joint_values_frame.pack(pady=10)
 
         # Joint labels and textboxes
-        joint_labels = ["Joint 1°", "Joint 2°", "Joint 3°", "Joint 4°", "Joint 5°", "Joint 6°"]
+        joint_labels = ["Joint 1 °", "Joint 2 °", "Joint 3 °", "Joint 4 °", "Joint 5 °", "Joint 6 °"]
         self.joint_textboxes = []
+        self.joint_name_labels = []
         self.joint_labels = []
 
         tk.Label(joint_values_frame, text="Run robot to joint position:").pack(pady=(0, 5))
@@ -174,6 +178,7 @@ class SpaceMouseGUI:
 
             label = tk.Label(frame, text=joint, width=7, anchor="center")
             label.pack()
+            self.joint_name_labels.append(label)
 
             textbox = tk.Entry(frame, width=7, justify="center")
             textbox.pack(anchor="s")
@@ -189,6 +194,22 @@ class SpaceMouseGUI:
         # Add GoTo button to the right of Joint 6
         goto_button = tk.Button(joint_values_frame, text=" GoTo ", command=self.on_goto_pressed)
         goto_button.pack(side=tk.LEFT, padx=10, pady=5, anchor="s", ipady=5)  # Align at bottom
+
+        # Mode switch radio buttons
+        goto_mode_frame = tk.Frame(self.root)
+        goto_mode_frame.pack()
+
+        tk.Label(goto_mode_frame, text="Mode:").pack(side=tk.LEFT, padx=5)
+
+        simulation_radio = tk.Radiobutton(goto_mode_frame, text="Joint", variable=self.goto_JL, value="Joint")
+        simulation_radio.pack(side=tk.LEFT, padx=5)
+
+        joints_radio = tk.Radiobutton(goto_mode_frame, text="Linear", variable=self.goto_JL, value="Linear")
+        joints_radio.pack(side=tk.LEFT, padx=5)  
+
+        self.move_delta = tk.BooleanVar(value=False)  # Default: false
+        rotation_checkbox = tk.Checkbutton(goto_mode_frame, text="Delta move", variable=self.move_delta)
+        rotation_checkbox.pack(side=tk.LEFT, padx=5)
 
         # Add horizontal separator
         separator = ttk.Separator(self.root, orient="horizontal")
@@ -218,7 +239,7 @@ class SpaceMouseGUI:
             self.mapping_labels.append(label)
 
             # Add combobox
-            combobox = ttk.Combobox(row_frame, state="readonly", width=15)
+            combobox = ttk.Combobox(row_frame, state="disabled", width=15)
             combobox["values"] = preselected_values  # Set initial options
             combobox.set(preselected_values[i])  # Preselect default value
             combobox.pack(side=tk.LEFT, padx=5)
@@ -334,9 +355,19 @@ class SpaceMouseGUI:
 
     def copy_label_to_textbox(self, idx):
         """Copy the text of the clicked joint label to the corresponding textbox."""
-        label_text = self.joint_labels[idx].cget("text")  # Get label text
-        self.joint_textboxes[idx].delete(0, tk.END)  # Clear the textbox
-        self.joint_textboxes[idx].insert(0, label_text)  # Insert label text
+        if keyboard.is_pressed("ctrl"):
+            for i in range(6):
+                label_text = self.joint_labels[i].cget("text")  # Get label text
+                self.joint_textboxes[i].delete(0, tk.END)  # Clear the textbox
+                self.joint_textboxes[i].insert(0, label_text)  # Insert label text
+        elif keyboard.is_pressed("shift"): # Reset textboxes to 0.00
+            for i in range(6):
+                self.joint_textboxes[i].delete(0, tk.END)
+                self.joint_textboxes[i].insert(0, "0.00")
+        else:
+            label_text = self.joint_labels[idx].cget("text")  # Get label text
+            self.joint_textboxes[idx].delete(0, tk.END)  # Clear the textbox
+            self.joint_textboxes[idx].insert(0, label_text)  # Insert label text
 
     def validate_joint_input(self, textboxes):
         """Ensure the joint value stays within min/max limits."""
@@ -350,26 +381,40 @@ class SpaceMouseGUI:
                 self.set_status("Invalid input. Please enter a valid number.", isError=True)
 
             # Clip the value between min and max
-            if value < self.jointRange[i] * -1:
-                value = self.jointRange[i] * -1
-            elif value > self.jointRange[i]:
-                value = self.jointRange[i]
+            if self.mode.get() == "Simulation" or self.mode.get() == "Joints":
+                minmax = self.jointRange[i]
+            else:
+                minmax = self.carthesianRange[i]
+            if value < minmax * -1:
+                value = minmax * -1
+            elif value > minmax:
+                value = minmax
 
             textboxes[i].delete(0, tk.END)  # Clear textbox
             textboxes[i].insert(0, f"{value:.2f}")  # Insert corrected value
 
     def on_goto_pressed(self):
         """Handle GoTo button click."""
-        if self.mode == "Simulation":
-            pass
-        elif self.mode == "Joint":
-            joint_values = [textbox.get() for textbox in self.joint_textboxes]
+        move_mode = self.mode.get()
+        if self.mode.get() == "Simulation":
+            print("Simulation mode does not support GoTo.")
+            return
+        elif self.mode.get() == "Joints":
+            joint_values = [float(textbox.get()) for textbox in self.joint_textboxes]
+            (_,current_pos,_) = robot.GetAngle()
+            print(f"Current Joint Positions: {current_pos}")
             print(f"Moving to Joint Positions: {joint_values}")
-            robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
+            if self.goto_JL.get() == "Joint":
+                robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
+            else:
+                robot.MoveLJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
         else:
             pose_values = [textbox.get() for textbox in self.joint_textboxes]
             print(f"Moving to Pose: {pose_values}")
-            robot.MoveJP(pose_values[0], pose_values[1], pose_values[2], pose_values[3], pose_values[4], pose_values[5])
+            if self.goto_JL.get() == "Joint":
+                robot.MoveJP(pose_values[0], pose_values[1], pose_values[2], pose_values[3], pose_values[4], pose_values[5])
+            else:
+                robot.MoveLP(pose_values[0], pose_values[1], pose_values[2], pose_values[3], pose_values[4], pose_values[5])
 
     def update_textbox_state(self):
         """Enable or disable the textbox based on the Button combobox selection."""
@@ -406,18 +451,22 @@ class SpaceMouseGUI:
             combobox.config(state=state)  # Update the state of each combobox
 
     def update_mode(self, *args):
-        """Update combobox options and preselect values based on the selected mode."""
+        """Update combobox options and position labels and preselect values based on the selected mode."""
         mode = self.mode.get()
         match mode:
             case "Simulation":
+                labels = ["Joint 1 °", "Joint 2 °", "Joint 3 °", "Joint 4 °", "Joint 5 °", "Joint 6 °"]
                 options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
             case "Joints":
+                labels = ["Joint 1 °", "Joint 2 °", "Joint 3 °", "Joint 4 °", "Joint 5 °", "Joint 6 °"]
                 options = ["Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6"]
                 preselected_values = options
             case "User" | "Tool":
+                labels = ["X mm", "Y mm", "Z mm", "Rx °", "Ry °", "Rz °"]
                 options = ["X", "Y", "Z", "Rx", "Ry", "Rz"]
                 preselected_values = options
             case "Custom":
+                labels = ["X mm", "Y mm", "Z mm", "Rx °", "Ry °", "Rz °"]
                 options = ["X", "X inverse", "Y", "Y inverse", "Z", "Z inverse", "Rx", "Rx inverse", "Ry", "Ry inverse", "Rz", "Rz inverse", "Joint 1", "Joint 1 inverse", "Joint 2", "Joint 2 inverse", "Joint 3", "Joint 3 inverse", "Joint 4", "Joint 4 inverse", "Joint 5", "Joint 5 inverse", "Joint 6", "Joint 6 inverse"]
                 preselected_values = ["Y", "X inverse", "Z", "Joint 4", "Joint 5", "Joint 1 inverse"]
 
@@ -428,6 +477,9 @@ class SpaceMouseGUI:
                 combobox.config(state="disabled")  # Disable comboboxes in non-Custom modes
             else:
                 combobox.config(state="readonly")
+        
+        for i, label in enumerate(self.joint_name_labels):
+            label.config(text=labels[i])  # Update the label text
 
     def read_spacemouse(self):
         """Read data from the SpaceMouse."""
@@ -581,7 +633,7 @@ class SpaceMouseGUI:
                 coord = 0 if axis.startswith("J") else 1
         robot.MoveJog(cmd, coord)
 
-    def on_rotation_yaw_active(self, direction):
+    def on_rotation_yaw_active(self, direction, ctrl_held):
         axName = self.comboboxes[5].get()
         axis = self.axisDict[axName]
         direc = "+" if direction == "positive" else "-"
@@ -605,6 +657,10 @@ class SpaceMouseGUI:
                 if "inverse" in axName: direc = "-" if direction == "positive" else "+"
                 cmd = axis + direc
                 coord = 0 if axis.startswith("J") else 1
+                if ctrl_held:
+                    direc = "+" if direction == "positive" else "-"
+                    cmd = "J6" + direc
+                    coord = 0
         robot.MoveJog(cmd, coord)
 
     def on_button_0_pressed(self):
@@ -680,7 +736,8 @@ class SpaceMouseGUI:
                     elif axis_name == "Roll":
                         self.on_rotation_roll_active(direction)
                     elif axis_name == "Yaw":
-                        self.on_rotation_yaw_active(direction)
+                        ctrl_held = keyboard.is_pressed("ctrl")
+                        self.on_rotation_yaw_active(direction, ctrl_held)
 
             elif abs(value) <= threshold:  # Zero or below threshold
                 if self.axis_states[axis_name] == "active":  # Only trigger zero if previously active
@@ -696,7 +753,7 @@ class SpaceMouseGUI:
                     elif axis_name == "Roll":
                         self.on_rotation_roll_active("zero")
                     elif axis_name == "Yaw":
-                        self.on_rotation_yaw_active("zero")
+                        self.on_rotation_yaw_active("zero", False)
 
         button_states = self.button_data.split(", ")
         for i, (canvas, circle) in enumerate(self.button_indicators):
@@ -779,7 +836,6 @@ class SpaceMouseGUI:
                     jointPositions = feedback.data.get('QActual')
                 else:
                     jointPositions = feedback.data.get('ToolVectorActual')
-                print (f"Joint Positions (Mode {self.mode.get()}): {jointPositions}")
                 for i in range(6):
                     self.joint_labels[i].config(text=f"{jointPositions[i]:.2f}")
                 time.sleep(0.5)
