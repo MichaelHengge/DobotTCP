@@ -402,9 +402,9 @@ class SpaceMouseGUI:
         elif self.mode.get() == "Joints":
             joint_values = [float(textbox.get()) for textbox in self.joint_textboxes]
             if self.move_delta.get():
-                current_pos = robot.GetAngle()
-                print(f"Current Joint Positions: {current_pos}")
-                return
+                (_,current_pos,_) = robot.GetAngle()
+                current_pos = [float(i) for i in current_pos.split(",")]
+                joint_values = [current_pos[i] + joint_values[i] for i in range(6)]
             print(f"Moving to Joint Positions: {joint_values}")
             if self.goto_JL.get() == "Joint":
                 robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
@@ -412,6 +412,10 @@ class SpaceMouseGUI:
                 robot.MoveLJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
         else:
             pose_values = [textbox.get() for textbox in self.joint_textboxes]
+            if self.move_delta.get():
+                (_,current_pos,_) = robot.GetPose()
+                current_pos = [float(i) for i in current_pos.split(",")]
+                pose_values = [current_pos[i] + float(pose_values[i]) for i in range(6)]
             print(f"Moving to Pose: {pose_values}")
             if self.goto_JL.get() == "Joint":
                 robot.MoveJP(pose_values[0], pose_values[1], pose_values[2], pose_values[3], pose_values[4], pose_values[5])

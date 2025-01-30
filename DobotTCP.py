@@ -903,8 +903,8 @@ class Dobot:
         Example:
             GetPose(user=1,tool=1)
         """
-        if self.debugLevel > 0: print("  Getting robot pose...")
-        return self.SendCommand("GetPose(user={user},tool={tool})")
+        if self.debugLevel > 0: print(f"  Getting robot pose with user={user},tool={tool}...")
+        return self.SendCommand(f"GetPose(user={user},tool={tool})")
 
     def GetErrorID(self) -> tuple[str, str, str]:
         """
@@ -3228,15 +3228,15 @@ class Dobot:
             if self.debugLevel > 1: print(f"  Invalid response format")
             return "Invalid response format", "Invalid response format", "Invalid response format"
         
-        # Parse the error code as an integer after stripping any commas and brackets
-        err_code = parts[0].strip().replace(",","").replace("(","")
+        # Parse the error code as an integer after stripping any right side commas and brackets
+        err_code = parts[0].strip().rstrip(",").replace("(","")
         error = self.ParseError(int(err_code))
         
         # Extract the response
         response = parts[1].strip()
 
-        # Extract the command after stripping any commas and brackets
-        command = parts[2].strip().rstrip(")").rstrip(";").replace(",","")
+        # Extract the command after stripping any left side commas and brackets
+        command = parts[2].strip().rstrip(")").rstrip(";").lstrip(",")
 
         # Print results
         if self.debugLevel > 1: print(f"Error: {error}\n    Response: {response}\n    Command: {command}")

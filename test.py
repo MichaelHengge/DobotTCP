@@ -6,7 +6,7 @@ robot.Connect()
 robot.SetDebugLevel(2)
 robot.EnableRobot()
 
-rsp = robot.GetAngle()
+(_,rsp,_) = robot.GetPose()
 
-print(rsp)
+print(f"Robot mode: {rsp}")
 
