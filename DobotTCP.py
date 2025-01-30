@@ -3210,27 +3210,33 @@ class Dobot:
         if response == None:
             if self.debugLevel > 1: print(f"  None response")
             return None, None, None
-
-        # Split the string by commas
+        
+        # Replace curly brackets with ':' to help with parsing
         if self.debugLevel > 1: print(f"  Parsing response ({response})\n    ", end="")
-        parts = response.split(",", maxsplit=2)
+        response = response.replace("{",":").replace("}",":")
+
+        # Split the string by ':'
+        parts = response.split(":", maxsplit=2)
 
         # Handle single response case
         if len(parts) == 1:
             if self.debugLevel > 1: print(f"  Single response: {response}")
-            return None, response.replace("{", "").replace("}", ""), None
+            return None, response, None
         
         # Ensure the parts are valid
         if len(parts) != 3:
             if self.debugLevel > 1: print(f"  Invalid response format")
             return "Invalid response format", "Invalid response format", "Invalid response format"
         
-        # Parse the error code as an integer
-        error = self.ParseError(int(parts[0].strip()))
+        # Parse the error code as an integer after stripping any commas and brackets
+        err_code = parts[0].strip().replace(",","").replace("(","")
+        error = self.ParseError(int(err_code))
         
-        # Extract the response and command
-        response = parts[1].replace("{", "").replace("}", "").strip()
-        command = parts[2].strip().rstrip(";")
+        # Extract the response
+        response = parts[1].strip()
+
+        # Extract the command after stripping any commas and brackets
+        command = parts[2].strip().rstrip(")").rstrip(";").replace(",","")
 
         # Print results
         if self.debugLevel > 1: print(f"Error: {error}\n    Response: {response}\n    Command: {command}")

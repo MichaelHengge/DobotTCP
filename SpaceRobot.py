@@ -259,7 +259,7 @@ class SpaceMouseGUI:
 
         button_options = ["None", "Toggle Tool", "Home", "Pack", "Pickup", "Toggle Mode", "User Command"]
         button_actions = ["Button L", "Button R"]
-        preselected_buttons = ["Toggle Tool", "Toggle Mode"]
+        preselected_buttons = ["Toggle Tool", "Pickup"]
         self.button_indicators = []
 
         for i, button in enumerate(button_actions):
@@ -401,8 +401,10 @@ class SpaceMouseGUI:
             return
         elif self.mode.get() == "Joints":
             joint_values = [float(textbox.get()) for textbox in self.joint_textboxes]
-            (_,current_pos,_) = robot.GetAngle()
-            print(f"Current Joint Positions: {current_pos}")
+            if self.move_delta.get():
+                current_pos = robot.GetAngle()
+                print(f"Current Joint Positions: {current_pos}")
+                return
             print(f"Moving to Joint Positions: {joint_values}")
             if self.goto_JL.get() == "Joint":
                 robot.MoveJJ(joint_values[0], joint_values[1], joint_values[2], joint_values[3], joint_values[4], joint_values[5])
