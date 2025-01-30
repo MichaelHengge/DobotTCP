@@ -112,6 +112,9 @@ class SpaceMouseGUI:
         global_speed_slider.pack(side=tk.LEFT, padx=5)
         global_speed_value_label = tk.Label(slider_frame, textvariable=self.global_speed, width=4)
         global_speed_value_label.pack(side=tk.LEFT, padx=5)
+
+        global_speed_slider.bind("<ButtonRelease-1>", self.on_speed_changed)
+        self.global_speed.trace("w", self.update_speed_display)
         
         # Mode switch radio buttons
         mode_frame = tk.Frame(self.root)
@@ -165,21 +168,22 @@ class SpaceMouseGUI:
         tk.Label(joint_values_frame, text="Run robot to joint position:").pack(pady=(0, 5))
 
         # Add labels and textboxes in a row for joint goto
-        for joint in joint_labels:
+        for i, joint in enumerate(joint_labels):
             frame = tk.Frame(joint_values_frame)
             frame.pack(side=tk.LEFT, padx=5)
 
             label = tk.Label(frame, text=joint, width=7, anchor="center")
             label.pack()
 
-            textbox = tk.Entry(frame, width=7)
+            textbox = tk.Entry(frame, width=7, justify="center")
             textbox.pack(anchor="s")
             textbox.insert(0, "0.00")  # Pre-fill with 0.00
             textbox.bind("<FocusOut>", lambda event, tb=self.joint_textboxes: self.validate_joint_input(tb))
             self.joint_textboxes.append(textbox)  # Store reference to access later
 
-            label = tk.Label(frame, text="--", width=7, anchor="center")
+            label = tk.Label(frame, text="--", width=7, anchor="center", fg="blue", cursor="hand2")
             label.pack()
+            label.bind("<Button-1>", lambda event, idx=i: self.copy_label_to_textbox(idx)) # Bind left click
             self.joint_labels.append(label)
 
         # Add GoTo button to the right of Joint 6
@@ -323,6 +327,17 @@ class SpaceMouseGUI:
         # Start GUI update loop
         self.update_gui()
 
+    def on_speed_changed(self, event):
+        """Handle speed slider change."""
+        speed = int(self.global_speed.get())
+        robot.SpeedFactor(speed)
+
+    def copy_label_to_textbox(self, idx):
+        """Copy the text of the clicked joint label to the corresponding textbox."""
+        label_text = self.joint_labels[idx].cget("text")  # Get label text
+        self.joint_textboxes[idx].delete(0, tk.END)  # Clear the textbox
+        self.joint_textboxes[idx].insert(0, label_text)  # Insert label text
+
     def validate_joint_input(self, textboxes):
         """Ensure the joint value stays within min/max limits."""
         for i in range(len(self.joint_textboxes)):
@@ -368,6 +383,10 @@ class SpaceMouseGUI:
     def update_threshold_display(self, *args):
         """Limit the threshold display to two decimal places."""
         self.threshold.set(round(self.threshold.get(), 2))
+
+    def update_speed_display(self, *args):
+        """Limit the speed display to no decimal places."""
+        self.global_speed.set(round(self.global_speed.get()))
         
     def update_combobox_state(self, *args):
         """Enable or disable axis comboboxes based on the selected mode."""
@@ -742,11 +761,15 @@ class SpaceMouseGUI:
     def fetch_robot_feedback(self):
         """Function to fetch feedback from the robot."""
         global robotMode
+        global jointPositions
         while (1):
             try:
                 feedback.Get()
                 robotMode = feedback.data.get('RobotMode')
                 self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
+                jointPositions = feedback.data.get('QActual')
+                for i in range(6):
+                    self.joint_labels[i].config(text=f"{jointPositions[i]:.2f}")
                 time.sleep(0.5)
             except Exception as e:
                 self.set_status(f"Error: {e}" , isError=True)
@@ -768,7 +791,7 @@ if __name__ == "__main__":
     app.set_status("Connecting to robot...")
     robot.Connect()
     feedback.Connect()
-    robot.SetDebugLevel(2)
+    robot.SetDebugLevel(0)
     (_,robotMode,_) = robot.RobotMode()
 
     if robotMode == "4": # Disabled
