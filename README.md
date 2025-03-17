@@ -113,6 +113,8 @@ print(feedback.data.get("RobotType"))
 - v1.1.0 (20.01.2025):
   - Update library based on new TCP protocol v4.6.0. **Some new commands may require the robot controller version to be updated to V4.6.0.**
   - Add module docstring and parsing functions
+- v1.1.1 (27.01.2025): Various bug fixes
+- v1.1.2 (31.01.2025): Fixes bugs when parsing robot responses
 
 ## Contributing
 
