@@ -257,7 +257,9 @@ async def pickupHi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     await update.message.reply_text("Robot picking up sign.")
     hasSign = 1 # HI sign
-    robot.MoveJJ(248.9177, -44.9695, -112.8800, 68.0770, 88.3278, 67.6986)
+    robot.MoveJJ(248.9177, -42.4427, -113.0571, 65.7272, 88.3278, 67.6986)
+    time.sleep(1)
+    robot.MoveJJ(248.9177, -45.4710, -112.8282, 68.5268, 88.3278, 67.6986)
     time.sleep(2)
     robot.SetSucker(1)
     time.sleep(2)
