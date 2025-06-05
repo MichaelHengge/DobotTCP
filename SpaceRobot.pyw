@@ -842,7 +842,6 @@ class SpaceMouseGUI:
                 elif robotMode == 11: # Collision Detected
                     self.set_status("Collision Detected", isError=True)
                 else:
-                    print(f"Robot Mode: {robotMode}")
                     self.set_status("Status: " + robot.ParseRobotMode(robotMode).split(":")[1].strip())
 
                 if self.mode.get() == "Joints" or self.mode.get() == "Simulation":
