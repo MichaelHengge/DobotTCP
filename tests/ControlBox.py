@@ -8,6 +8,7 @@ import threading
 import sys
 import serial
 from DobotTCP import DobotTCP
+import requests
 
 BUTTONS = [
     ("RED", "#FF0000"),
@@ -41,8 +42,10 @@ class ControlPanel(tk.Tk):
         self.resizable(False, False)
         self.expanded = False
 
+        self.use_server = tk.BooleanVar(value=True)
         self.robot = None
-        self.after(100, self.connect_robot)
+        if not self.use_server.get():
+            self.after(100, self.connect_robot)
 
         self.buttons = {}
         self.button_images = {}
@@ -123,6 +126,38 @@ class ControlPanel(tk.Tk):
         self.serial_log = ScrolledText(self.settings_frame, height=6, state="disabled", wrap="word")
         self.serial_log.grid(row=1, column=0, columnspan=5, padx=5, pady=10, sticky="ew")
 
+        tk.Checkbutton(
+            self.settings_frame,
+            text="Use Flask Server",
+            variable=self.use_server,
+            command=self.on_toggle_mode,
+            bg="#efefef",
+            onvalue=True,
+            offvalue=False
+        ).grid(row=0, column=5, padx=10, pady=5)
+
+    def on_toggle_mode(self):
+        if self.use_server.get():
+            self.set_status("Switched to Flask server mode")
+            if self.robot:
+                try:
+                    self.robot.Disconnect()
+                    print("[ROBOT] Disconnected due to server mode")
+                except:
+                    pass
+                self.robot = None
+        else:
+            self.set_status("Switched to direct TCP mode")
+            self.connect_robot()
+
+    def send_via_server(self, command):
+        try:
+            res = requests.post("http://localhost:5001/send", json={"command": command}, timeout=2)
+            data = res.json()
+            return data.get("response", "No response"), data.get("error", "")
+        except Exception as e:
+            return None, str(e)
+
     def connect_robot(self):
         try:
             self.robot = DobotTCP()
@@ -162,26 +197,27 @@ class ControlPanel(tk.Tk):
         self.send_robot_command(match)
 
     def send_robot_command(self, command):
-        if not self.robot:
-            print("[ROBOT] Not connected")
-            return
-
-        if isinstance(command, str):
-            method = getattr(self.robot, command, None)
-            if callable(method):
-                print(f"[ROBOT] Calling: {command}()")
-                try:
-                    method()
-                except Exception as e:
-                    self.set_status(f"Robot error: {e}")
-        elif isinstance(command, tuple):
-            method_name, args = command
-            method = getattr(self.robot, method_name, None)
-            if callable(method):
-                try:
-                    method(*args)
-                except Exception as e:
-                    self.set_status(f"Robot error: {e}")
+        if self.use_server.get():
+            if isinstance(command, str):
+                resp, err = self.send_via_server(f"{command}()")
+                self.set_status(f"[SERVER] {command}: {resp or err}")
+            elif isinstance(command, tuple):
+                method, args = command
+                argstr = ",".join(map(str, args))
+                resp, err = self.send_via_server(f"{method}({argstr})")
+                self.set_status(f"[SERVER] {method}: {resp or err}")
+        else:
+            if not self.robot:
+                print("[ROBOT] Not connected")
+                return
+            try:
+                if isinstance(command, str):
+                    getattr(self.robot, command)()
+                elif isinstance(command, tuple):
+                    method, args = command
+                    getattr(self.robot, method)(*args)
+            except Exception as e:
+                self.set_status(f"[ROBOT] {e}")
 
     def flash_button(self, label):
         btn = self.buttons.get(label)

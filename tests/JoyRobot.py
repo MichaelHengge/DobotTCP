@@ -3,6 +3,7 @@ import tkinter as tk
 from DobotTCP import Dobot  # Assumes Dobot class is in this file
 import threading
 import time
+import requests
 
 # Global Variables
 suction_on = False
@@ -15,16 +16,22 @@ pygame.init()
 pygame.joystick.init()
 
 # Initialize robot
-'''robot = Dobot()
-robot.Connect()
-robot.SetDebugLevel(0)
-robot.EnableRobot()'''
+robot = None
+use_server = tk.BooleanVar(value=False)
+if not use_server.get():
+    from DobotTCP import Dobot
+    robot = Dobot()
+    robot.Connect()
+    robot.SetDebugLevel(0)
+    robot.EnableRobot()
 
 # GUI setup
 root = tk.Tk()
 root.title("Joystick Robot Control")
 root.geometry("400x400")
 canvas = tk.Canvas(root, width=400, height=500, bg="black", highlightthickness=0)
+toggle = tk.Checkbutton(root, text="Use Flask Server", variable=use_server, bg="black", fg="white", selectcolor="black")
+toggle.pack(pady=5)
 canvas.pack()
 
 # Top buttons (1 and 2)
@@ -146,6 +153,26 @@ mod_label = canvas.create_text(
     text="M", fill="white", font=("Arial", 12, "bold")
 )
 
+def send_via_server(command):
+    try:
+        res = requests.post("http://localhost:5001/send", json={"command": command}, timeout=2)
+        return res.json()
+    except Exception as e:
+        print(f"[SERVER ERROR] {e}")
+        return None
+    
+def move_jog(command_str):
+    if use_server.get():
+        send_via_server(f"MoveJog({command_str})" if command_str else "MoveJog()")
+    else:
+        robot.MoveJog(command_str) if command_str else robot.MoveJog()
+
+def set_sucker(state):
+    if use_server.get():
+        requests.post("http://localhost:5001/suction", json={"status": int(state)})
+    else:
+        robot.SetSucker(int(state))
+
 def update_labels():
     if modifier_on:
         canvas.itemconfig(button1_label, text="Rz+")
@@ -188,48 +215,48 @@ def joystick_robot_control():
             if not modifier_on:
                 # Default: cartesian XY + Z
                 if btn1:
-                    robot.MoveJog("Z-", 1)
+                    move_jog("Z-", 1)
                 elif btn2:
-                    robot.MoveJog("Z+", 1)
+                    move_jog("Z+", 1)
                 elif move_x != 0 or move_y != 0:
                     if abs(move_x) > abs(move_y):
                         if move_x > 0:
-                            robot.MoveJog("Y+", 1)
+                            move_jog("Y+", 1)
                         else:
-                            robot.MoveJog("Y-", 1)
+                            move_jog("Y-", 1)
                     else:
                         if move_y > 0:
-                            robot.MoveJog("X+", 1)
+                            move_jog("X+", 1)
                         else:
-                            robot.MoveJog("X-", 1)
+                            move_jog("X-", 1)
                 else:
-                    robot.MoveJog()  # Stop movement
+                    move_jog()  # Stop movement
             else:
                 # Modifier ON: Pitch, Roll, Yaw
                 if btn1:
-                    robot.MoveJog("Rz+", 1)
+                    move_jog("Rz+", 1)
                 elif btn2:
-                    robot.MoveJog("Rz-", 1)
+                    move_jog("Rz-", 1)
                 elif move_x != 0 or move_y != 0:
                     if abs(move_x) > abs(move_y):
                         # X axis controls Pitch
                         if move_x > 0:
-                            robot.MoveJog("Rx+", 1)
+                            move_jog("Rx+", 1)
                         else:
-                            robot.MoveJog("Rx-", 1)
+                            move_jog("Rx-", 1)
                     else:
                         # Y axis controls Roll
                         if move_y > 0:
-                            robot.MoveJog("Ry+", 1)
+                            move_jog("Ry+", 1)
                         else:
-                            robot.MoveJog("Ry-", 1)
+                            move_jog("Ry-", 1)
                 else:
-                    robot.MoveJog()  # Stop movement
+                    move_jog()  # Stop movement
 
             # Suction toggle
             if btn3 and not suction_debounced:
                 suction_on = not suction_on
-                robot.SetSucker(1 if suction_on else 0)
+                set_sucker(1 if suction_on else 0)
                 suction_debounced = True
             elif not btn3:
                 suction_debounced = False
