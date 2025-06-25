@@ -15,24 +15,25 @@ modifier_debounced = False
 pygame.init()
 pygame.joystick.init()
 
+# GUI setup
+root = tk.Tk()
+root.title("Joystick Robot Control")
+root.geometry("400x500")
+root.configure(bg="black")
+canvas = tk.Canvas(root, width=400, height=500, bg="black", highlightthickness=0)
+use_server = tk.BooleanVar(value=True)
+toggle = tk.Checkbutton(root, text="Use Flask Server", variable=use_server, bg="black", fg="white", selectcolor="black")
+toggle.pack(pady=5)
+canvas.pack()
+
 # Initialize robot
 robot = None
-use_server = tk.BooleanVar(value=False)
 if not use_server.get():
     from DobotTCP import Dobot
     robot = Dobot()
     robot.Connect()
     robot.SetDebugLevel(0)
     robot.EnableRobot()
-
-# GUI setup
-root = tk.Tk()
-root.title("Joystick Robot Control")
-root.geometry("400x400")
-canvas = tk.Canvas(root, width=400, height=500, bg="black", highlightthickness=0)
-toggle = tk.Checkbutton(root, text="Use Flask Server", variable=use_server, bg="black", fg="white", selectcolor="black")
-toggle.pack(pady=5)
-canvas.pack()
 
 # Top buttons (1 and 2)
 circle_radius = 30
