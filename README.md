@@ -49,7 +49,7 @@ print(f"  Response: {rsp}")
 print(f"  Command: {cmd}")
 
 # Move robot with joint motion to pose
-MovJ("pose={200,200,200,0,0,0}")
+robot.MovJ("pose={200,200,200,0,0,0}")
 
 # Home robot
 robot.Home()
@@ -115,6 +115,7 @@ print(feedback.data.get("RobotType"))
   - Add module docstring and parsing functions
 - v1.1.1 (27.01.2025): Various bug fixes
 - v1.1.2 (31.01.2025): Fixes bugs when parsing robot responses
+- v1.1.3 (16.06.2025): Fixes bug with incorrect __init__ file
 
 ## Contributing
 

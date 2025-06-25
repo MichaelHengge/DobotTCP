@@ -15,10 +15,10 @@ pygame.init()
 pygame.joystick.init()
 
 # Initialize robot
-robot = Dobot()
+'''robot = Dobot()
 robot.Connect()
 robot.SetDebugLevel(0)
-robot.EnableRobot()
+robot.EnableRobot()'''
 
 # GUI setup
 root = tk.Tk()
