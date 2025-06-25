@@ -3323,7 +3323,7 @@ class FlexGripper:
         Example:
             Open()
         """
-        if self.robot.isDebug: print(f"  Opening flexible gripper\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Opening flexible gripper\n    ", end="")
         self.robot.DO(self.DOvacuum,0)
         return self.robot.DO(self.DOpressure,1)  
 
@@ -3337,7 +3337,7 @@ class FlexGripper:
         Example:
             Close()
         """
-        if self.robot.isDebug: print(f"  Closing flexible gripper\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Closing flexible gripper\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,1) 
     
@@ -3351,7 +3351,7 @@ class FlexGripper:
         Example:
             Neutral()
         """
-        if self.robot.isDebug: print(f"  Setting flexible gripper to neutral\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Setting flexible gripper to neutral\n    ", end="")
         self.robot.DO(self.DOpressure,0)
         return self.robot.DO(self.DOvacuum,0)
     
@@ -3370,7 +3370,7 @@ class FlexGripper:
         Example:
             SetState(1)
         """
-        if self.robot.isDebug: print(f"  Setting flexible gripper to {state}\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Setting flexible gripper to {state}\n    ", end="")
         match state:
             case -1:
                 self.robot.DO(pressure,0)
@@ -3421,23 +3421,23 @@ class ServoGripper:
         Example:
             SetState(1)
         """
-        if self.robot.isDebug: print(f"  Setting servo gripper group to {state}\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Setting servo gripper group to {state}\n    ", end="")
         match state:
             case 1:
                 self.robot.DO(self.DOin1,0)
-                if self.robot.isDebug: print("    ", end="")
+                if self.robot.debugLevel > 1: print("    ", end="")
                 return self.robot.DO(self.DOin2,0)
             case 2:
                 self.robot.DO(self.DOin1,1)
-                if self.robot.isDebug: print("    ", end="")
+                if self.robot.debugLevel > 1: print("    ", end="")
                 return self.robot.DO(self.DOin2,0)
             case 3:
                 self.robot.DO(self.DOin1,0)
-                if self.robot.isDebug: print("    ", end="")
+                if self.robot.debugLevel > 1: print("    ", end="")
                 return self.robot.DO(self.DOin2,1)
             case 4:
                 self.robot.DO(self.DOin1,1)
-                if self.robot.isDebug: print("    ", end="")
+                if self.robot.debugLevel > 1: print("    ", end="")
                 return self.robot.DO(self.DOin2,1)
             case _:
                 return "    Invalid state group. Please choose a value between 1 and 4."
@@ -3452,7 +3452,7 @@ class ServoGripper:
         Example:
             GetState()
         """
-        if self.robot.isDebug: print(f"  Getting servo gripper state\n    ", end="")
+        if self.robot.debugLevel > 1: print(f"  Getting servo gripper state\n    ", end="")
         output1 = self.robot.GetDO(self.DIout1)
         output2 = self.robot.GetDO(self.DIout2)
         match (output1, output2):
