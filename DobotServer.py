@@ -1,72 +1,73 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
+from flask_socketio import SocketIO, emit
 from DobotTCP import Dobot, FlexGripper, ServoGripper
+import threading
+import time
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 robot = Dobot()
 robot.Connect()
 
 flex = FlexGripper(robot)
 servo = ServoGripper(robot)
 
-@app.route("/send", methods=["POST"])
-def send_command():
-    data = request.json
-    command = data.get("command", "")
+command_queue = []
+queue_lock = threading.Lock()
 
-    if not command:
-        return jsonify({"error": "Missing command"}), 400
+def worker():
+    while True:
+        cmd = None
+        with queue_lock:
+            if command_queue:
+                cmd = command_queue.pop(0)
+        if cmd:
+            try:
+                func_name = cmd.split("(", 1)[0]
+                args_str = cmd[len(func_name)+1:-1]  # Strip parentheses
+                args = eval(f"[{args_str}]") if args_str else []
 
-    try:
-        # Parse function name and args
-        func_name = command.split("(", 1)[0]
-        args_str = command[len(func_name)+1:-1]  # Strip outer parentheses
-        args = eval(f"[{args_str}]") if args_str else []
+                # Dispatch command based on prefix
+                if func_name.startswith("FlexGripper"):
+                    flex_method_name = func_name[len("FlexGripper"):]
+                    method = getattr(flex, flex_method_name, None)
+                elif func_name.startswith("ServoGripper"):
+                    servo_method_name = func_name[len("ServoGripper"):]
+                    method = getattr(servo, servo_method_name, None)
+                else:
+                    method = getattr(robot, func_name, None)
 
-        method = getattr(robot, func_name)
-        response = method(*args)
-        return jsonify({
-            "command": command,
-            "response": response[1],
-            "error": response[0]
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+                if not method:
+                    raise AttributeError(f"Method {func_name} not found on any device")
 
-@app.route("/disconnect", methods=["POST"])
-def disconnect():
-    robot.Disconnect()
-    return jsonify({"status": "Disconnected"})
+                response = method(*args)
+                socketio.emit('command_response', {
+                    'command': cmd,
+                    'response': response[1] if isinstance(response, (list, tuple)) and len(response) > 1 else response,
+                    'error': response[0] if isinstance(response, (list, tuple)) and len(response) > 0 else None
+                })
+            except Exception as e:
+                socketio.emit('command_response', {
+                    'command': cmd,
+                    'error': str(e)
+                })
+            time.sleep(0.02)
+        else:
+            time.sleep(0.01)
 
-@app.route("/gripper/flex", methods=["POST"])
-def flex_gripper():
-    action = request.json.get("action")
-    if action == "open":
-        return jsonify(flex.Open())
-    elif action == "close":
-        return jsonify(flex.Close())
-    elif action == "neutral":
-        return jsonify(flex.Neutral())
-    else:
-        return jsonify({"error": "Invalid action"}), 400
+threading.Thread(target=worker, daemon=True).start()
 
-@app.route("/gripper/flex/state", methods=["POST"])
-def flex_gripper_state():
-    state = int(request.json.get("state", 0))  # -1, 0, or 1
-    return jsonify(flex.SetState(state))
-
-@app.route("/gripper/servo", methods=["POST"])
-def servo_gripper():
-    state = int(request.json.get("state", 1))  # 1-4
-    return jsonify(servo.SetState(state))
-
-@app.route("/gripper/servo/status", methods=["GET"])
-def servo_status():
-    return jsonify({"status": servo.GetState()})
-
-@app.route("/suction", methods=["POST"])
-def suction_control():
-    status = int(request.json.get("status", 0))  # 0 = OFF, 1 = ON
-    return jsonify(robot.ToolDO(1, status))
+@socketio.on('send_command')
+def handle_send_command(json):
+    cmd = json.get('command')
+    if not cmd:
+        emit('error', {'message': 'No command received'})
+        return
+    with queue_lock:
+        command_queue.append(cmd)
+    emit('queued', {'command': cmd})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
+    socketio.run(app, host="0.0.0.0", port=5001)

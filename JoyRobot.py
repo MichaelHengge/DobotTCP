@@ -1,19 +1,100 @@
 import pygame
 import tkinter as tk
-from DobotTCP import Dobot  # Assumes Dobot class is in this file
+from DobotTCP import Dobot, FlexGripper, ServoGripper
 import threading
 import time
 import requests
+import socketio #pip install "python-socketio[client]"
 
 # Global Variables
 suction_on = False
 suction_debounced = False
 modifier_on = False
 modifier_debounced = False
+stop_sent = False
+
+robot = None
+flex = None
+servo = None
+
+current_tool = "flex"  # "sucker" or "flex", "servo"
+flex_state = 0  # start at neutral
 
 # Initialize pygame
 pygame.init()
 pygame.joystick.init()
+
+sio = socketio.Client()
+
+def set_status(message):
+    root.after(0, lambda: status_var.set(message))
+
+@sio.event
+def connect():
+    set_status("WebSocket connected")
+
+@sio.event
+def disconnect():
+    set_status("WebSocket disconnected")
+
+@sio.on('queued')
+def on_queued(data):
+    # You could update status here if desired
+    pass
+
+@sio.on('command_response')
+def on_command_response(data):
+    # Optionally show command responses
+    # set_status(f"Cmd: {data.get('command')} Response: {data.get('response')}")
+    pass
+
+
+def is_server_running(url="http://localhost:5001"):
+    try:
+        r = requests.get(url, timeout=1)
+        return r.status_code == 200 or r.status_code == 404  # 404 OK if root not defined
+    except Exception:
+        return False
+
+def connect_ws():
+    if not is_server_running():
+        set_status("Server not reachable - WebSocket not connected")
+        return
+    try:
+        sio.connect('http://localhost:5001')
+    except Exception as e:
+        set_status(f"WS connect error: {e}")
+
+def on_toggle_mode():
+    global robot, servo, flex
+    if use_server.get():
+        set_status("Switched to Flask server mode")
+        # Disconnect robot TCP connection if active
+        if robot:
+            try:
+                robot.Disconnect()
+            except Exception:
+                pass
+            robot = None
+        # Connect Socket.IO client if not connected
+        if not sio.connected:
+            threading.Thread(target=connect_ws, daemon=True).start()
+    else:
+        set_status("Switched to direct TCP mode")
+        # Disconnect Socket.IO client if connected
+        if sio.connected:
+            sio.disconnect()
+        # Connect to robot via TCP if not connected
+        if robot is None:
+            robot = Dobot()
+            flex = FlexGripper(robot)
+            servo = ServoGripper(robot)
+            try:
+                robot.Connect()
+                robot.SetDebugLevel(2)
+                robot.EnableRobot()
+            except Exception as e:
+                set_status(f"Robot connection failed: {e}")
 
 # GUI setup
 root = tk.Tk()
@@ -22,18 +103,25 @@ root.geometry("400x500")
 root.configure(bg="black")
 canvas = tk.Canvas(root, width=400, height=500, bg="black", highlightthickness=0)
 use_server = tk.BooleanVar(value=True)
-toggle = tk.Checkbutton(root, text="Use Flask Server", variable=use_server, bg="black", fg="white", selectcolor="black")
+toggle = tk.Checkbutton(root, text="Use Flask Server", variable=use_server, command=on_toggle_mode, bg="black", fg="white", selectcolor="black")
 toggle.pack(pady=5)
+
+status_var = tk.StringVar(value="Ready")
+status_label = tk.Label(root, textvariable=status_var, bg="black", fg="white", font=("Arial", 12))
+status_label.pack(side="bottom", fill="x")
+status_label.pack(side="bottom", fill="x")
+
 canvas.pack()
 
 # Initialize robot
-robot = None
+
 if not use_server.get():
-    from DobotTCP import Dobot
     robot = Dobot()
     robot.Connect()
-    robot.SetDebugLevel(0)
+    robot.SetDebugLevel(2)
     robot.EnableRobot()
+    flex = FlexGripper(robot)
+    servo = ServoGripper(robot)
 
 # Top buttons (1 and 2)
 circle_radius = 30
@@ -156,23 +244,49 @@ mod_label = canvas.create_text(
 
 def send_via_server(command):
     try:
-        res = requests.post("http://localhost:5001/send", json={"command": command}, timeout=2)
-        return res.json()
+        sio.emit('send_command', {'command': command})
     except Exception as e:
-        print(f"[SERVER ERROR] {e}")
-        return None
-    
-def move_jog(command_str):
-    if use_server.get():
-        send_via_server(f"MoveJog({command_str})" if command_str else "MoveJog()")
-    else:
-        robot.MoveJog(command_str) if command_str else robot.MoveJog()
+        set_status(f"[WS ERROR] {e}")
 
-def set_sucker(state):
+    
+def move_jog(axis=None, coord_type=None):
     if use_server.get():
-        requests.post("http://localhost:5001/suction", json={"status": int(state)})
+        if axis is None:
+            send_via_server("MoveJog()")
+        elif coord_type is not None:
+            send_via_server(f"MoveJog('{axis}', {coord_type})")
+        else:
+            send_via_server(f"MoveJog('{axis}')")
     else:
-        robot.SetSucker(int(state))
+        if axis is None:
+            robot.MoveJog()
+        elif coord_type is not None:
+            robot.MoveJog(axis, coord_type)
+        else:
+            robot.MoveJog(axis)
+
+def set_tool(suction_on):
+    global flex_state
+    if current_tool == "sucker":
+        if use_server.get():
+            send_via_server(f"SetSucker({int(suction_on)})")
+        else:
+            robot.SetSucker(int(suction_on))
+    elif current_tool == "flex":
+        flex_state = 1 if suction_on else -1
+        if use_server.get():
+            send_via_server(f"FlexGripperSetState({flex_state})")
+        else:
+            flex.SetState(flex_state)
+    elif current_tool == "servo":
+        servo_state = 1 if suction_on else 0  # or adjust depending on your servo states
+        if use_server.get():
+            send_via_server(f"servo.SetState({servo_state})")
+        else:
+            servo.SetState(servo_state)
+    else:
+        print(f"Unknown tool: {current_tool}")
+
 
 def update_labels():
     if modifier_on:
@@ -191,7 +305,7 @@ def update_labels():
         canvas.itemconfig(down_label,  text="Y+")
 
 def joystick_robot_control():
-    global suction_on, suction_debounced, modifier_on, modifier_debounced
+    global suction_on, suction_debounced, modifier_on, modifier_debounced, stop_sent
     while True:
         pygame.event.pump()
         if pygame.joystick.get_count() > 0:
@@ -217,47 +331,82 @@ def joystick_robot_control():
                 # Default: cartesian XY + Z
                 if btn1:
                     move_jog("Z-", 1)
+                    set_status("Moving down")
+                    stop_sent = False
                 elif btn2:
                     move_jog("Z+", 1)
+                    set_status("Moving up")
+                    stop_sent = False
                 elif move_x != 0 or move_y != 0:
                     if abs(move_x) > abs(move_y):
                         if move_x > 0:
                             move_jog("Y+", 1)
+                            set_status("Moving right")
+                            stop_sent = False
                         else:
                             move_jog("Y-", 1)
+                            set_status("Moving left")
+                            stop_sent = False
                     else:
                         if move_y > 0:
                             move_jog("X+", 1)
+                            set_status("Moving back")
+                            stop_sent = False
                         else:
                             move_jog("X-", 1)
+                            set_status("Moving front")
+                            stop_sent = False
                 else:
-                    move_jog()  # Stop movement
+                    if not stop_sent:
+                        move_jog()  # Stop movement
+                        set_status("Ready")
+                        stop_sent = True
             else:
                 # Modifier ON: Pitch, Roll, Yaw
                 if btn1:
                     move_jog("Rz+", 1)
+                    set_status("Changing Yaw positive")
+                    stop_sent = False
                 elif btn2:
                     move_jog("Rz-", 1)
+                    set_status("Changing Yaw positive")
+                    stop_sent = False
                 elif move_x != 0 or move_y != 0:
                     if abs(move_x) > abs(move_y):
                         # X axis controls Pitch
                         if move_x > 0:
                             move_jog("Rx+", 1)
+                            set_status("Changing Pitch positive")
+                            stop_sent = False
                         else:
                             move_jog("Rx-", 1)
+                            set_status("Changing Pitch negative")
+                            stop_sent = False
                     else:
                         # Y axis controls Roll
                         if move_y > 0:
                             move_jog("Ry+", 1)
+                            set_status("Changing Roll positive")
+                            stop_sent = False
                         else:
                             move_jog("Ry-", 1)
+                            set_status("Changing Roll negative")
+                            stop_sent = False
                 else:
-                    move_jog()  # Stop movement
+                    if not stop_sent:
+                        move_jog()  # Stop movement
+                        set_status("Ready")
+                        stop_sent = True
 
             # Suction toggle
             if btn3 and not suction_debounced:
                 suction_on = not suction_on
-                set_sucker(1 if suction_on else 0)
+                if (suction_on):
+                    set_tool(1)
+                    set_status("Suction off")
+                else:
+                    set_tool(0)
+                    set_status("Suction on")
                 suction_debounced = True
             elif not btn3:
                 suction_debounced = False
@@ -272,8 +421,8 @@ def joystick_robot_control():
 
         time.sleep(0.05)
 
-
 # Start robot control thread
+threading.Thread(target=connect_ws, daemon=True).start()
 threading.Thread(target=joystick_robot_control, daemon=True).start()
 
 # Tkinter loop

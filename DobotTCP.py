@@ -3379,7 +3379,7 @@ class FlexGripper:
                 self.robot.DO(vacuum,0)
                 return self.robot.DO(pressure,0)
             case 1:
-                self.robot.DO(vacuum,1)
+                self.robot.DO(vacuum,0)
                 return self.robot.DO(pressure,1)
 
 

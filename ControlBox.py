@@ -2,13 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from PIL import Image, ImageDraw, ImageTk, ImageEnhance
-import serial.tools.list_ports
+import serial.tools.list_ports  # pip install pyserial
 import pystray
 import threading
 import sys
 import serial
-from DobotTCP import DobotTCP
+from DobotTCP import Dobot
 import requests
+import socketio
 
 BUTTONS = [
     ("RED", "#FF0000"),
@@ -16,16 +17,16 @@ BUTTONS = [
     ("GREEN", "#00FF00"),
     ("BLUE", "#0000FF"),
     ("BLACK", "#333333")
-    #("Move to Origin", "move_to", (0, 0, 0)) #example for command with parameters
 ]
 
 COMMAND_OPTIONS = [
     ("None", None),
-    ("Home", "home"),
+    ("Clear Error", "ClearError"),
+    ("Home", "Home"),
     ("Pick", "pick"),
-    ("Place", "place"),
-    ("Pause", "pause"),
+    ("Place", ("MoveJJ", (9, -47, -70, 26, 91, -2))),
     ("Emergency Stop", "stop")
+    # ("Move To Position", ("MoveJJ", (100, 200, 150)))  # Example with parameters
 ]
 
 GUI_SIZE = "900x250"
@@ -44,6 +45,12 @@ class ControlPanel(tk.Tk):
 
         self.use_server = tk.BooleanVar(value=True)
         self.robot = None
+
+        # Socket.IO client
+        self.sio = socketio.Client()
+        self.sio_connected = False
+        self.setup_socketio_events()
+
         if not self.use_server.get():
             self.after(100, self.connect_robot)
 
@@ -61,6 +68,36 @@ class ControlPanel(tk.Tk):
 
         self.bind("<F3>", self.toggle_settings_panel)
         self.bind("<Unmap>", self.on_minimize)  # minimize to tray only
+
+    def setup_socketio_events(self):
+        @self.sio.event
+        def connect():
+            self.sio_connected = True
+            self.set_status("WebSocket connected")
+
+        @self.sio.event
+        def disconnect():
+            self.sio_connected = False
+            self.set_status("WebSocket disconnected")
+
+        @self.sio.on('command_response')
+        def on_command_response(data):
+            # Optional: handle responses
+            pass
+
+        @self.sio.on('queued')
+        def on_queued(data):
+            # Optional: handle queued confirmation
+            pass
+
+    def refresh_ports(self):
+        ports = self.get_serial_ports()
+        self.port_combo['values'] = ports
+        if ports:
+            self.port_var.set(ports[0])
+        else:
+            self.port_var.set("No ports")
+        self.set_status("COM ports refreshed")
 
     def create_ui(self):
         start_col = 2
@@ -86,7 +123,7 @@ class ControlPanel(tk.Tk):
             self.button_images[label] = (photo, photo_hover)
 
             # Preselect the corresponding label if available
-            default_index = i+1 if i+1 < len(display_labels) else 0
+            default_index = i + 1 if i + 1 < len(display_labels) else 0
             var = tk.StringVar(value=display_labels[default_index])
             dropdown = ttk.Combobox(self, values=display_labels, textvariable=var, state="readonly")
             dropdown.grid(row=1, column=start_col + i)
@@ -102,6 +139,7 @@ class ControlPanel(tk.Tk):
         )
         self.status_label.grid(row=2, column=0, columnspan=9, pady=(20, 0))
 
+        # Serial Settings groupbox
         self.settings_frame = tk.LabelFrame(self, text="Serial Settings", bg="#efefef")
         self.settings_frame.grid(row=3, column=0, columnspan=9, pady=(30, 0), padx=10, sticky="ew")
         self.settings_frame.grid_remove()
@@ -122,19 +160,29 @@ class ControlPanel(tk.Tk):
         self.connect_button = tk.Button(self.settings_frame, text="Connect", command=self.connect_serial)
         self.connect_button.grid(row=0, column=4, padx=10, pady=5)
 
-        # Serial monitor box
+        refresh_btn = tk.Button(self.settings_frame, text="Refresh", command=self.refresh_ports)
+        refresh_btn.grid(row=0, column=2, padx=5, pady=5, sticky="w")
+
+        # Serial monitor box inside serial settings groupbox
         self.serial_log = ScrolledText(self.settings_frame, height=6, state="disabled", wrap="word")
         self.serial_log.grid(row=1, column=0, columnspan=5, padx=5, pady=10, sticky="ew")
 
+        # New Server Settings groupbox below Serial Settings
+        self.server_toggle_frame = tk.LabelFrame(self, text="Server Settings", bg="#efefef")
+        self.server_toggle_frame.grid(row=4, column=0, columnspan=9, pady=(10, 0), padx=10, sticky="ew")
+
         tk.Checkbutton(
-            self.settings_frame,
+            self.server_toggle_frame,
             text="Use Flask Server",
             variable=self.use_server,
             command=self.on_toggle_mode,
             bg="#efefef",
             onvalue=True,
             offvalue=False
-        ).grid(row=0, column=5, padx=10, pady=5)
+        ).pack(anchor="w", padx=10, pady=5)
+
+        self.settings_frame.grid_remove()
+        self.server_toggle_frame.grid_remove()
 
     def on_toggle_mode(self):
         if self.use_server.get():
@@ -146,23 +194,28 @@ class ControlPanel(tk.Tk):
                 except:
                     pass
                 self.robot = None
+            if not self.sio_connected:
+                threading.Thread(target=lambda: self.sio.connect("http://localhost:5001"), daemon=True).start()
         else:
             self.set_status("Switched to direct TCP mode")
+            if self.sio_connected:
+                self.sio.disconnect()
             self.connect_robot()
 
     def send_via_server(self, command):
         try:
-            res = requests.post("http://localhost:5001/send", json={"command": command}, timeout=2)
-            data = res.json()
-            return data.get("response", "No response"), data.get("error", "")
+            if not self.sio_connected:
+                self.sio.connect("http://localhost:5001")
+            self.sio.emit('send_command', {'command': command})
+            return "queued", None
         except Exception as e:
             return None, str(e)
 
     def connect_robot(self):
         try:
-            self.robot = DobotTCP()
-            self.robot.connect()
-            self.robot.enable_robot()
+            self.robot = Dobot()
+            self.robot.Connect()
+            self.robot.EnableRobot()
             self.set_status("Robot connected and enabled")
             print("[ROBOT] Connected and enabled")
         except Exception as e:
@@ -197,6 +250,7 @@ class ControlPanel(tk.Tk):
         self.send_robot_command(match)
 
     def send_robot_command(self, command):
+        print(command)
         if self.use_server.get():
             if isinstance(command, str):
                 resp, err = self.send_via_server(f"{command}()")
@@ -229,11 +283,14 @@ class ControlPanel(tk.Tk):
 
     def toggle_settings_panel(self, event=None):
         self.expanded = not self.expanded
-        self.geometry(GUI_EXTENDED if self.expanded else GUI_SIZE)
         if self.expanded:
+            self.geometry(GUI_EXTENDED)
             self.settings_frame.grid()
+            self.server_toggle_frame.grid()
         else:
+            self.geometry(GUI_SIZE)
             self.settings_frame.grid_remove()
+            self.server_toggle_frame.grid_remove()
 
     def get_serial_ports(self):
         ports = [p.device for p in serial.tools.list_ports.comports()]
