@@ -24,7 +24,13 @@ flex_state = 0  # start at neutral
 pygame.init()
 pygame.joystick.init()
 
-sio = socketio.Client()
+sio = socketio.Client(
+    reconnection=True,
+    reconnection_attempts=5,      # Retry a few times only
+    reconnection_delay=1,         # 1 second between retries
+    reconnection_delay_max=3,     # Max 3 seconds delay
+    randomization_factor=0.1      # Small jitter to avoid sync issues
+)
 
 def set_status(message):
     root.after(0, lambda: status_var.set(message))
@@ -36,6 +42,10 @@ def connect():
 @sio.event
 def disconnect():
     set_status("WebSocket disconnected")
+
+@sio.event
+def reconnect():
+    set_status("WebSocket reconnecting...")
 
 @sio.on('queued')
 def on_queued(data):
@@ -57,13 +67,16 @@ def is_server_running(url="http://localhost:5001"):
         return False
 
 def connect_ws():
-    if not is_server_running():
-        set_status("Server not reachable - WebSocket not connected")
-        return
-    try:
-        sio.connect('http://localhost:5001')
-    except Exception as e:
-        set_status(f"WS connect error: {e}")
+    while True:
+        try:
+            if not sio.connected:
+                sio.connect('http://localhost:5001')
+            # Stay connected — wait here while connected
+            while sio.connected:
+                time.sleep(1)
+        except Exception as e:
+            set_status(f"WS connect failed: {e}")
+            time.sleep(3)  # wait a bit before retrying
 
 def on_toggle_mode():
     global robot, servo, flex

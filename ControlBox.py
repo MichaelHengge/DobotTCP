@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
@@ -8,7 +9,6 @@ import threading
 import sys
 import serial
 from DobotTCP import Dobot
-import requests
 import socketio
 
 BUTTONS = [
@@ -47,12 +47,21 @@ class ControlPanel(tk.Tk):
         self.robot = None
 
         # Socket.IO client
-        self.sio = socketio.Client()
+        self.sio = socketio.Client(
+            reconnection=True,
+            reconnection_attempts=5,      # Retry a few times only
+            reconnection_delay=1,         # 1 second between retries
+            reconnection_delay_max=3,     # Max 3 seconds delay
+            randomization_factor=0.1      # Small jitter to avoid sync issues
+        )
         self.sio_connected = False
+        self.command_buffer = []
         self.setup_socketio_events()
 
         if not self.use_server.get():
             self.after(100, self.connect_robot)
+        else:
+            self.start_socketio()
 
         self.buttons = {}
         self.button_images = {}
@@ -68,27 +77,50 @@ class ControlPanel(tk.Tk):
 
         self.bind("<F3>", self.toggle_settings_panel)
         self.bind("<Unmap>", self.on_minimize)  # minimize to tray only
-
+        
     def setup_socketio_events(self):
         @self.sio.event
         def connect():
             self.sio_connected = True
             self.set_status("WebSocket connected")
+            if self.command_buffer:
+                cmd = self.command_buffer.pop(0)
+                try:
+                    self.sio.emit('send_command', {'command': cmd})
+                except Exception as e:
+                    self.set_status(f"[WS ERROR] Failed to send buffered command: {e}")
 
         @self.sio.event
         def disconnect():
             self.sio_connected = False
             self.set_status("WebSocket disconnected")
 
+        @self.sio.event
+        def reconnect():
+            self.set_status("WebSocket reconnecting...")
+
         @self.sio.on('command_response')
         def on_command_response(data):
-            # Optional: handle responses
+            # Optional: process command responses here
             pass
 
         @self.sio.on('queued')
         def on_queued(data):
-            # Optional: handle queued confirmation
+            # Optional: process queued confirmations here
             pass
+
+    def start_socketio(self):
+        def connect_loop():
+            while True:
+                try:
+                    if not self.sio.connected:
+                        self.sio.connect("http://localhost:5001")
+                    while self.sio.connected:
+                        time.sleep(1)
+                except Exception as e:
+                    self.set_status(f"SocketIO connect failed: {e}")
+                    time.sleep(2)  # Short retry wait for local
+        threading.Thread(target=connect_loop, daemon=True).start()
 
     def refresh_ports(self):
         ports = self.get_serial_ports()
@@ -190,12 +222,11 @@ class ControlPanel(tk.Tk):
             if self.robot:
                 try:
                     self.robot.Disconnect()
-                    print("[ROBOT] Disconnected due to server mode")
                 except:
                     pass
                 self.robot = None
             if not self.sio_connected:
-                threading.Thread(target=lambda: self.sio.connect("http://localhost:5001"), daemon=True).start()
+                self.start_socketio()
         else:
             self.set_status("Switched to direct TCP mode")
             if self.sio_connected:
@@ -203,12 +234,19 @@ class ControlPanel(tk.Tk):
             self.connect_robot()
 
     def send_via_server(self, command):
+        if not self.sio_connected or not self.sio.connected:
+            # Buffer only the latest command; replace previous
+            if self.command_buffer:
+                self.command_buffer[0] = command
+            else:
+                self.command_buffer.append(command)
+            self.set_status("WebSocket not connected, buffering command")
+            return None, "Not connected"
         try:
-            if not self.sio_connected:
-                self.sio.connect("http://localhost:5001")
             self.sio.emit('send_command', {'command': command})
             return "queued", None
         except Exception as e:
+            self.set_status(f"[WS ERROR] {e}")
             return None, str(e)
 
     def connect_robot(self):
