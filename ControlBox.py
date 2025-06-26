@@ -22,10 +22,10 @@ BUTTONS = [
 COMMAND_OPTIONS = [
     ("None", None),
     ("Clear Error", "ClearError"),
-    ("Home", "Home"),
-    ("Pick", "pick"),
     ("Place", ("MoveJJ", (9, -47, -70, 26, 91, -2))),
-    ("Emergency Stop", "stop")
+    ("Welcom", ("SayHi", (20, True))), 
+    ("Say Hi!", "SayHi"), 
+    ("Say Bye", "SayBye"), 
     # ("Move To Position", ("MoveJJ", (100, 200, 150)))  # Example with parameters
 ]
 

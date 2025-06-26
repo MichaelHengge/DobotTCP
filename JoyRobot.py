@@ -17,7 +17,7 @@ robot = None
 flex = None
 servo = None
 
-current_tool = "flex"  # "sucker" or "flex", "servo"
+current_tool = "sucker"  # "sucker" or "flex", "servo"
 flex_state = 0  # start at neutral
 
 # Initialize pygame

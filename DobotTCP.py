@@ -3292,6 +3292,91 @@ class Dobot:
         if self.debugLevel > 1: print(f"  Parsing robot type {type}\n    ", end="")
         return self.robot_types.get(type, "Unknown robot type. Check the TCP protocol for further info.")
 
+    # Testing functions
+
+    def SayHi(self, delay:int=1, reverse:bool=False) -> str:
+        """
+        Picks up the hi sign and returns it.
+
+        Args:
+            delay (int): Time (s) to wait before returning sign. Default is 1.
+            reverse (bool): Reverse direction. Default is False.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            SayHi(1)
+        """
+        if self.debugLevel > 1: print(f"  Picking up Hi sign\n    ", end="")
+        # pickup hi
+        self.MoveJJ(285, 0, -135, 45, 90, -104) # above sign
+        time.sleep(1)
+        self.MoveJJ(284, -41.5039, -142.8317, 95.0233, 90, -104) # contact sign
+        time.sleep(2)
+        self.SetSucker(1)
+        time.sleep(2)
+        self.MoveJJ(285, 0, -135, 45, 90, -104) # above sign
+        # Wave
+        rv = 180 if reverse else 0
+        self.MoveJJ(0+rv, 5.6, -52.9, -32.2, 87.8, 11.8)
+        self.MoveJJ(0+rv, 5.6, -52.9, 32.2, 87.8, 11.8)
+        self.MoveJJ(90+rv, 30, -60, -10, 0, 0)
+        self.MoveJJ(90+rv, 60, -30, 30, 0, 0)
+        self.MoveJJ(90+rv, 0, -60, -10, 0, 0)
+        self.MoveJJ(90+rv, 60, -30, 30, 0, 0)
+        self.MoveJJ(90+rv, 0, 0, 0, 0, -30)
+        time.sleep(delay)
+        # return hi
+        self.MoveJJ(285, 0, -135, 45, 90, -104) # above sign
+        time.sleep(1)
+        self.MoveJJ(284, -41.5039, -142.8317, 95.0233, 90, -104) # contact sign
+        time.sleep(2)
+        self.SetSucker(0)
+        time.sleep(2)
+        self.MoveJJ(285, 0, -135, 45, 90, -104) # above sign
+
+    def SayBye(self, delay:int=1, reverse:bool=False) -> str:
+        """
+        Picks up the bye sign and returns it.
+
+        Args:
+            delay (int): Time (s) to wait before returning sign. Default is 1.
+            reverse (bool): Reverse direction. Default is False.
+
+        Returns:
+            The response from the robot.
+
+        Example:
+            SayBye(1)
+        """
+        if self.debugLevel > 1: print(f"  Picking up Bye sign\n    ", end="")
+        # pickup bye
+        self.MoveJJ(122, 0, -135, 45, 90, -104) # above sign
+        time.sleep(1)
+        self.MoveJJ(122, -41.5039, -142.8317, 95.0233, 90, -104) # contact sign
+        time.sleep(2)
+        self.SetSucker(1)
+        time.sleep(3)
+        self.MoveJJ(122, 0, -135, 45, 90, -104) # above sign
+        # Wiggle
+        rv = 180 if reverse else 0
+        self.MoveJJ(0+rv, 0, -50, -20, 90, 130)
+        self.MoveJJ(0+rv, 0, -50, 50, 90, 130)
+        self.MoveJJ(90+rv, 0, 50, -50, 0, 130)
+        self.MoveJJ(90+rv, 30, -50, 50, 0, 100)
+        self.MoveJJ(90+rv, 0, 50, -50, 0, 130)
+        self.MoveJJ(90+rv, 30, -50, 50, 0, 100)
+        self.MoveJJ(90+rv, 0, 0, 0, 0, 130)
+        time.sleep(delay)
+        # return bye
+        self.MoveJJ(122, 0, -135, 45, 90, -104) # above sign
+        time.sleep(1)
+        self.MoveJJ(122, -41.5039, -142.8317, 95.0233, 90, -104) # contact sign
+        time.sleep(2)
+        self.SetSucker(0)
+        time.sleep(2)
+        self.MoveJJ(122, 0, -135, 45, 90, -104) # above sign
 
 
 # Class for the flexible gripper
