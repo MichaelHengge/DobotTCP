@@ -4,7 +4,6 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from PIL import Image, ImageDraw, ImageTk, ImageEnhance
 import serial.tools.list_ports  # pip install pyserial
-import pystray
 import threading
 import sys
 import serial
@@ -30,7 +29,7 @@ COMMAND_OPTIONS = [
 ]
 
 GUI_SIZE = "900x250"
-GUI_EXTENDED = "900x600"
+GUI_EXTENDED = "900x520"
 BUTTON_SIZE = 90
 BORDER_SIZE = 10
 
@@ -39,7 +38,7 @@ class ControlPanel(tk.Tk):
         super().__init__()
         self.title("Dobot Control Panel")
         self.configure(bg="#efefef")
-        self.geometry(GUI_SIZE)
+        self.geometry(GUI_EXTENDED)
         self.resizable(False, False)
         self.expanded = False
 
@@ -76,7 +75,6 @@ class ControlPanel(tk.Tk):
         self.create_ui()
 
         self.bind("<F3>", self.toggle_settings_panel)
-        self.bind("<Unmap>", self.on_minimize)  # minimize to tray only
         
     def setup_socketio_events(self):
         @self.sio.event
@@ -174,7 +172,6 @@ class ControlPanel(tk.Tk):
         # Serial Settings groupbox
         self.settings_frame = tk.LabelFrame(self, text="Serial Settings", bg="#efefef")
         self.settings_frame.grid(row=3, column=0, columnspan=9, pady=(30, 0), padx=10, sticky="ew")
-        self.settings_frame.grid_remove()
 
         self.port_var = tk.StringVar()
         self.baud_var = tk.StringVar(value="115200")
@@ -212,9 +209,6 @@ class ControlPanel(tk.Tk):
             onvalue=True,
             offvalue=False
         ).pack(anchor="w", padx=10, pady=5)
-
-        self.settings_frame.grid_remove()
-        self.server_toggle_frame.grid_remove()
 
     def on_toggle_mode(self):
         if self.use_server.get():
@@ -322,13 +316,13 @@ class ControlPanel(tk.Tk):
     def toggle_settings_panel(self, event=None):
         self.expanded = not self.expanded
         if self.expanded:
-            self.geometry(GUI_EXTENDED)
-            self.settings_frame.grid()
-            self.server_toggle_frame.grid()
-        else:
             self.geometry(GUI_SIZE)
             self.settings_frame.grid_remove()
             self.server_toggle_frame.grid_remove()
+        else:
+            self.geometry(GUI_EXTENDED)
+            self.settings_frame.grid()
+            self.server_toggle_frame.grid()
 
     def get_serial_ports(self):
         ports = [p.device for p in serial.tools.list_ports.comports()]
@@ -384,34 +378,6 @@ class ControlPanel(tk.Tk):
     def set_status(self, message):
         self.status_var.set(f"Status: {message}")
 
-    def on_minimize(self, event):
-        if self.state() == "iconic":
-            self.after(200, self.minimize_to_tray)
-
-    def minimize_to_tray(self):
-        if self.tray_icon is not None:
-            return  # already minimized
-
-        self.withdraw()
-        image = self.create_tray_icon_image()
-        menu = pystray.Menu(
-            pystray.MenuItem("Restore", self.restore_window),
-            pystray.MenuItem("Exit", self.exit_app)
-        )
-        self.tray_icon = pystray.Icon("dobot_gui", image, "Dobot Control Panel", menu)
-
-        def run_icon():
-            self.tray_icon.run()
-            self.tray_icon = None  # reset when closed
-
-        threading.Thread(target=run_icon, daemon=True).start()
-
-    def restore_window(self, icon=None, item=None):
-        if self.tray_icon:
-            self.tray_icon.stop()
-            self.tray_icon = None
-        self.deiconify()
-
     def exit_app(self, icon=None, item=None):
         self.serial_running = False
         if self.serial_port and self.serial_port.is_open:
@@ -420,12 +386,6 @@ class ControlPanel(tk.Tk):
             self.tray_icon.stop()
         self.destroy()
         sys.exit()
-
-    def create_tray_icon_image(self):
-        img = Image.new("RGB", (64, 64), "white")
-        draw = ImageDraw.Draw(img)
-        draw.ellipse((8, 8, 56, 56), fill="black")
-        return img
 
 if __name__ == "__main__":
     app = ControlPanel()
