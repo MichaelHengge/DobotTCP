@@ -3538,21 +3538,21 @@ class ServoGripper:
             GetState()
         """
         if self.robot.debugLevel > 1: print(f"  Getting servo gripper state\n    ", end="")
-        output1 = self.robot.GetDO(self.DIout1)
-        output2 = self.robot.GetDO(self.DIout2)
+        output1 = self.robot.DI(self.DIout1)
+        output2 = self.robot.DI(self.DIout2)
         match (output1, output2):
             case (0,0):
-                print("    Fingers are in motion")
+                if self.robot.debugLevel > 1: print("    Fingers are in motion")
                 return "Fingers are in motion"
             case (1,0):
-                print("    Fingers are at reference position, No object detected or object has been dropped")
+                if self.robot.debugLevel > 1: print("    Fingers are at reference position, No object detected or object has been dropped")
                 return "Fingers are at reference position, No object detected or object has been dropped"
             case (0,1):
-                print("    Fingers have stopped due to an object detection")
+                if self.robot.debugLevel > 1: print("    Fingers have stopped due to an object detection")
                 return "Fingers have stopped due to an object detection"
             case (1,1):
-                print("    Fingers are holding an object")
-                return "Unknown state"
+                if self.robot.debugLevel > 1: print("    Fingers are holding an object")
+                return "Fingers are holding an object"
 
 
 # Class to receive feedback from the robot
