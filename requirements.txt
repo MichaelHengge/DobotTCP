@@ -1,10 +1,1 @@
-flask
-flask-socketio
-pyserial
-pygame
-pillow
-pystray
-requests
-python-socketio[client]
-pyspacemouse
-keyboard
+multipledispatch
