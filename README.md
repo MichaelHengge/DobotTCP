@@ -49,7 +49,7 @@ print(f"  Response: {rsp}")
 print(f"  Command: {cmd}")
 
 # Move robot with joint motion to pose
-robot.MovJ("pose={200,200,200,0,0,0}")
+robot.MovJ("pose={0,0,0,0,0,0}")
 
 # Home robot
 robot.Home()
@@ -116,6 +116,7 @@ print(feedback.data.get("RobotType"))
 - v1.1.1 (27.01.2025): Various bug fixes
 - v1.1.2 (31.01.2025): Fixes bugs when parsing robot responses
 - v1.1.3 (16.06.2025): Fixes bug with incorrect __init__ file
+- v1.1.4 (27.06.2025): Fixes bugs with Flexgripper class
 
 ## Contributing
 
