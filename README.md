@@ -2,15 +2,6 @@
 
 DobotTCP is a Python library to control the Dobot  robot range via its TCP interface. The library provides functions for managing motion, I/O, and configuration of the Dobot robot. It was specially developed with the Dobot MagicianE6 in mind.
 
-<p align="center">
-<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FMichaelHengge%2FDobotTCP&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
-<img src="https://img.shields.io/github/license/MichaelHengge/DobotTCP?style=round-square">
-<img src="https://img.shields.io/github/stars/MichaelHengge/DobotTCP?style=round-square">
-<img src="https://img.shields.io/github/forks/MichaelHengge/DobotTCP?style=round-square">
-<img src="https://img.shields.io/github/issues/MichaelHengge/DobotTCP?style=round-square">
-<a href="https://www.pepy.tech/projects/DobotTCP" target="_blank"><img src="https://static.pepy.tech/badge/DobotTCP"></a>
-</p>
-
 ## Installation
 
 Install the library via pip:
@@ -117,7 +108,7 @@ print(feedback.data.get("RobotType"))
 - v1.1.2 (31.01.2025): Fixes bugs when parsing robot responses
 - v1.1.3 (16.06.2025): Fixes bug with incorrect __init__ file
 - v1.1.4 (27.06.2025): Fixes bugs with Flexgripper class
-- v1.1.5 (15.01.2026): Fixes typos in relative motion commands (Mel -> Rel)
+- v1.1.5 (15.01.2026): Fixes typos in relative motion commands
 
 ## Contributing
 

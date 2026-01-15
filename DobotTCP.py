@@ -9,7 +9,7 @@ Author:
     Dr. Michael Hengge
 
 Version:
-    1.1.1 (27.01.2025)
+    1.1.5 (15.01.2026)
 
 Classes:
     Dobot: A class for controlling the Dobot robot arms using TCP/IP communication.
