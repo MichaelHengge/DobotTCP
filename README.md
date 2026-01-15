@@ -117,6 +117,7 @@ print(feedback.data.get("RobotType"))
 - v1.1.2 (31.01.2025): Fixes bugs when parsing robot responses
 - v1.1.3 (16.06.2025): Fixes bug with incorrect __init__ file
 - v1.1.4 (27.06.2025): Fixes bugs with Flexgripper class
+- v1.1.5 (15.01.2026): Fixes typos in relative motion commands (Mel -> Rel)
 
 ## Contributing
 
