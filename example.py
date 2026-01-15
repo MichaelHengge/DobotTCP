@@ -20,4 +20,7 @@ print(robot.ParseRobotMode(mode))
 for key, value in feedback.data.items():
     print(f"{key}: {value}")
 
-robot.Disconnect()
+res = robot.RelJointMovJ(100.0,0.0,0.0,0.0,0.0,0.0)
+print(res)
+
+#robot.Disconnect()

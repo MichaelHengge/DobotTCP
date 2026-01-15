@@ -2273,7 +2273,7 @@ class Dobot:
             RelMovJTool(10,10,10,0,0,0)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"RelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
     def RelMovJTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
@@ -2300,7 +2300,7 @@ class Dobot:
             RelMovJTool(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.SendCommand(f"MelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"RelMovJTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
@@ -2322,7 +2322,7 @@ class Dobot:
             RelMovLTool(10,10,10,0,0,0)
         """
         if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"RelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
     def RelMovLTool(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
@@ -2351,7 +2351,7 @@ class Dobot:
             RelMovLTool(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.SendCommand(f"MelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"RelMovLTool({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovJUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
@@ -2373,7 +2373,7 @@ class Dobot:
             RelMovJUser(10,10,10,0,0,0)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"RelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int)
     def RelMovJUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
@@ -2400,7 +2400,7 @@ class Dobot:
             RelMovJUser(10,10,10,0,0,0,0,0,50,100,50)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.SendCommand(f"MelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"RelMovJUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     @dispatch(float, float, float, float, float, float)
     def RelMovLUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
@@ -2422,7 +2422,7 @@ class Dobot:
             RelMovLUser(10,10,10,0,0,0)
         """
         if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
-        return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
+        return self.SendCommand(f"RelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz})")
 
     @dispatch(float, float, float, float, float, float, int, int, int, int, int, int, int)
     def RelMovLUser(self, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float, user:int, tool:int, a:int, v:int, speed:int, cp:int, r:int) -> tuple[str, str, str]:
@@ -2451,7 +2451,7 @@ class Dobot:
             RelMovLUser(10,10,10,0,0,0,0,0,50,100,50,0,0)
         """
         if self.debugLevel > 0: print(f"  Linear move robot to offset ({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz}) with user {user}, tool {tool}, acceleration {a}, v {v}, speed {speed}, continuos path {cp}, radius {r}")
-        return self.SendCommand(f"MelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
+        return self.SendCommand(f"RelMovLUser({offsetX},{offsetY},{offsetZ},{offsetRx},{offsetRy},{offsetRz},user={user},tool={tool},a={a},V0{v},speed={speed},cp={cp},r={r})")
 
     @dispatch(float, float, float, float, float, float)
     def RelJointMovJ(self, offset1:float, offset2:float, offset3:float, offset4:float, offset5:float, offset6:float) -> tuple[str, str, str]:
@@ -2473,7 +2473,7 @@ class Dobot:
             RelJointMovJ(10,10,10,10,10,10)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
-        return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
+        return self.SendCommand(f"RelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6})")
 
     @dispatch(float, float, float, float, float, float, int, int, int)
     def RelJointMovJ(self, offset1:float, offset2:float, offset3:float, offset4:float, offset5:float, offset6:float, user:int, tool:int, a:int, v:int, cp:int) -> tuple[str, str, str]:
@@ -2500,7 +2500,7 @@ class Dobot:
             RelJointMovJ(10,10,10,10,10,10,0,0,50,100,50)
         """
         if self.debugLevel > 0: print(f"  Joint move robot to offset ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6}) with user {user}, tool {tool}, acceleration {a}, v {v}, continuos path {cp}")
-        return self.SendCommand(f"MelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
+        return self.SendCommand(f"RelJointMovJ({offset1},{offset2},{offset3},{offset4},{offset5},{offset6},user={user},tool={tool},a={a},v={v},cp={cp})")
 
     def RelPointTool(self, P:str, offsetX:float, offsetY:float, offsetZ:float, offsetRx:float, offsetRy:float, offsetRz:float) -> tuple[str, str, str]:
         """
